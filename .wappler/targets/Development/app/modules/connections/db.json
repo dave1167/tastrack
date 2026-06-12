@@ -1,0 +1,15 @@
+{
+  "name": "db",
+  "module": "dbconnector",
+  "action": "connect",
+  "options": {
+    "client": "mysql2",
+    "connection": {
+      "host": "localhost",
+      "port": 3307,
+      "user": "root",
+      "password": "%Joanne@01",
+      "database": "task_tracker"
+    }
+  }
+}

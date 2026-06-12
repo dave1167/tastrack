@@ -1,0 +1,15 @@
+{
+  "routes": [
+    {
+      "path": "/",
+      "page": "index",
+      "layout": "main",
+      "routeType": "page"
+    },
+    {
+      "path": "/login/login",
+      "page": "login/login",
+      "layout": "main"
+    }
+  ]
+}
