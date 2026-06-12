@@ -3,12 +3,25 @@
     {
       "path": "/",
       "page": "index",
-      "layout": "main",
-      "routeType": "page"
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security"
+      }
     },
     {
       "path": "/login/login",
       "page": "login/login",
+      "layout": "main"
+    },
+    {
+      "path": "/unauthorised",
+      "page": "unauthorised",
+      "layout": "main"
+    },
+    {
+      "path": "/unauthorized",
+      "page": "unauthorised",
       "layout": "main"
     }
   ]

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <base href="/">
+    <script src="/dmxAppConnect/dmxAppConnect.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TasTrack</title>
+
+    <link rel="stylesheet" href="/bootstrap/5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="/dmxAppConnect/dmxRouting/dmxRouting.js" defer></script>
+    <script src="/dmxAppConnect/dmxBootstrap5Navigation/dmxBootstrap5Navigation.js" defer></script>
+</head>
+
+<body is="dmx-app" id="main_shell" class="shell-app">
+    <header class="navbar shell-navbar sticky-top">
+        <div class="container-fluid px-3 px-lg-4">
+            <button class="shell-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open menu">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <a class="shell-brand" href="/">
+                <img class="shell-logo-img" src="/uploads/tastrack_logo.png" alt="TasTrack">
+                <span class="shell-brand-copy">
+                    <span class="shell-logo-text">TasTrack</span>
+                    <span class="shell-logo-subtext">Workflow control</span>
+                </span>
+            </a>
+
+            <div class="shell-actions ms-auto">
+                <button class="shell-icon-btn" type="button" aria-label="Search">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="shell-icon-btn" type="button" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <div class="shell-user-chip">
+                    <span class="shell-user-avatar" aria-hidden="true">OP</span>
+                    <span class="shell-user-name d-none d-sm-inline">Operations</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="shell-body">
+        <aside class="shell-sidebar-holder">
+            <nav class="offcanvas-lg offcanvas-start shell-sidebar" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
+                <div class="offcanvas-header shell-sidebar-header">
+                    <div>
+                        <h5 class="offcanvas-title shell-sidebar-title" id="appSidebarLabel">Navigation</h5>
+                        <p class="shell-sidebar-caption mb-0">Workflows and admin</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar" aria-label="Close"></button>
+                </div>
+
+                <div class="offcanvas-body shell-sidebar-body">
+                    <div class="shell-tenant-card">
+                        <span class="shell-kicker">Workspace</span>
+                        <span class="shell-tenant-name">Current tenant</span>
+                    </div>
+
+                    <div class="shell-section-label">Work</div>
+                    <a class="shell-nav-link" href="/">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a class="shell-nav-link" href="/workflows">
+                        <i class="fas fa-route"></i>
+                        <span>Workflows</span>
+                    </a>
+                    <a class="shell-nav-link" href="/tasks">
+                        <i class="fas fa-tasks"></i>
+                        <span>Tasks</span>
+                    </a>
+                    <a class="shell-nav-link" href="/contacts">
+                        <i class="fas fa-address-book"></i>
+                        <span>Contacts</span>
+                    </a>
+                    <a class="shell-nav-link" href="/documents">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Documents</span>
+                    </a>
+
+                    <div class="shell-section-label">Setup</div>
+                    <a class="shell-nav-link" href="/templates">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Templates</span>
+                    </a>
+                    <a class="shell-nav-link" href="/automation">
+                        <i class="fas fa-bolt"></i>
+                        <span>Automation</span>
+                    </a>
+                    <a class="shell-nav-link" href="/reports">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reports</span>
+                    </a>
+
+                    <div class="shell-section-label">Admin</div>
+                    <a class="shell-nav-link" href="/users">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Users &amp; roles</span>
+                    </a>
+                    <a class="shell-nav-link" href="/settings">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a class="shell-nav-link" href="/billing">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Billing</span>
+                    </a>
+
+                    <div class="shell-sidebar-footer">
+                        <a class="shell-nav-link shell-nav-link-muted" href="/login/login">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Sign out</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="shell-content" is="dmx-view" id="content">
+            <div class="shell-content-inner">
+                <%- await include(content, locals); %>
+            </div>
+        </main>
+    </div>
+
+    <script src="/bootstrap/5/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentPath = window.location.pathname.toLowerCase();
+
+            document.querySelectorAll('.shell-nav-link[href]').forEach(function (link) {
+                const href = link.getAttribute('href').toLowerCase();
+                const isDashboard = href === '/' && currentPath === '/';
+                const isSection = href !== '/' && currentPath.startsWith(href);
+
+                if (isDashboard || isSection) {
+                    link.classList.add('active');
+                    link.setAttribute('aria-current', 'page');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "security",
+  "module": "auth",
+  "action": "provider",
+  "options": {
+    "secret": "G90xly1yhwXf3Br",
+    "provider": "Database",
+    "connection": "db",
+    "users": {
+      "table": "tbl_users",
+      "identity": "id",
+      "username": "email",
+      "password": "passwordHash"
+    },
+    "permissions": {}
+  },
+  "meta": [
+    {
+      "name": "identity",
+      "type": "text"
+    }
+  ]
+}

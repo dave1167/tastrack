@@ -1,0 +1,20 @@
+{
+  "bootstrap5": {
+    "basic": {
+      "theme": "Greyson",
+      "primary": "#43f4e3",
+      "secondary": "#ea88dd",
+      "success": "#88f4ba",
+      "danger": "#cc330d",
+      "info": "#5c8f94",
+      "warning": "#6e9fa5",
+      "light": "#eceeec",
+      "dark": "#1e2b37",
+      "link-color": "#007bff",
+      "headings-font-family": "Oswald",
+      "font-family-base": "Muli",
+      "enable-rounded": false
+    },
+    "advanced": {}
+  }
+}
