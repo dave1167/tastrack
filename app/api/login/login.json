@@ -37,7 +37,8 @@
           }
         },
         "output": true,
-        "outputType": "array"
+        "outputType": "array",
+        "collapsed": true
       },
       {
         "name": "loginRoute",
@@ -56,7 +57,9 @@
           }
         },
         "output": true,
-        "outputType": "array"
+        "outputType": "array",
+        "meta": [],
+        "collapsed": true
       },
       {
         "name": "USER_ID",
@@ -131,10 +134,11 @@
         }
       },
       {
+        "name": "redirectAfterLogin",
         "module": "core",
         "action": "redirect",
         "options": {
-          "url": "{{loginRoute[0].redirectUrl}}",
+          "url": "{{loginRoute[0].redirectUrl.default('/unauthorised')}}",
           "status": 302
         }
       }

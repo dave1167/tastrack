@@ -14,7 +14,9 @@
         "options": {
           "value": "{{$_SESSION.USER_ID}}"
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "text"
       },
       {
         "name": "TENANT_ID",
@@ -23,7 +25,9 @@
         "options": {
           "value": "{{$_SESSION.TENANT_ID}}"
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "text"
       },
       {
         "name": "ROLE_ID",
@@ -32,7 +36,9 @@
         "options": {
           "value": "{{$_SESSION.ROLE_ID}}"
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "text"
       },
       {
         "name": "TENANT_NAME",
@@ -41,7 +47,9 @@
         "options": {
           "value": "{{$_SESSION.TENANT_NAME}}"
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "text"
       },
       {
         "name": "FNAME",
@@ -50,7 +58,9 @@
         "options": {
           "value": "{{$_SESSION.FNAME}}"
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "text"
       },
       {
         "name": "LNAME",
@@ -59,7 +69,9 @@
         "options": {
           "value": "{{$_SESSION.LNAME}}"
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "text"
       },
       {
         "name": "DISPLAY_NAME",
@@ -68,7 +80,9 @@
         "options": {
           "value": "{{$_SESSION.DISPLAY_NAME}}"
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "text"
       },
       {
         "name": "ROLE_NAME",
@@ -77,7 +91,9 @@
         "options": {
           "value": "{{$_SESSION.ROLE_NAME}}"
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "text"
       },
       {
         "name": "ROLE_KEY",
@@ -86,7 +102,9 @@
         "options": {
           "value": "{{$_SESSION.ROLE_KEY}}"
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "text"
       }
     ]
   }

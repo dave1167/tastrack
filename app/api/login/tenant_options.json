@@ -6,42 +6,119 @@
     }
   },
   "exec": {
-    "steps": {
-      "name": "query",
-      "module": "dbupdater",
-      "action": "custom",
-      "options": {
-        "connection": "db",
-        "sql": {
-          "query": "SELECT t.id AS tenantId, t.tenantName, COUNT(utr.roleId) AS roleCount, GROUP_CONCAT(r.roleName ORDER BY r.roleName SEPARATOR ', ') AS roleNames FROM tbl_user_tenant_roles utr INNER JOIN tbl_tenants t ON t.id = utr.tenantId INNER JOIN tbl_roles r ON r.id = utr.roleId WHERE utr.userId = :userId AND utr.status = 'active' GROUP BY t.id, t.tenantName ORDER BY t.tenantName ASC",
-          "params": [
-            {
-              "name": ":userId",
-              "value": "{{USER_ID}}"
-            }
-          ]
-        }
+    "steps": [
+      {
+        "name": "",
+        "module": "core",
+        "action": "setvalue",
+        "options": {},
+        "meta": [],
+        "outputType": "text"
       },
-      "output": true,
-      "outputType": "array",
-      "meta": [
-        {
-          "name": "tenantId",
-          "type": "number"
+      {
+        "name": "query",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "select",
+            "distinct": false,
+            "columns": [
+              {
+                "table": "tbl_tenants",
+                "column": "id",
+                "field": "tbl_tenants.id"
+              },
+              {
+                "table": "tbl_tenants",
+                "column": "tenantName",
+                "field": "tbl_tenants.tenantName"
+              }
+            ],
+            "table": {
+              "name": "tbl_tenants"
+            },
+            "joins": [
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "*",
+                "type": "INNER",
+                "clauses": {
+                  "condition": "AND",
+                  "rules": [
+                    {
+                      "table": "tbl_user_tenant_roles",
+                      "column": "tenantId",
+                      "field": "tbl_user_tenant_roles.tenantId",
+                      "operation": "=",
+                      "operator": "equal",
+                      "value": {
+                        "table": "tbl_tenants",
+                        "column": "id",
+                        "field": "tbl_tenants.id"
+                      }
+                    }
+                  ]
+                },
+                "primary": "id"
+              }
+            ],
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "tbl_user_tenant_roles.userId",
+                  "field": "tbl_user_tenant_roles.userId",
+                  "type": "double",
+                  "operator": "equal",
+                  "value": "{{$_SESSION.USER_ID}}",
+                  "data": {
+                    "table": "tbl_user_tenant_roles",
+                    "column": "userId",
+                    "type": "number",
+                    "columnObj": {
+                      "type": "integer",
+                      "primary": false,
+                      "nullable": false,
+                      "name": "userId"
+                    }
+                  },
+                  "operation": "="
+                }
+              ],
+              "conditional": null,
+              "valid": true
+            },
+            "orders": [],
+            "params": [
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P1",
+                "value": "{{$_SESSION.USER_ID}}",
+                "test": "5"
+              }
+            ],
+            "primary": "id",
+            "query": "select `tbl_tenants`.`id`, `tbl_tenants`.`tenantName` from `tbl_tenants` inner join `tbl_user_tenant_roles` on `tbl_user_tenant_roles`.`tenantId` = `tbl_tenants`.`id` where `tbl_user_tenant_roles`.`userId` = ?"
+          }
         },
-        {
-          "name": "tenantName",
-          "type": "text"
-        },
-        {
-          "name": "roleCount",
-          "type": "number"
-        },
-        {
-          "name": "roleNames",
-          "type": "text"
-        }
-      ]
-    }
+        "output": true,
+        "outputType": "array",
+        "meta": [
+          {
+            "type": "number",
+            "name": "id"
+          },
+          {
+            "type": "text",
+            "name": "tenantName"
+          }
+        ],
+        "type": "dbconnector_select",
+        "collapsed": true
+      }
+    ]
   }
 }

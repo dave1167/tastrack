@@ -19,11 +19,13 @@
         "conditions": [
           {
             "column": "roleId",
-            "operator": "in",
-            "value": [
-              1,
-              2
-            ]
+            "operator": ">=",
+            "value": "1"
+          },
+          {
+            "column": "roleId",
+            "operator": "<=",
+            "value": "2"
           }
         ]
       },
@@ -49,8 +51,7 @@
           }
         ]
       }
-    },
-    "passwordVerify": true
+    }
   },
   "meta": [
     {

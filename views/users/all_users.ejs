@@ -2,6 +2,7 @@
 <dmx-query-manager id="query1"></dmx-query-manager>
 <dmx-serverconnect id="scListAllUsers" url="/api/users/list"></dmx-serverconnect>
 <div class="d-flex">
+    <p>{{scListAllUsers.data.varTenantId}}Tenant Id:</p>
     <div class="table-responsive">
         <table class="table table-striped table-bordered table-hover table-sm">
             <thead>

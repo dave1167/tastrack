@@ -36,9 +36,8 @@
                                         <label for="inp_tenant" class="form-label">Tenant</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-building"></i></span>
-                                            <select id="inp_tenant" name="tenant_id" class="form-select" required data-msg-required="Please select a tenant">
-                                                <option value="" selected disabled>Select a tenant</option>
-                                                <option dmx-repeat:tenant="scTenantOptions.data.query" dmx-bind:value="tenantId">{{tenantName}}</option>
+                                            <select id="inp_tenant" name="tenant_id" class="form-select" required="" data-msg-required="Please select a tenant" dmx-bind:options="scTenantOptions.data.query" optiontext="tenantName" optionvalue="tenantId">
+                                                <option selected="" value="">Select a tenant</option>
                                             </select>
                                         </div>
                                     </div>

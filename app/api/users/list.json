@@ -21,7 +21,7 @@
           "value": "{{$_SESSION.TENANT_ID}}"
         },
         "meta": [],
-        "outputType": "text",
+        "outputType": "number",
         "output": true
       },
       {
@@ -74,7 +74,15 @@
                 "column": "tenantName"
               }
             ],
-            "params": [],
+            "params": [
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P1",
+                "value": "{{varTenantId}}",
+                "test": ""
+              }
+            ],
             "table": {
               "name": "tbl_users"
             },
@@ -147,7 +155,33 @@
                 "primary": "id"
               }
             ],
-            "query": "select `tbl_users`.`id`, `tbl_users`.`fName`, `tbl_users`.`lName`, `tbl_users`.`displayName`, `tbl_users`.`passwordHash`, `tbl_user_tenant_roles`.`roleId`, `tbl_roles`.`description`, `tbl_roles`.`roleName`, `tbl_user_tenant_roles`.`tenantId`, `tbl_tenants`.`tenantName` from `tbl_users` inner join `tbl_user_tenant_roles` on `tbl_user_tenant_roles`.`userId` = `tbl_users`.`id` inner join `tbl_roles` on `tbl_roles`.`id` = `tbl_user_tenant_roles`.`roleId` inner join `tbl_tenants` on `tbl_tenants`.`id` = `tbl_user_tenant_roles`.`tenantId`"
+            "query": "select `tbl_users`.`id`, `tbl_users`.`fName`, `tbl_users`.`lName`, `tbl_users`.`displayName`, `tbl_users`.`passwordHash`, `tbl_user_tenant_roles`.`roleId`, `tbl_roles`.`description`, `tbl_roles`.`roleName`, `tbl_user_tenant_roles`.`tenantId`, `tbl_tenants`.`tenantName` from `tbl_users` inner join `tbl_user_tenant_roles` on `tbl_user_tenant_roles`.`userId` = `tbl_users`.`id` inner join `tbl_roles` on `tbl_roles`.`id` = `tbl_user_tenant_roles`.`roleId` inner join `tbl_tenants` on `tbl_tenants`.`id` = `tbl_user_tenant_roles`.`tenantId` where `tbl_user_tenant_roles`.`tenantId` = ?",
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "tbl_user_tenant_roles.tenantId",
+                  "field": "tbl_user_tenant_roles.tenantId",
+                  "type": "double",
+                  "operator": "equal",
+                  "value": "{{varTenantId}}",
+                  "data": {
+                    "table": "tbl_user_tenant_roles",
+                    "column": "tenantId",
+                    "type": "number",
+                    "columnObj": {
+                      "type": "integer",
+                      "primary": false,
+                      "nullable": false,
+                      "name": "tenantId"
+                    }
+                  },
+                  "operation": "="
+                }
+              ],
+              "conditional": null,
+              "valid": true
+            }
           }
         },
         "output": true,

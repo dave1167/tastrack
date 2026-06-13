@@ -47,7 +47,15 @@
     {
       "path": "/users/all_users",
       "page": "users/all_users",
-      "layout": "main_shell"
+      "layout": "main_shell",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
     }
   ],
   "layouts": {
