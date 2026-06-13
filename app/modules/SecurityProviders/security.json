@@ -12,7 +12,45 @@
       "username": "email",
       "password": "passwordHash"
     },
-    "permissions": {}
+    "permissions": {
+      "owner-admin": {
+        "table": "tbl_user_tenant_roles",
+        "identity": "userId",
+        "conditions": [
+          {
+            "column": "roleId",
+            "operator": "in",
+            "value": [
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "editor": {
+        "table": "tbl_user_tenant_roles",
+        "identity": "userId",
+        "conditions": [
+          {
+            "column": "roleId",
+            "operator": "=",
+            "value": "3"
+          }
+        ]
+      },
+      "owner": {
+        "table": "tbl_user_tenant_roles",
+        "identity": "userId",
+        "conditions": [
+          {
+            "column": "roleId",
+            "operator": "=",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "passwordVerify": true
   },
   "meta": [
     {

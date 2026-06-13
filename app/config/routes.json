@@ -2,27 +2,44 @@
   "routes": [
     {
       "path": "/",
-      "page": "index",
+      "page": "dashboard/dashboard",
       "layout": "main_shell",
       "routeType": "page",
       "restrict": {
-        "provider": "security"
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
       }
+    },
+    {
+      "path": "/login",
+      "page": "login/login",
+      "layout": "main",
+      "routeType": "page"
     },
     {
       "path": "/login/login",
       "page": "login/login",
-      "layout": "main"
+      "layout": "main",
+      "routeType": "page"
     },
     {
       "path": "/unauthorised",
       "page": "unauthorised",
-      "layout": "main"
+      "layout": "main",
+      "routeType": "page"
     },
     {
-      "path": "/unauthorized",
-      "page": "unauthorised",
-      "layout": "main"
+      "path": "/dashboard/dashboard",
+      "page": "dashboard/dashboard",
+      "layout": "main_shell",
+      "routeType": "page"
     }
-  ]
+  ],
+  "layouts": {
+    "main_shell": {}
+  }
 }

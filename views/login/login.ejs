@@ -1,5 +1,6 @@
-<!-- Wappler include head-page="layouts/main" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="login" appConnect="local" components="{dmxBootstrap5Alert:{}}" -->
-<meta name="ac:route" content="/login/login">
+<!-- Wappler include head-page="layouts/main" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="login" appConnect="local" components="{dmxBootstrap5Alert:{},dmxBrowser:{}}" -->
+<div is="dmx-browser" id="browser1"></div>
+<meta name="ac:route" content="/login">
 
 <section class="login-page py-5 py-lg-0">
     <div class="container">
@@ -24,7 +25,7 @@
                                     <p class="text-body-secondary mb-0">Use your account credentials to access your workspace.</p>
                                 </div>
 
-                                <form is="dmx-serverconnect-form" id="login_form" class="needs-validation" method="post" action="/api/auth/login" novalidate>
+                                <form id="login_form" class="needs-validation" method="post" action="/api/login/login" novalidate="">
                                     <div class="alert alert-danger" role="alert" dmx-show="login_form.state.lastError">
                                         <i class="fas fa-exclamation-circle me-2"></i>
                                         <span dmx-text="login_form.lastError.message.default('Login failed. Please check your credentials and try again.')"></span>
@@ -57,7 +58,7 @@
                                     </div>
 
                                     <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary btn-lg login-submit-btn d-inline-flex align-items-center justify-content-center gap-2" dmx-bind:disabled="login_form.state.executing"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" dmx-show="login_form.state.executing"></span><span dmx-show="!login_form.state.executing">Sign in</span><span dmx-show="login_form.state.executing">Signing in...</span></button>
+                                        <button type="submit" class="btn btn-primary btn-lg login-submit-btn d-inline-flex align-items-center justify-content-center gap-2"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" dmx-show="login_form.state.executing"></span><span dmx-show="!login_form.state.executing">Sign in</span><span dmx-show="login_form.state.executing">Signing in...</span></button>
                                     </div>
                                 </form>
                             </div>

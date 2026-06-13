@@ -1,0 +1,188 @@
+{
+  "meta": {
+    "$_GET": [
+      {
+        "type": "text",
+        "name": "sort"
+      },
+      {
+        "type": "text",
+        "name": "dir"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "query",
+      "module": "dbconnector",
+      "action": "select",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "type": "SELECT",
+          "columns": [
+            {
+              "table": "tbl_users",
+              "column": "id"
+            },
+            {
+              "table": "tbl_users",
+              "column": "fName"
+            },
+            {
+              "table": "tbl_users",
+              "column": "lName"
+            },
+            {
+              "table": "tbl_users",
+              "column": "displayName"
+            },
+            {
+              "table": "tbl_users",
+              "column": "passwordHash"
+            },
+            {
+              "table": "tbl_user_tenant_roles",
+              "column": "roleId"
+            },
+            {
+              "table": "tbl_roles",
+              "column": "description"
+            },
+            {
+              "table": "tbl_roles",
+              "column": "roleName"
+            },
+            {
+              "table": "tbl_user_tenant_roles",
+              "column": "tenantId"
+            },
+            {
+              "table": "tbl_tenants",
+              "column": "tenantName"
+            }
+          ],
+          "params": [],
+          "table": {
+            "name": "tbl_users"
+          },
+          "primary": "id",
+          "joins": [
+            {
+              "table": "tbl_user_tenant_roles",
+              "column": "*",
+              "type": "INNER",
+              "clauses": {
+                "condition": "AND",
+                "rules": [
+                  {
+                    "table": "tbl_user_tenant_roles",
+                    "column": "userId",
+                    "operator": "equal",
+                    "operation": "=",
+                    "value": {
+                      "table": "tbl_users",
+                      "column": "id",
+                      "type": "number"
+                    }
+                  }
+                ]
+              },
+              "primary": "id"
+            },
+            {
+              "table": "tbl_roles",
+              "column": "*",
+              "type": "INNER",
+              "clauses": {
+                "condition": "AND",
+                "rules": [
+                  {
+                    "table": "tbl_roles",
+                    "column": "id",
+                    "operator": "equal",
+                    "operation": "=",
+                    "value": {
+                      "table": "tbl_user_tenant_roles",
+                      "column": "roleId",
+                      "type": "number"
+                    }
+                  }
+                ]
+              },
+              "primary": "id"
+            },
+            {
+              "table": "tbl_tenants",
+              "column": "*",
+              "type": "INNER",
+              "clauses": {
+                "condition": "AND",
+                "rules": [
+                  {
+                    "table": "tbl_tenants",
+                    "column": "id",
+                    "operator": "equal",
+                    "operation": "=",
+                    "value": {
+                      "table": "tbl_user_tenant_roles",
+                      "column": "tenantId",
+                      "type": "number"
+                    }
+                  }
+                ]
+              },
+              "primary": "id"
+            }
+          ],
+          "query": "select `tbl_users`.`id`, `tbl_users`.`fName`, `tbl_users`.`lName`, `tbl_users`.`displayName`, `tbl_users`.`passwordHash`, `tbl_user_tenant_roles`.`roleId`, `tbl_roles`.`description`, `tbl_roles`.`roleName`, `tbl_user_tenant_roles`.`tenantId`, `tbl_tenants`.`tenantName` from `tbl_users` inner join `tbl_user_tenant_roles` on `tbl_user_tenant_roles`.`userId` = `tbl_users`.`id` inner join `tbl_roles` on `tbl_roles`.`id` = `tbl_user_tenant_roles`.`roleId` inner join `tbl_tenants` on `tbl_tenants`.`id` = `tbl_user_tenant_roles`.`tenantId`"
+        }
+      },
+      "output": true,
+      "meta": [
+        {
+          "type": "number",
+          "name": "id"
+        },
+        {
+          "type": "text",
+          "name": "fName"
+        },
+        {
+          "type": "text",
+          "name": "lName"
+        },
+        {
+          "type": "text",
+          "name": "displayName"
+        },
+        {
+          "type": "text",
+          "name": "passwordHash"
+        },
+        {
+          "type": "number",
+          "name": "roleId"
+        },
+        {
+          "type": "text",
+          "name": "description"
+        },
+        {
+          "type": "text",
+          "name": "roleName"
+        },
+        {
+          "type": "number",
+          "name": "tenantId"
+        },
+        {
+          "type": "text",
+          "name": "tenantName"
+        }
+      ],
+      "outputType": "array",
+      "collapsed": true
+    }
+  }
+}

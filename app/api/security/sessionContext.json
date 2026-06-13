@@ -1,0 +1,147 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "user_id",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.user_id}}"
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "value",
+            "type": "number"
+          }
+        ]
+      },
+      {
+        "name": "tenant_id",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.tenant_id}}"
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "value",
+            "type": "number"
+          }
+        ]
+      },
+      {
+        "name": "role_id",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.role_id}}"
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "value",
+            "type": "number"
+          }
+        ]
+      },
+      {
+        "name": "tenant_name",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.tenant_name}}"
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "value",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "name": "fName",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.fName}}"
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "value",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "name": "lName",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.lName}}"
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "value",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "name": "displayName",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.displayName}}"
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "value",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "name": "role_name",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.role_name}}"
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "value",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "name": "role_key",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.role_key}}"
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "value",
+            "type": "text"
+          }
+        ]
+      }
+    ]
+  }
+}
