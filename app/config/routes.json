@@ -37,6 +37,12 @@
       "page": "dashboard/dashboard",
       "layout": "main_shell",
       "routeType": "page"
+    },
+    {
+      "path": "/login/tenant",
+      "page": "login/tenant",
+      "layout": "main",
+      "routeType": "page"
     }
   ],
   "layouts": {
