@@ -1,0 +1,47 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "exec": {
+    "steps": {
+      "name": "query",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "query": "SELECT t.id AS tenantId, t.tenantName, COUNT(utr.roleId) AS roleCount, GROUP_CONCAT(r.roleName ORDER BY r.roleName SEPARATOR ', ') AS roleNames FROM tbl_user_tenant_roles utr INNER JOIN tbl_tenants t ON t.id = utr.tenantId INNER JOIN tbl_roles r ON r.id = utr.roleId WHERE utr.userId = :userId AND utr.status = 'active' GROUP BY t.id, t.tenantName ORDER BY t.tenantName ASC",
+          "params": [
+            {
+              "name": ":userId",
+              "value": "{{$_SESSION.user_id}}"
+            }
+          ]
+        }
+      },
+      "output": true,
+      "outputType": "array",
+      "meta": [
+        {
+          "name": "tenantId",
+          "type": "number"
+        },
+        {
+          "name": "tenantName",
+          "type": "text"
+        },
+        {
+          "name": "roleCount",
+          "type": "number"
+        },
+        {
+          "name": "roleNames",
+          "type": "text"
+        }
+      ]
+    }
+  }
+}

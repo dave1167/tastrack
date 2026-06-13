@@ -1,0 +1,115 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "number",
+        "name": "tenant_id"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "selectedAccess",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT utr.userId, utr.tenantId, utr.roleId, utr.isPrimary, u.fName, u.lName, u.displayName, t.tenantName, r.roleName, r.roleKey FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id = utr.userId INNER JOIN tbl_tenants t ON t.id = utr.tenantId INNER JOIN tbl_roles r ON r.id = utr.roleId WHERE utr.userId = :userId AND utr.tenantId = :tenantId AND utr.status = 'active' ORDER BY utr.isPrimary DESC, utr.roleId ASC LIMIT 1",
+            "params": [
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.user_id}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_POST.tenant_id}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "tenant_id",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{selectedAccess[0].tenantId}}"
+        }
+      },
+      {
+        "name": "role_id",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{selectedAccess[0].roleId}}"
+        }
+      },
+      {
+        "name": "tenant_name",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{selectedAccess[0].tenantName}}"
+        }
+      },
+      {
+        "name": "fName",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{selectedAccess[0].fName}}"
+        }
+      },
+      {
+        "name": "lName",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{selectedAccess[0].lName}}"
+        }
+      },
+      {
+        "name": "displayName",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{selectedAccess[0].displayName}}"
+        }
+      },
+      {
+        "name": "role_name",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{selectedAccess[0].roleName}}"
+        }
+      },
+      {
+        "name": "role_key",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{selectedAccess[0].roleKey}}"
+        }
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

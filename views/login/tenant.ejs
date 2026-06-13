@@ -1,5 +1,6 @@
 <!-- Wappler include head-page="layouts/main" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="login_tenant" appConnect="local" components="{dmxBootstrap5Alert:{},dmxBrowser:{}}" -->
 <div is="dmx-browser" id="browser1"></div>
+<dmx-serverconnect id="scTenantOptions" url="/api/login/tenant_options"></dmx-serverconnect>
 <meta name="ac:route" content="/login/tenant">
 
 <section class="login-page py-5 py-lg-0">
@@ -22,7 +23,7 @@
                             <div class="p-4 p-md-5">
                                 <div class="mb-4">
                                     <h1 class="h4 mb-2">Choose your tenant</h1>
-                                    <p class="text-body-secondary mb-0">You are a member of multiple tenants. Select one to continue.</p>
+                                    <p class="text-body-secondary mb-0">You are a member of multiple tenants. Select the workspace you want to use.</p>
                                 </div>
 
                                 <form id="tenant_form" class="needs-validation" method="post" action="/api/login/select_tenant" novalidate>
@@ -37,6 +38,7 @@
                                             <span class="input-group-text"><i class="fas fa-building"></i></span>
                                             <select id="inp_tenant" name="tenant_id" class="form-select" required data-msg-required="Please select a tenant">
                                                 <option value="" selected disabled>Select a tenant</option>
+                                                <option dmx-repeat:tenant="scTenantOptions.data.query" dmx-bind:value="tenantId">{{tenantName}}</option>
                                             </select>
                                         </div>
                                     </div>
