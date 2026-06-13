@@ -43,6 +43,11 @@
       "page": "login/tenant",
       "layout": "main",
       "routeType": "page"
+    },
+    {
+      "path": "/users/all_users",
+      "page": "users/all_users",
+      "layout": "main_shell"
     }
   ],
   "layouts": {

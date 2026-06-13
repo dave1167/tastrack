@@ -8,139 +8,85 @@
   "exec": {
     "steps": [
       {
-        "name": "user_id",
+        "name": "USER_ID",
         "module": "core",
         "action": "setvalue",
         "options": {
-          "value": "{{$_SESSION.user_id}}"
+          "value": "{{$_SESSION.USER_ID}}"
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "value",
-            "type": "number"
-          }
-        ]
+        "output": true
       },
       {
-        "name": "tenant_id",
+        "name": "TENANT_ID",
         "module": "core",
         "action": "setvalue",
         "options": {
-          "value": "{{$_SESSION.tenant_id}}"
+          "value": "{{$_SESSION.TENANT_ID}}"
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "value",
-            "type": "number"
-          }
-        ]
+        "output": true
       },
       {
-        "name": "role_id",
+        "name": "ROLE_ID",
         "module": "core",
         "action": "setvalue",
         "options": {
-          "value": "{{$_SESSION.role_id}}"
+          "value": "{{$_SESSION.ROLE_ID}}"
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "value",
-            "type": "number"
-          }
-        ]
+        "output": true
       },
       {
-        "name": "tenant_name",
+        "name": "TENANT_NAME",
         "module": "core",
         "action": "setvalue",
         "options": {
-          "value": "{{$_SESSION.tenant_name}}"
+          "value": "{{$_SESSION.TENANT_NAME}}"
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "value",
-            "type": "text"
-          }
-        ]
+        "output": true
       },
       {
-        "name": "fName",
+        "name": "FNAME",
         "module": "core",
         "action": "setvalue",
         "options": {
-          "value": "{{$_SESSION.fName}}"
+          "value": "{{$_SESSION.FNAME}}"
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "value",
-            "type": "text"
-          }
-        ]
+        "output": true
       },
       {
-        "name": "lName",
+        "name": "LNAME",
         "module": "core",
         "action": "setvalue",
         "options": {
-          "value": "{{$_SESSION.lName}}"
+          "value": "{{$_SESSION.LNAME}}"
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "value",
-            "type": "text"
-          }
-        ]
+        "output": true
       },
       {
-        "name": "displayName",
+        "name": "DISPLAY_NAME",
         "module": "core",
         "action": "setvalue",
         "options": {
-          "value": "{{$_SESSION.displayName}}"
+          "value": "{{$_SESSION.DISPLAY_NAME}}"
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "value",
-            "type": "text"
-          }
-        ]
+        "output": true
       },
       {
-        "name": "role_name",
+        "name": "ROLE_NAME",
         "module": "core",
         "action": "setvalue",
         "options": {
-          "value": "{{$_SESSION.role_name}}"
+          "value": "{{$_SESSION.ROLE_NAME}}"
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "value",
-            "type": "text"
-          }
-        ]
+        "output": true
       },
       {
-        "name": "role_key",
+        "name": "ROLE_KEY",
         "module": "core",
         "action": "setvalue",
         "options": {
-          "value": "{{$_SESSION.role_key}}"
+          "value": "{{$_SESSION.ROLE_KEY}}"
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "value",
-            "type": "text"
-          }
-        ]
+        "output": true
       }
     ]
   }

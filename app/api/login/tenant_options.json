@@ -17,7 +17,7 @@
           "params": [
             {
               "name": ":userId",
-              "value": "{{$_SESSION.user_id}}"
+              "value": "{{USER_ID}}"
             }
           ]
         }

@@ -27,7 +27,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT utr.userId, utr.tenantId, utr.roleId, utr.isPrimary, u.fName, u.lName, u.displayName, t.tenantName, r.roleName, r.roleKey FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id = utr.userId INNER JOIN tbl_tenants t ON t.id = utr.tenantId INNER JOIN tbl_roles r ON r.id = utr.roleId WHERE utr.userId = :userId AND utr.status = 'active' ORDER BY utr.isPrimary DESC, utr.tenantId ASC, utr.roleId ASC",
+            "query": "SELECT utr.userId, utr.tenantId, utr.roleId, utr.isPrimary, u.fName, u.lName, u.displayName, t.tenantName, r.roleName, r.roleKey FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id = utr.userId INNER JOIN tbl_tenants t ON t.id = utr.tenantId INNER JOIN tbl_roles r ON r.id = utr.roleId WHERE utr.userId = :userId AND utr.status = 'active' ORDER BY utr.isPrimary DESC, utr.tenantId ASC, utr.roleId ASC LIMIT 1",
             "params": [
               {
                 "name": ":userId",
@@ -40,13 +40,13 @@
         "outputType": "array"
       },
       {
-        "name": "tenantSummary",
+        "name": "loginRoute",
         "module": "dbupdater",
         "action": "custom",
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT COUNT(DISTINCT utr.tenantId) AS tenantCount FROM tbl_user_tenant_roles utr WHERE utr.userId = :userId AND utr.status = 'active'",
+            "query": "SELECT COUNT(DISTINCT utr.tenantId) AS tenantCount, CASE WHEN COUNT(DISTINCT utr.tenantId) = 0 THEN '/unauthorised' WHEN COUNT(DISTINCT utr.tenantId) > 1 THEN '/login/tenant' ELSE '/' END AS redirectUrl FROM tbl_user_tenant_roles utr WHERE utr.userId = :userId AND utr.status = 'active'",
             "params": [
               {
                 "name": ":userId",
@@ -59,7 +59,7 @@
         "outputType": "array"
       },
       {
-        "name": "user_id",
+        "name": "USER_ID",
         "module": "core",
         "action": "setsession",
         "options": {
@@ -67,7 +67,31 @@
         }
       },
       {
-        "name": "fName",
+        "name": "TENANT_ID",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{userAccess[0].tenantId}}"
+        }
+      },
+      {
+        "name": "ROLE_ID",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{userAccess[0].roleId}}"
+        }
+      },
+      {
+        "name": "TENANT_NAME",
+        "module": "core",
+        "action": "setsession",
+        "options": {
+          "value": "{{userAccess[0].tenantName}}"
+        }
+      },
+      {
+        "name": "FNAME",
         "module": "core",
         "action": "setsession",
         "options": {
@@ -75,7 +99,7 @@
         }
       },
       {
-        "name": "lName",
+        "name": "LNAME",
         "module": "core",
         "action": "setsession",
         "options": {
@@ -83,7 +107,7 @@
         }
       },
       {
-        "name": "displayName",
+        "name": "DISPLAY_NAME",
         "module": "core",
         "action": "setsession",
         "options": {
@@ -91,97 +115,27 @@
         }
       },
       {
-        "name": "noTenantCheck",
+        "name": "ROLE_NAME",
         "module": "core",
-        "action": "condition",
+        "action": "setsession",
         "options": {
-          "if": "{{tenantSummary[0].tenantCount == 0}}",
-          "then": [
-            {
-              "module": "core",
-              "action": "redirect",
-              "options": {
-                "url": "/unauthorised",
-                "status": 302
-              }
-            }
-          ]
+          "value": "{{userAccess[0].roleName}}"
         }
       },
       {
-        "name": "multiTenantCheck",
+        "name": "ROLE_KEY",
         "module": "core",
-        "action": "condition",
+        "action": "setsession",
         "options": {
-          "if": "{{tenantSummary[0].tenantCount > 1}}",
-          "then": [
-            {
-              "module": "core",
-              "action": "redirect",
-              "options": {
-                "url": "/login/tenant",
-                "status": 302
-              }
-            }
-          ]
+          "value": "{{userAccess[0].roleKey}}"
         }
       },
       {
-        "name": "singleTenantCheck",
         "module": "core",
-        "action": "condition",
+        "action": "redirect",
         "options": {
-          "if": "{{tenantSummary[0].tenantCount == 1}}",
-          "then": [
-            {
-              "name": "tenant_id",
-              "module": "core",
-              "action": "setsession",
-              "options": {
-                "value": "{{userAccess[0].tenantId}}"
-              }
-            },
-            {
-              "name": "role_id",
-              "module": "core",
-              "action": "setsession",
-              "options": {
-                "value": "{{userAccess[0].roleId}}"
-              }
-            },
-            {
-              "name": "tenant_name",
-              "module": "core",
-              "action": "setsession",
-              "options": {
-                "value": "{{userAccess[0].tenantName}}"
-              }
-            },
-            {
-              "name": "role_name",
-              "module": "core",
-              "action": "setsession",
-              "options": {
-                "value": "{{userAccess[0].roleName}}"
-              }
-            },
-            {
-              "name": "role_key",
-              "module": "core",
-              "action": "setsession",
-              "options": {
-                "value": "{{userAccess[0].roleKey}}"
-              }
-            },
-            {
-              "module": "core",
-              "action": "redirect",
-              "options": {
-                "url": "/",
-                "status": 302
-              }
-            }
-          ]
+          "url": "{{loginRoute[0].redirectUrl}}",
+          "status": 302
         }
       }
     ]
