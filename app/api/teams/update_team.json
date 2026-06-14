@@ -1,0 +1,73 @@
+{
+  "settings": {
+    "options": {
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "number",
+        "name": "id"
+      },
+      {
+        "type": "text",
+        "name": "teamName"
+      },
+      {
+        "type": "text",
+        "name": "description"
+      },
+      {
+        "type": "number",
+        "name": "isActive"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "updateTeam",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_teams SET teamName = :teamName, description = :description, isActive = :isActive WHERE id = :id AND tenantId = :tenantId",
+            "params": [
+              {
+                "name": ":teamName",
+                "value": "{{$_POST.teamName}}"
+              },
+              {
+                "name": ":description",
+                "value": "{{$_POST.description}}"
+              },
+              {
+                "name": ":isActive",
+                "value": "{{$_POST.isActive.default(1)}}"
+              },
+              {
+                "name": ":id",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/teams/teams",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

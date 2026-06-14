@@ -1,0 +1,59 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "id"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "query",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "query": "SELECT tr.id, tr.teamId, tr.`desc` AS teamRoleName, t.teamName FROM tbl_team_roles tr INNER JOIN tbl_teams t ON t.id = tr.teamId WHERE tr.id = :id AND tr.tenantId = :tenantId LIMIT 1",
+          "params": [
+            {
+              "name": ":id",
+              "value": "{{$_GET.id}}"
+            },
+            {
+              "name": ":tenantId",
+              "value": "{{$_SESSION.TENANT_ID}}"
+            }
+          ]
+        }
+      },
+      "output": true,
+      "outputType": "array",
+      "meta": [
+        {
+          "name": "id",
+          "type": "number"
+        },
+        {
+          "name": "teamId",
+          "type": "number"
+        },
+        {
+          "name": "teamRoleName",
+          "type": "text"
+        },
+        {
+          "name": "teamName",
+          "type": "text"
+        }
+      ]
+    }
+  }
+}

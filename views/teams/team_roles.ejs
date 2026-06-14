@@ -1,0 +1,69 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="team_roles" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
+<dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
+<dmx-serverconnect id="scTeamRoles" url="/api/teams/list_team_roles"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12">
+        <h1 class="mb-1">Team Roles</h1>
+        <p class="text-muted mb-0">Create roles that belong inside a team, such as Finance Assistant within Finance.</p>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Add team role</h2>
+            </div>
+            <div class="card-body">
+                <form id="frmTeamRole" method="post" action="/api/teams/add_team_role">
+                    <div class="mb-3">
+                        <label for="inp_teamId" class="form-label">Team</label>
+                        <select id="inp_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id">
+                            <option value="">Select team</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="inp_teamRoleName" class="form-label">Role name</label>
+                        <input id="inp_teamRoleName" name="teamRoleName" type="text" class="form-control" placeholder="Finance Assistant" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Team Role</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Existing team roles</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Team</th>
+                                <th>Role</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody is="dmx-repeat" dmx-bind:repeat="scTeamRoles.data.query">
+                            <tr>
+                                <td dmx-text="teamName"></td>
+                                <td dmx-text="teamRoleName"></td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-2">
+                                        <a class="btn btn-sm btn-outline-primary" dmx-bind:href="'/teams/edit_team_role?id=' + id">Edit</a>
+                                        <a class="btn btn-sm btn-outline-danger" dmx-bind:href="'/teams/delete_team_role?id=' + id">Delete</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/teams/team_roles">

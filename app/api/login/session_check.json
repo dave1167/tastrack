@@ -1,0 +1,39 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "USER_ID",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.USER_ID}}"
+        },
+        "output": true
+      },
+      {
+        "name": "SECURITY_ID",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.securityId}}"
+        },
+        "output": true
+      },
+      {
+        "name": "TENANT_ID",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.TENANT_ID}}"
+        },
+        "output": true
+      }
+    ]
+  }
+}

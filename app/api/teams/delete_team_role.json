@@ -1,0 +1,49 @@
+{
+  "settings": {
+    "options": {
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "id"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "deleteTeamRole",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "DELETE FROM tbl_team_roles WHERE id = :id AND tenantId = :tenantId",
+            "params": [
+              {
+                "name": ":id",
+                "value": "{{$_GET.id}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/teams/team_roles",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

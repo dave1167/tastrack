@@ -1,0 +1,82 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="create_user" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
+<dmx-serverconnect id="scRoles" url="/api/roles/list_roles"></dmx-serverconnect>
+<dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between gap-3">
+            <div>
+                <h1 class="mb-1">Create User</h1>
+                <p class="text-muted mb-0">Add a user to the current tenant, assign their security role, and place them in a team.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/users/all_users">Back to users</a>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">User details</h2>
+            </div>
+            <div class="card-body">
+                <form id="frmCreateUser" method="post" action="/api/users/create_user">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="inp_email" class="form-label">Email</label>
+                            <input id="inp_email" name="email" type="email" class="form-control" required>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="inp_fName" class="form-label">First name</label>
+                            <input id="inp_fName" name="fName" type="text" class="form-control">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="inp_lName" class="form-label">Last name</label>
+                            <input id="inp_lName" name="lName" type="text" class="form-control">
+                        </div>
+
+                        <div class="col-12">
+                            <label for="inp_displayName" class="form-label">Display name</label>
+                            <input id="inp_displayName" name="displayName" type="text" class="form-control" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="inp_password" class="form-label">Temporary password</label>
+                            <input id="inp_password" name="password" type="text" class="form-control" required>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="inp_roleId" class="form-label">Security role</label>
+                            <select id="inp_roleId" name="roleId" class="form-select" required dmx-bind:options="scRoles.data.query" optiontext="roleName" optionvalue="id">
+                                <option value="">Select role</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="inp_teamId" class="form-label">Team</label>
+                            <select id="inp_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id">
+                                <option value="">Select team</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label for="inp_teamRole" class="form-label">Team member type</label>
+                            <select id="inp_teamRole" name="teamRole" class="form-select" required>
+                                <option value="member" selected>Member</option>
+                                <option value="lead">Lead</option>
+                                <option value="manager">Manager</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                        <a class="btn btn-light" href="/users/all_users">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/users/create_user">

@@ -1,6 +1,6 @@
 {
   "unauthorised.ejs": {
-    "layoutPage": "main",
+    "layoutPage": "main_shell",
     "description": ""
   }
 }

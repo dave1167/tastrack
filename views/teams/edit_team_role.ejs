@@ -1,0 +1,47 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="edit_team_role" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
+<dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
+<dmx-serverconnect id="scTeamRole" url="/api/teams/get_team_role" dmx-param:id="query.id"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between gap-3">
+            <div>
+                <h1 class="mb-1">Edit Team Role</h1>
+                <p class="text-muted mb-0">Update the team and role name for this tenant.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/teams/team_roles">Back to team roles</a>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Team role details</h2>
+            </div>
+            <div class="card-body">
+                <form id="frmEditTeamRole" method="post" action="/api/teams/update_team_role">
+                    <%- _csrfInput() %>
+                    <input type="hidden" name="id" dmx-bind:value="scTeamRole.data.query[0].id">
+
+                    <div class="mb-3">
+                        <label for="inp_edit_teamId" class="form-label">Team</label>
+                        <select id="inp_edit_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-bind:value="scTeamRole.data.query[0].teamId">
+                            <option value="">Select team</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="inp_edit_teamRoleName" class="form-label">Role name</label>
+                        <input id="inp_edit_teamRoleName" name="teamRoleName" type="text" class="form-control" required dmx-bind:value="scTeamRole.data.query[0].teamRoleName">
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Update Team Role</button>
+                        <a class="btn btn-light" href="/teams/team_roles">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/teams/edit_team_role">

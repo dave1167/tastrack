@@ -13,11 +13,11 @@
       "options": {
         "connection": "db",
         "sql": {
-          "query": "SELECT DISTINCT t.id AS tenantId, t.tenantName FROM tbl_tenants t INNER JOIN tbl_user_tenant_roles utr ON utr.tenantId = t.id WHERE utr.userId = :userId AND utr.status = 'active' ORDER BY t.tenantName ASC",
+          "query": "SELECT id, teamName, description, isActive FROM tbl_teams WHERE tenantId = :tenantId ORDER BY isActive DESC, teamName ASC",
           "params": [
             {
-              "name": ":userId",
-              "value": "{{$_SESSION.USER_ID}}"
+              "name": ":tenantId",
+              "value": "{{$_SESSION.TENANT_ID}}"
             }
           ]
         }
@@ -26,12 +26,20 @@
       "outputType": "array",
       "meta": [
         {
-          "name": "tenantId",
+          "name": "id",
           "type": "number"
         },
         {
-          "name": "tenantName",
+          "name": "teamName",
           "type": "text"
+        },
+        {
+          "name": "description",
+          "type": "text"
+        },
+        {
+          "name": "isActive",
+          "type": "number"
         }
       ]
     }

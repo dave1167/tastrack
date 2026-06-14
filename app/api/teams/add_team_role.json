@@ -1,0 +1,58 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "number",
+        "name": "teamId"
+      },
+      {
+        "type": "text",
+        "name": "teamRoleName"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "insertTeamRole",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_team_roles (tenantId, teamId, `desc`) VALUES (:tenantId, :teamId, :teamRoleName)",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":teamId",
+                "value": "{{$_POST.teamId}}"
+              },
+              {
+                "name": ":teamRoleName",
+                "value": "{{$_POST.teamRoleName}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/teams/team_roles",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

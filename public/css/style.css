@@ -215,7 +215,10 @@
 
 .shell-sidebar {
   --bs-offcanvas-width: min(86vw, var(--shell-sidebar-w));
+  display: flex;
+  flex-direction: column;
   width: var(--shell-sidebar-w);
+  max-height: 100dvh;
   color: var(--shell-nav-text);
   background:
     linear-gradient(180deg, rgba(24, 185, 154, .18), rgba(24, 185, 154, 0) 14rem),
@@ -240,11 +243,15 @@
 }
 
 .shell-sidebar-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  padding: 1rem;
+  padding: 1rem 1rem 2rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .shell-tenant-card {
@@ -280,6 +287,70 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0;
+}
+
+.shell-nav-accordion,
+.shell-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+
+.shell-nav-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  width: 100%;
+  min-height: 2.55rem;
+  padding: .55rem .65rem;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: .5rem;
+  color: #fff;
+  background: rgba(255, 255, 255, .07);
+  font-weight: 750;
+  text-align: left;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+
+.shell-nav-toggle > span {
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.shell-nav-toggle i:first-child {
+  width: 1.2rem;
+  flex: 0 0 1.2rem;
+  color: #7de3cc;
+  text-align: center;
+}
+
+.shell-nav-toggle:hover,
+.shell-nav-toggle:focus-visible {
+  border-color: rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, .12);
+}
+
+.shell-nav-caret {
+  color: var(--shell-nav-muted);
+  font-size: .78rem;
+  transition: transform .15s ease;
+}
+
+.shell-nav-toggle:not(.collapsed) .shell-nav-caret {
+  transform: rotate(180deg);
+}
+
+.shell-nav-collapse {
+  padding-left: .35rem;
+}
+
+.shell-nav-collapse .shell-nav-link {
+  margin-top: .2rem;
+  min-height: 2.35rem;
+  padding-left: .95rem;
 }
 
 .shell-nav-link {
@@ -332,7 +403,7 @@
 }
 
 .shell-sidebar-footer {
-  margin-top: auto;
+  margin-top: 1rem;
   padding-top: 1rem;
 }
 
@@ -348,18 +419,26 @@
 
 @media (min-width: 992px) {
   .shell-sidebar {
-    position: sticky;
+    position: fixed;
     top: var(--shell-navbar-h);
+    bottom: 0;
+    left: 0;
     display: flex !important;
     width: var(--shell-sidebar-w);
-    height: calc(100vh - var(--shell-navbar-h));
+    height: auto;
+    max-height: calc(100dvh - var(--shell-navbar-h));
     visibility: visible !important;
     transform: none !important;
     box-shadow: none;
+    z-index: 1035;
   }
 
   .shell-sidebar .offcanvas-body {
     display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
   }
 }
 

@@ -1,0 +1,37 @@
+{
+  "settings": {
+    "options": {
+      "method": "get"
+    }
+  },
+  "exec": {
+    "steps": {
+      "name": "query",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "query": "SELECT id, roleKey, roleName FROM tbl_roles WHERE isActive = 1 ORDER BY roleName ASC",
+          "params": []
+        }
+      },
+      "output": true,
+      "outputType": "array",
+      "meta": [
+        {
+          "name": "id",
+          "type": "number"
+        },
+        {
+          "name": "roleKey",
+          "type": "text"
+        },
+        {
+          "name": "roleName",
+          "type": "text"
+        }
+      ]
+    }
+  }
+}

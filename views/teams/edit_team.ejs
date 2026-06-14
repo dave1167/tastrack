@@ -1,0 +1,52 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="edit_team" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
+<dmx-serverconnect id="scTeam" url="/api/teams/get_team" dmx-param:id="query.id"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex align-items-center justify-content-between gap-3">
+            <div>
+                <h1 class="mb-1">Edit Team</h1>
+                <p class="text-muted mb-0">Update this team's name, description, and status.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/teams/teams">Back to teams</a>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Team details</h2>
+            </div>
+            <div class="card-body">
+                <form id="frmEditTeam" method="post" action="/api/teams/update_team">
+                    <%- _csrfInput() %>
+                    <input type="hidden" name="id" dmx-bind:value="scTeam.data.query[0].id">
+
+                    <div class="mb-3">
+                        <label for="inp_edit_teamName" class="form-label">Team name</label>
+                        <input id="inp_edit_teamName" name="teamName" type="text" class="form-control" required dmx-bind:value="scTeam.data.query[0].teamName">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="inp_edit_description" class="form-label">Description</label>
+                        <textarea id="inp_edit_description" name="description" class="form-control" rows="3" dmx-bind:value="scTeam.data.query[0].description"></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="inp_edit_isActive" class="form-label">Status</label>
+                        <select id="inp_edit_isActive" name="isActive" class="form-select" required dmx-bind:value="scTeam.data.query[0].isActive">
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Update Team</button>
+                        <a class="btn btn-light" href="/teams/teams">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/teams/edit_team">

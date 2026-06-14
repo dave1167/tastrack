@@ -19,13 +19,11 @@
         "conditions": [
           {
             "column": "roleId",
-            "operator": ">=",
-            "value": "1"
-          },
-          {
-            "column": "roleId",
-            "operator": "<=",
-            "value": "2"
+            "operator": "in",
+            "value": [
+              1,
+              2
+            ]
           }
         ]
       },

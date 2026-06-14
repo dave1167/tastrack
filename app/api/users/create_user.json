@@ -1,0 +1,160 @@
+{
+  "settings": {
+    "options": {
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "text",
+        "name": "email"
+      },
+      {
+        "type": "text",
+        "name": "fName"
+      },
+      {
+        "type": "text",
+        "name": "lName"
+      },
+      {
+        "type": "text",
+        "name": "displayName"
+      },
+      {
+        "type": "text",
+        "name": "password"
+      },
+      {
+        "type": "number",
+        "name": "roleId"
+      },
+      {
+        "type": "number",
+        "name": "teamId"
+      },
+      {
+        "type": "text",
+        "name": "teamRole"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "passwordHash",
+        "module": "crypto",
+        "action": "passwordHash",
+        "options": {
+          "password": "{{$_POST.password}}",
+          "algo": "argon2id"
+        },
+        "output": true,
+        "outputType": "text"
+      },
+      {
+        "name": "insertUser",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_users (email, fName, lName, displayName, passwordHash, status) VALUES (:email, :fName, :lName, :displayName, :passwordHash, 'active')",
+            "params": [
+              {
+                "name": ":email",
+                "value": "{{$_POST.email}}"
+              },
+              {
+                "name": ":fName",
+                "value": "{{$_POST.fName}}"
+              },
+              {
+                "name": ":lName",
+                "value": "{{$_POST.lName}}"
+              },
+              {
+                "name": ":displayName",
+                "value": "{{$_POST.displayName}}"
+              },
+              {
+                "name": ":passwordHash",
+                "value": "{{passwordHash}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "insertTenantRole",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_user_tenant_roles (userId, tenantId, roleId, isPrimary, status) SELECT id, :tenantId, :roleId, 1, 'active' FROM tbl_users WHERE email = :email",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":roleId",
+                "value": "{{$_POST.roleId}}"
+              },
+              {
+                "name": ":email",
+                "value": "{{$_POST.email}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "insertTeamMember",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_team_members (tenantUserId, teamId, teamRole, isPrimary, isActive) SELECT utr.id, :teamId, :teamRole, 1, 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id = utr.userId WHERE u.email = :email AND utr.tenantId = :tenantId AND utr.roleId = :roleId ORDER BY utr.id DESC LIMIT 1",
+            "params": [
+              {
+                "name": ":teamId",
+                "value": "{{$_POST.teamId}}"
+              },
+              {
+                "name": ":teamRole",
+                "value": "{{$_POST.teamRole.default('member')}}"
+              },
+              {
+                "name": ":email",
+                "value": "{{$_POST.email}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":roleId",
+                "value": "{{$_POST.roleId}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/users/all_users",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

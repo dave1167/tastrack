@@ -1,0 +1,65 @@
+{
+  "settings": {
+    "options": {
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "number",
+        "name": "id"
+      },
+      {
+        "type": "number",
+        "name": "teamId"
+      },
+      {
+        "type": "text",
+        "name": "teamRoleName"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "updateTeamRole",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_team_roles SET teamId = :teamId, `desc` = :teamRoleName WHERE id = :id AND tenantId = :tenantId",
+            "params": [
+              {
+                "name": ":teamId",
+                "value": "{{$_POST.teamId}}"
+              },
+              {
+                "name": ":teamRoleName",
+                "value": "{{$_POST.teamRoleName}}"
+              },
+              {
+                "name": ":id",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/teams/team_roles",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

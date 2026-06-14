@@ -1,0 +1,59 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "id"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "query",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "query": "SELECT id, teamName, description, isActive FROM tbl_teams WHERE id = :id AND tenantId = :tenantId LIMIT 1",
+          "params": [
+            {
+              "name": ":id",
+              "value": "{{$_GET.id}}"
+            },
+            {
+              "name": ":tenantId",
+              "value": "{{$_SESSION.TENANT_ID}}"
+            }
+          ]
+        }
+      },
+      "output": true,
+      "outputType": "array",
+      "meta": [
+        {
+          "name": "id",
+          "type": "number"
+        },
+        {
+          "name": "teamName",
+          "type": "text"
+        },
+        {
+          "name": "description",
+          "type": "text"
+        },
+        {
+          "name": "isActive",
+          "type": "number"
+        }
+      ]
+    }
+  }
+}

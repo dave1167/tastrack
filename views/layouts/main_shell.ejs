@@ -18,25 +18,22 @@
     <script src="/dmxAppConnect/dmxBrowser/dmxBrowser.js" defer></script>
     <link rel="stylesheet" href="/dmxAppConnect/dmxBootstrap5TableGenerator/dmxBootstrap5TableGenerator.css" />
     <script src="/dmxAppConnect/dmxStateManagement/dmxStateManagement.js" defer></script>
+    <script src="/dmxAppConnect/dmxFormatter/dmxFormatter.js" defer></script>
 </head>
 
 <body is="dmx-app" id="main_shell" class="shell-app">
     <div is="dmx-browser" id="browser1"></div>
+    <dmx-serverconnect id="scWelcome" url="/api/security/sessionContext"></dmx-serverconnect>
     <header class="navbar shell-navbar sticky-top">
         <div class="container-fluid px-3 px-lg-4">
             <button class="shell-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open menu">
                 <i class="fas fa-bars"></i>
             </button>
+            <img src="/assets/images/tastrack_logo.png" width="150" height="90" class="img-fluid">
 
-            <a class="shell-brand" href="/">
-                <img class="shell-logo-img" src="/uploads/tastrack_logo.png" alt="TasTrack">
-                <span class="shell-brand-copy">
-                    <span class="shell-logo-text">TasTrack</span>
-                    <span class="shell-logo-subtext">Workflow control</span>
-                </span>
-            </a>
 
             <div class="shell-actions ms-auto">
+                <span class="small me-2 text-white">Welcome, {{scWelcome.data.FNAME}}</span>
                 <button class="shell-icon-btn" type="button" aria-label="Search">
                     <i class="fas fa-search"></i>
                 </button>
@@ -62,61 +59,120 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar" aria-label="Close"></button>
                 </div>
 
+
                 <div class="offcanvas-body shell-sidebar-body">
-                    <div class="shell-tenant-card">
-                        <span class="shell-kicker">Workspace</span>
-                        <span class="shell-tenant-name">Current tenant</span>
+                    <div class="card border-0 bg-transparent mb-3 pb-2 border-bottom border-white border-opacity-10">
+                        <div class="card-body py-2 px-3">
+                            <p class="mb-1 text-white text-uppercase small fw-semibold opacity-75">Workspace</p>
+                            <h6 class="mb-0 fs-5 fw-semibold text-white">{{scWelcome.data.TENANT_NAME}}</h6>
+                        </div>
                     </div>
 
-                    <div class="shell-section-label">Work</div>
-                    <a class="shell-nav-link" href="/">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a class="shell-nav-link" href="/workflows">
-                        <i class="fas fa-route"></i>
-                        <span>Workflows</span>
-                    </a>
-                    <a class="shell-nav-link" href="/tasks">
-                        <i class="fas fa-tasks"></i>
-                        <span>Tasks</span>
-                    </a>
-                    <a class="shell-nav-link" href="/contacts">
-                        <i class="fas fa-address-book"></i>
-                        <span>Contacts</span>
-                    </a>
-                    <a class="shell-nav-link" href="/documents">
-                        <i class="fas fa-folder-open"></i>
-                        <span>Documents</span>
-                    </a>
+                    <div class="shell-nav-accordion" id="sidebarNavAccordion">
+                        <div class="shell-nav-group">
+                            <button class="shell-nav-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#navWork" aria-expanded="true" aria-controls="navWork">
+                                <span>
+                                    <i class="fas fa-briefcase"></i>
+                                    Work
+                                </span>
+                                <i class="fas fa-chevron-down shell-nav-caret"></i>
+                            </button>
+                            <div class="collapse show shell-nav-collapse" id="navWork" data-bs-parent="#sidebarNavAccordion">
+                                <a class="shell-nav-link" href="/">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                                <a class="shell-nav-link" href="/workflows">
+                                    <i class="fas fa-route"></i>
+                                    <span>Workflows</span>
+                                </a>
+                                <a class="shell-nav-link" href="/tasks">
+                                    <i class="fas fa-tasks"></i>
+                                    <span>Tasks</span>
+                                </a>
+                                <a class="shell-nav-link" href="/contacts">
+                                    <i class="fas fa-address-book"></i>
+                                    <span>Contacts</span>
+                                </a>
+                                <a class="shell-nav-link" href="/documents">
+                                    <i class="fas fa-folder-open"></i>
+                                    <span>Documents</span>
+                                </a>
+                            </div>
+                        </div>
 
-                    <div class="shell-section-label">Setup</div>
-                    <a class="shell-nav-link" href="/templates">
-                        <i class="fas fa-layer-group"></i>
-                        <span>Templates</span>
-                    </a>
-                    <a class="shell-nav-link" href="/automation">
-                        <i class="fas fa-bolt"></i>
-                        <span>Automation</span>
-                    </a>
-                    <a class="shell-nav-link" href="/reports">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Reports</span>
-                    </a>
+                        <div class="shell-nav-group">
+                            <button class="shell-nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navSetup" aria-expanded="false" aria-controls="navSetup">
+                                <span>
+                                    <i class="fas fa-sliders-h"></i>
+                                    Setup
+                                </span>
+                                <i class="fas fa-chevron-down shell-nav-caret"></i>
+                            </button>
+                            <div class="collapse shell-nav-collapse" id="navSetup" data-bs-parent="#sidebarNavAccordion">
+                                <a class="shell-nav-link" href="/templates">
+                                    <i class="fas fa-layer-group"></i>
+                                    <span>Templates</span>
+                                </a>
+                                <a class="shell-nav-link" href="/automation">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Automation</span>
+                                </a>
+                                <a class="shell-nav-link" href="/reports">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Reports</span>
+                                </a>
+                            </div>
+                        </div>
 
-                    <div class="shell-section-label">Admin</div>
-                    <a class="shell-nav-link" href="/users/all_users">
-                        <i class="fas fa-users-cog"></i>
-                        <span>Users &amp; roles</span>
-                    </a>
-                    <a class="shell-nav-link" href="/settings">
-                        <i class="fas fa-sliders-h"></i>
-                        <span>Settings</span>
-                    </a>
-                    <a class="shell-nav-link" href="/billing">
-                        <i class="fas fa-credit-card"></i>
-                        <span>Billing</span>
-                    </a>
+                        <div class="shell-nav-group">
+                            <button class="shell-nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navPeople" aria-expanded="false" aria-controls="navPeople" dmx-show="scWelcome.data.ROLE_ID==1||scWelcome.data.ROLE_ID==2">
+                                <span>
+                                    <i class="fas fa-users"></i>
+                                    People &amp; Teams
+                                </span>
+                                <i class="fas fa-chevron-down shell-nav-caret"></i>
+                            </button>
+                            <div class="collapse shell-nav-collapse" id="navPeople" data-bs-parent="#sidebarNavAccordion">
+                                <a class="shell-nav-link" href="/users/all_users">
+                                    <i class="fas fa-users-cog"></i>
+                                    <span>Users &amp; roles</span>
+                                </a>
+                                <a class="shell-nav-link" href="/users/create_user">
+                                    <i class="fas fa-user-plus"></i>
+                                    <span>Create user</span>
+                                </a>
+                                <a class="shell-nav-link" href="/teams/teams">
+                                    <i class="fas fa-sitemap"></i>
+                                    <span>Teams</span>
+                                </a>
+                                <a class="shell-nav-link" href="/teams/team_roles">
+                                    <i class="fas fa-user-tag"></i>
+                                    <span>Team roles</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="shell-nav-group">
+                            <button class="shell-nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navSystem" aria-expanded="false" aria-controls="navSystem">
+                                <span>
+                                    <i class="fas fa-cog"></i>
+                                    System
+                                </span>
+                                <i class="fas fa-chevron-down shell-nav-caret"></i>
+                            </button>
+                            <div class="collapse shell-nav-collapse" id="navSystem" data-bs-parent="#sidebarNavAccordion">
+                                <a class="shell-nav-link" href="/settings">
+                                    <i class="fas fa-sliders-h"></i>
+                                    <span>Settings</span>
+                                </a>
+                                <a class="shell-nav-link" href="/billing">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Billing</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="shell-sidebar-footer">
                         <a class="shell-nav-link shell-nav-link-muted" href="/login/login">
@@ -148,6 +204,16 @@
                 if (isDashboard || isSection) {
                     link.classList.add('active');
                     link.setAttribute('aria-current', 'page');
+
+                    const collapse = link.closest('.shell-nav-collapse');
+                    if (collapse && !collapse.classList.contains('show')) {
+                        collapse.classList.add('show');
+                        const toggle = document.querySelector('[data-bs-target="#' + collapse.id + '"]');
+                        if (toggle) {
+                            toggle.classList.remove('collapsed');
+                            toggle.setAttribute('aria-expanded', 'true');
+                        }
+                    }
                 }
             });
         });
