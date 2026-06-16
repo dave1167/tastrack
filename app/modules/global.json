@@ -3,7 +3,7 @@
     "$_SESSION": [
       {
         "type": "number",
-        "name": "USER_ID"
+        "name": "ROLE_ID"
       },
       {
         "type": "number",
@@ -11,7 +11,7 @@
       },
       {
         "type": "number",
-        "name": "ROLE_ID"
+        "name": "USER_ID"
       },
       {
         "type": "text",
@@ -28,15 +28,52 @@
       {
         "type": "text",
         "name": "DISPLAY_NAME"
-      },
-      {
-        "type": "text",
-        "name": "ROLE_NAME"
-      },
-      {
-        "type": "text",
-        "name": "ROLE_KEY"
       }
     ]
+  },
+  "exec": {
+    "steps": {
+      "meta": {
+        "$_SESSION": [
+          {
+            "type": "number",
+            "name": "USER_ID"
+          },
+          {
+            "type": "number",
+            "name": "TENANT_ID"
+          },
+          {
+            "type": "number",
+            "name": "ROLE_ID"
+          },
+          {
+            "type": "text",
+            "name": "TENANT_NAME"
+          },
+          {
+            "type": "text",
+            "name": "FNAME"
+          },
+          {
+            "type": "text",
+            "name": "LNAME"
+          },
+          {
+            "type": "text",
+            "name": "DISPLAY_NAME"
+          },
+          {
+            "type": "text",
+            "name": "ROLE_NAME"
+          },
+          {
+            "type": "text",
+            "name": "ROLE_KEY"
+          }
+        ]
+      },
+      "options": {}
+    }
   }
 }

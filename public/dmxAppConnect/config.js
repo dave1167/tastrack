@@ -10,5 +10,13 @@ dmx.config({
         "name": "sort"
       }
     ]
+  },
+  "create_user": {
+    "query": [
+      {
+        "type": "number",
+        "name": "filter"
+      }
+    ]
   }
 });

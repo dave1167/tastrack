@@ -8,32 +8,87 @@
   "exec": {
     "steps": {
       "name": "query",
-      "module": "dbupdater",
-      "action": "custom",
+      "module": "dbconnector",
+      "action": "select",
       "options": {
         "connection": "db",
         "sql": {
-          "query": "SELECT id, teamName FROM tbl_teams WHERE tenantId = :tenantId AND isActive = 1 ORDER BY teamName ASC",
+          "type": "SELECT",
+          "distinct": false,
+          "columns": [
+            {
+              "table": "tbl_teams",
+              "column": "id",
+              "field": "id"
+            },
+            {
+              "table": "tbl_teams",
+              "column": "teamName",
+              "field": "teamName"
+            }
+          ],
+          "table": {
+            "name": "tbl_teams"
+          },
+          "joins": [],
+          "wheres": {
+            "condition": "AND",
+            "rules": [
+              {
+                "table": "tbl_teams",
+                "column": "tenantId",
+                "field": "tenantId",
+                "operation": "=",
+                "operator": "equal",
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "id": "tbl_teams.tenantId"
+              },
+              {
+                "table": "tbl_teams",
+                "column": "isActive",
+                "field": "isActive",
+                "operation": "=",
+                "operator": "equal",
+                "value": 1,
+                "id": "tbl_teams.isActive"
+              }
+            ]
+          },
+          "orders": [
+            {
+              "column": "teamName",
+              "field": "teamName",
+              "direction": "ASC",
+              "recid": 1
+            }
+          ],
           "params": [
             {
-              "name": ":tenantId",
-              "value": "{{$_SESSION.TENANT_ID}}"
+              "operator": "equal",
+              "type": "expression",
+              "name": ":P1",
+              "value": "{{$_SESSION.TENANT_ID}}",
+              "test": ""
             }
-          ]
+          ],
+          "primary": "id",
+          "query": "select `id`, `teamName` from `tbl_teams` where `tbl_teams`.`tenantId` = ? and `tbl_teams`.`isActive` = ? order by `teamName` ASC"
         }
       },
       "output": true,
       "outputType": "array",
       "meta": [
         {
-          "name": "id",
-          "type": "number"
+          "type": "number",
+          "name": "id"
         },
         {
-          "name": "teamName",
-          "type": "text"
+          "type": "text",
+          "name": "teamName"
         }
-      ]
+      ],
+      "type": "dbconnector_select",
+      "collapsed": true
     }
   }
 }

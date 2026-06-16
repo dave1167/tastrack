@@ -1,6 +1,9 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="create_user" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
+<dmx-query-manager id="query1"></dmx-query-manager>
 <dmx-serverconnect id="scRoles" url="/api/roles/list_roles"></dmx-serverconnect>
 <dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
+<dmx-serverconnect id="scTeamRoles" url="/api/teams/get_team_role" dmx-param:teamid="" dmx-param:id="" noload="true"></dmx-serverconnect>
+<dmx-serverconnect id="scSessContext" url="/api/security/sessionContext"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -22,52 +25,75 @@
                 <form id="frmCreateUser" method="post" action="/api/users/create_user">
                     <div class="row g-3">
                         <div class="col-12">
-                            <label for="inp_email" class="form-label">Email</label>
-                            <input id="inp_email" name="email" type="email" class="form-control" required>
+                            <div class="form-floating mb-3">
+                                <input id="inp_email" name="email" type="email" class="form-control" required><label for="inp_email" class="form-label">Email</label>
+                            </div>
+
+
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="inp_fName" class="form-label">First name</label>
-                            <input id="inp_fName" name="fName" type="text" class="form-control">
+                            <div class="form-floating mb-3"> <input id="inp_fName" name="fName" type="text" class="form-control"><label for="inp_fName" class="form-label">First name</label>
+                            </div>
+
+
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="inp_lName" class="form-label">Last name</label>
-                            <input id="inp_lName" name="lName" type="text" class="form-control">
+                            <div class="form-floating mb-3">
+                                <input id="inp_lName" name="lName" type="text" class="form-control"><label for="inp_lName" class="form-label">Last name</label>
+                            </div>
+
+
                         </div>
 
                         <div class="col-12">
-                            <label for="inp_displayName" class="form-label">Display name</label>
-                            <input id="inp_displayName" name="displayName" type="text" class="form-control" required>
+                            <div class="form-floating mb-3"> <input id="inp_displayName" name="displayName" type="text" class="form-control" required="" dmx-bind:value="inp_fName.value+' '+inp_lName.value" disabled="true">
+                                <label for="inp_displayName" class="form-label">Display name</label>
+                            </div>
+
+
                         </div>
 
                         <div class="col-12">
-                            <label for="inp_password" class="form-label">Temporary password</label>
-                            <input id="inp_password" name="password" type="text" class="form-control" required>
+                            <div class="form-floating mb-3">
+                                <input id="inp_password" name="password" type="text" class="form-control" required><label for="inp_password" class="form-label">Temporary password</label>
+                            </div>
+
+
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <label for="inp_roleId" class="form-label">Security role</label>
-                            <select id="inp_roleId" name="roleId" class="form-select" required dmx-bind:options="scRoles.data.query" optiontext="roleName" optionvalue="id">
-                                <option value="">Select role</option>
-                            </select>
+                            <div class="form-floating mb-3">
+                                <select id="inp_teamId" name="teamId" class="form-select" required="" dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-on:updated="scTeamRoles.load({teamid: value, id: value})">
+                                    <option value="">Select team</option>
+                                </select><label for="inp_teamId" class="form-label">Team</label>
+                            </div>
+
+
+                            <input id="hidTeamId" name="text1" type="hidden" class="form-control" dmx-bind:value="inp_teamId.value">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating mb-3"> <select id="inp_teamRole" name="teamRole" class="form-select" required="" dmx-bind:options="scTeamRoles.data.qryTeamRoles" optiontext="desc" optionvalue="id">
+                                    <option value="">Select Role</option>
+                                </select><label for="inp_teamRole" class="form-label">Team member Role</label><input id="hidTeamRole" name="text1" type="hidden" class="form-control" dmx-bind:value="inp_teamRole.value">
+                            </div>
+
+
+
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="form-floating mb-3"> <select id="inp_roleId" name="roleId" class="form-select" required dmx-bind:options="scRoles.data.query" optiontext="roleName" optionvalue="id">
+                                    <option value="">Select User Access Level</option>
+                                </select><label for="inp_roleId" class="form-label">User Access</label>
+                            </div>
+
+
                         </div>
 
-                        <div class="col-12 col-md-6">
-                            <label for="inp_teamId" class="form-label">Team</label>
-                            <select id="inp_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id">
-                                <option value="">Select team</option>
-                            </select>
-                        </div>
 
-                        <div class="col-12 col-md-6">
-                            <label for="inp_teamRole" class="form-label">Team member type</label>
-                            <select id="inp_teamRole" name="teamRole" class="form-select" required>
-                                <option value="member" selected>Member</option>
-                                <option value="lead">Lead</option>
-                                <option value="manager">Manager</option>
-                            </select>
-                        </div>
+
+
                     </div>
 
                     <div class="d-flex gap-2 mt-4">

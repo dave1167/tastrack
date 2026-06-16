@@ -1,0 +1,183 @@
+{
+  "meta": {
+    "$_GET": [
+      {
+        "type": "text",
+        "name": "sort"
+      },
+      {
+        "type": "text",
+        "name": "dir"
+      },
+      {
+        "type": "number",
+        "name": "teamid"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "varTenantId",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_SESSION.TENANT_ID}}"
+        },
+        "meta": [],
+        "outputType": "text",
+        "output": true
+      },
+      {
+        "name": "query",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "SELECT",
+            "columns": [
+              {
+                "table": "tbl_team_roles",
+                "column": "tenantId"
+              },
+              {
+                "table": "tbl_team_roles",
+                "column": "teamId"
+              },
+              {
+                "table": "tbl_team_roles",
+                "column": "desc"
+              },
+              {
+                "table": "tbl_team_roles",
+                "column": "id"
+              },
+              {
+                "table": "tbl_team_roles",
+                "column": "isActive"
+              }
+            ],
+            "params": [
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P1",
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "test": "1"
+              },
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P2",
+                "value": "{{$_GET.teamid}}",
+                "test": "2"
+              }
+            ],
+            "table": {
+              "name": "tbl_team_roles"
+            },
+            "primary": "id",
+            "joins": [],
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "tbl_team_roles.tenantId",
+                  "field": "tbl_team_roles.tenantId",
+                  "type": "double",
+                  "operator": "equal",
+                  "value": "{{$_SESSION.TENANT_ID}}",
+                  "data": {
+                    "table": "tbl_team_roles",
+                    "column": "tenantId",
+                    "type": "number",
+                    "columnObj": {
+                      "type": "integer",
+                      "default": "",
+                      "primary": false,
+                      "nullable": true,
+                      "name": "tenantId"
+                    }
+                  },
+                  "operation": "=",
+                  "table": "tbl_team_roles"
+                },
+                {
+                  "id": "tbl_team_roles.isActive",
+                  "field": "tbl_team_roles.isActive",
+                  "type": "boolean",
+                  "operator": "equal",
+                  "value": true,
+                  "data": {
+                    "table": "tbl_team_roles",
+                    "column": "isActive",
+                    "type": "boolean",
+                    "columnObj": {
+                      "type": "boolean",
+                      "default": "",
+                      "primary": false,
+                      "nullable": true,
+                      "name": "isActive"
+                    }
+                  },
+                  "operation": "=",
+                  "table": "tbl_team_roles"
+                },
+                {
+                  "id": "tbl_team_roles.teamId",
+                  "field": "tbl_team_roles.teamId",
+                  "type": "double",
+                  "operator": "equal",
+                  "value": "{{$_GET.teamid}}",
+                  "data": {
+                    "table": "tbl_team_roles",
+                    "column": "teamId",
+                    "type": "number",
+                    "columnObj": {
+                      "type": "integer",
+                      "default": "",
+                      "primary": false,
+                      "nullable": true,
+                      "name": "teamId"
+                    }
+                  },
+                  "operation": "=",
+                  "table": "tbl_team_roles"
+                }
+              ],
+              "conditional": null,
+              "valid": true
+            },
+            "query": "select `tenantId`, `teamId`, `desc`, `id`, `isActive` from `tbl_team_roles` where `tbl_team_roles`.`tenantId` = ? and `tbl_team_roles`.`isActive` = ? and `tbl_team_roles`.`teamId` = ?"
+          }
+        },
+        "output": true,
+        "meta": [
+          {
+            "type": "number",
+            "name": "tenantId"
+          },
+          {
+            "type": "number",
+            "name": "teamId"
+          },
+          {
+            "type": "text",
+            "name": "desc"
+          },
+          {
+            "type": "number",
+            "name": "id"
+          },
+          {
+            "type": "boolean",
+            "name": "isActive"
+          }
+        ],
+        "outputType": "array",
+        "collapsed": true
+      }
+    ]
+  }
+}

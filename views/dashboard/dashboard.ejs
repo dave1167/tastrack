@@ -1,5 +1,6 @@
 wel<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="dashboard" appConnect="local" -->
 <dmx-serverconnect id="scSessionContext" url="/api/security/sessionContext"></dmx-serverconnect>
+<dmx-serverconnect id="serverconnect1"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -18,6 +19,7 @@ wel<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" boots
                         <div class="p-3 rounded border bg-light">
                             <div class="small text-muted">User ID</div>
                             <div class="fs-5 fw-semibold">{{scSessionContext.data.USER_ID}}</div>
+                            <input id="text1" name="text1" type="text" class="form-control">
                         </div>
                     </div>
 
