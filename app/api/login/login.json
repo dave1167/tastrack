@@ -27,7 +27,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT utr.userId, utr.tenantId, utr.roleId, utr.isPrimary, u.fName, u.lName, u.displayName, t.tenantName, r.roleName, r.roleKey FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id = utr.userId INNER JOIN tbl_tenants t ON t.id = utr.tenantId INNER JOIN tbl_roles r ON r.id = utr.roleId WHERE utr.userId = :userId AND utr.status = 'active' ORDER BY utr.isPrimary DESC, utr.tenantId ASC, utr.roleId ASC LIMIT 1",
+            "query": "SELECT utr.userId, utr.tenantId, utr.roleId, utr.isPrimary, u.fName, u.lName, u.displayName, t.tenantName, r.roleName, r.roleKey FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id = utr.userId INNER JOIN tbl_tenants t ON t.id = utr.tenantId INNER JOIN tbl_roles r ON r.id = utr.roleId WHERE utr.userId = :userId AND utr.isActive = 1 ORDER BY utr.isPrimary DESC, utr.tenantId ASC, utr.roleId ASC LIMIT 1",
             "params": [
               {
                 "name": ":userId",
@@ -38,7 +38,8 @@
         },
         "output": true,
         "outputType": "array",
-        "collapsed": true
+        "collapsed": true,
+        "meta": []
       },
       {
         "name": "loginRoute",
@@ -47,7 +48,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT COUNT(DISTINCT utr.tenantId) AS tenantCount, CASE WHEN COUNT(DISTINCT utr.tenantId) = 0 THEN '/unauthorised' WHEN COUNT(DISTINCT utr.tenantId) > 1 THEN '/login/tenant' ELSE '/' END AS redirectUrl FROM tbl_user_tenant_roles utr WHERE utr.userId = :userId AND utr.status = 'active'",
+            "query": "SELECT COUNT(DISTINCT utr.tenantId) AS tenantCount, CASE WHEN COUNT(DISTINCT utr.tenantId) = 0 THEN '/unauthorised' WHEN COUNT(DISTINCT utr.tenantId) > 1 THEN '/login/tenant' ELSE '/' END AS redirectUrl FROM tbl_user_tenant_roles utr WHERE utr.userId = :userId AND utr.isActive = 1",
             "params": [
               {
                 "name": ":userId",

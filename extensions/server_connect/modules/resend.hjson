@@ -1,0 +1,199 @@
+{
+  type: 'resend_send',
+  module: 'resend',
+  action: 'send',
+  groupTitle: 'Email Operations',
+  groupIcon: 'fa fa-envelope comp-data',
+  addTitle: 'Send Email with Resend',
+  title: 'Send Email with Resend',
+  icon: 'fa fa-envelope comp-data',
+  help: 'Send transactional email using the Resend API with optional attachment support.',
+  serverModel: ['node'],
+  dataPickObject: true,
+
+  dataScheme: [
+    { name: 'success', type: 'boolean' },
+    { name: 'id', type: 'text' },
+    { name: 'to', type: 'text' },
+    { name: 'subject', type: 'text' },
+    { name: 'message', type: 'text' }
+  ],
+
+  usedModules: {
+    node: {
+      resend: '^4.0.0'
+    }
+  },
+
+  properties: [
+    {
+      group: 'Step Properties',
+      variables: [
+        {
+          name: 'actionName',
+          optionName: 'name',
+          title: 'Name',
+          type: 'text',
+          required: true,
+          defaultValue: '',
+          baseName: 'sendEmail',
+          help: 'Internal step name used by Wappler.'
+        },
+        {
+          name: 'output',
+          optionName: 'output',
+          title: 'Output',
+          type: 'boolean',
+          defaultValue: true,
+          help: 'Enable this to make the Resend response available to later steps.'
+        }
+      ]
+    },
+
+    {
+      group: 'Sender',
+      variables: [
+        {
+          name: 'from',
+          optionName: 'from',
+          title: 'From Email',
+          type: 'text',
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Optional sender email address. If blank, RESEND_FROM is used.'
+        },
+        {
+          name: 'fromName',
+          optionName: 'fromName',
+          title: 'From Name',
+          type: 'text',
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Optional sender display name.'
+        },
+        {
+          name: 'replyTo',
+          optionName: 'replyTo',
+          title: 'Reply To',
+          type: 'text',
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Optional reply-to email address.'
+        }
+      ]
+    },
+
+    {
+      group: 'Recipients',
+      variables: [
+        {
+          name: 'to',
+          optionName: 'to',
+          title: 'To',
+          type: 'text',
+          required: true,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Recipient email address. Multiple addresses can be separated by commas.'
+        },
+        {
+          name: 'toName',
+          optionName: 'toName',
+          title: 'To Name',
+          type: 'text',
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Optional recipient display name.'
+        },
+        {
+          name: 'cc',
+          optionName: 'cc',
+          title: 'CC',
+          type: 'text',
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Optional CC addresses. Multiple addresses can be separated by commas.'
+        },
+        {
+          name: 'bcc',
+          optionName: 'bcc',
+          title: 'BCC',
+          type: 'text',
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Optional BCC addresses. Multiple addresses can be separated by commas.'
+        }
+      ]
+    },
+
+    {
+      group: 'Message',
+      variables: [
+        {
+          name: 'subject',
+          optionName: 'subject',
+          title: 'Subject',
+          type: 'text',
+          required: true,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Email subject line.'
+        },
+        {
+          name: 'html',
+          optionName: 'html',
+          title: 'HTML Body',
+          type: 'text',
+          multiline: true,
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'HTML email body. Provide this or Plain Text Body.'
+        },
+        {
+          name: 'text',
+          optionName: 'text',
+          title: 'Plain Text Body',
+          type: 'text',
+          multiline: true,
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Plain text email body. Provide this or HTML Body.'
+        }
+      ]
+    },
+
+    {
+      group: 'Attachment',
+      variables: [
+        {
+          name: 'attachmentPath',
+          optionName: 'attachmentPath',
+          title: 'Attachment Path',
+          type: 'text',
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Optional file path or URL. Example: public/uploads/letter.pdf'
+        },
+        {
+          name: 'attachmentFilename',
+          optionName: 'attachmentFilename',
+          title: 'Attachment Filename',
+          type: 'text',
+          required: false,
+          serverDataBindings: true,
+          allowBindings: true,
+          help: 'Optional filename shown to the recipient. If blank, filename is taken from Attachment Path.'
+        }
+      ]
+    }
+  ]
+}

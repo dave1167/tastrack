@@ -59,7 +59,8 @@
               },
               {
                 "table": "tbl_roles",
-                "column": "description"
+                "column": "description",
+                "aggregate": ""
               },
               {
                 "table": "tbl_roles",
@@ -72,6 +73,14 @@
               {
                 "table": "tbl_tenants",
                 "column": "tenantName"
+              },
+              {
+                "table": "tbl_users",
+                "column": "isActive"
+              },
+              {
+                "table": "tbl_teams",
+                "column": "teamName"
               }
             ],
             "params": [
@@ -80,7 +89,7 @@
                 "type": "expression",
                 "name": ":P1",
                 "value": "{{varTenantId}}",
-                "test": ""
+                "test": "1"
               }
             ],
             "table": {
@@ -153,9 +162,31 @@
                   ]
                 },
                 "primary": "id"
+              },
+              {
+                "table": "tbl_teams",
+                "column": "*",
+                "type": "INNER",
+                "clauses": {
+                  "condition": "AND",
+                  "rules": [
+                    {
+                      "table": "tbl_teams",
+                      "column": "id",
+                      "operator": "equal",
+                      "operation": "=",
+                      "value": {
+                        "table": "tbl_users",
+                        "column": "id",
+                        "type": "number"
+                      }
+                    }
+                  ]
+                },
+                "primary": "id"
               }
             ],
-            "query": "select `tbl_users`.`id`, `tbl_users`.`fName`, `tbl_users`.`lName`, `tbl_users`.`displayName`, `tbl_users`.`passwordHash`, `tbl_user_tenant_roles`.`roleId`, `tbl_roles`.`description`, `tbl_roles`.`roleName`, `tbl_user_tenant_roles`.`tenantId`, `tbl_tenants`.`tenantName` from `tbl_users` inner join `tbl_user_tenant_roles` on `tbl_user_tenant_roles`.`userId` = `tbl_users`.`id` inner join `tbl_roles` on `tbl_roles`.`id` = `tbl_user_tenant_roles`.`roleId` inner join `tbl_tenants` on `tbl_tenants`.`id` = `tbl_user_tenant_roles`.`tenantId` where `tbl_user_tenant_roles`.`tenantId` = ?",
+            "query": "select `tbl_users`.`id`, `tbl_users`.`fName`, `tbl_users`.`lName`, `tbl_users`.`displayName`, `tbl_users`.`passwordHash`, `tbl_user_tenant_roles`.`roleId`, `tbl_roles`.`description`, `tbl_roles`.`roleName`, `tbl_user_tenant_roles`.`tenantId`, `tbl_tenants`.`tenantName`, `tbl_users`.`isActive`, `tbl_teams`.`teamName` from `tbl_users` inner join `tbl_user_tenant_roles` on `tbl_user_tenant_roles`.`userId` = `tbl_users`.`id` inner join `tbl_roles` on `tbl_roles`.`id` = `tbl_user_tenant_roles`.`roleId` inner join `tbl_tenants` on `tbl_tenants`.`id` = `tbl_user_tenant_roles`.`tenantId` inner join `tbl_teams` on `tbl_teams`.`id` = `tbl_users`.`id` where `tbl_user_tenant_roles`.`tenantId` = ?",
             "wheres": {
               "condition": "AND",
               "rules": [
@@ -176,7 +207,8 @@
                       "name": "tenantId"
                     }
                   },
-                  "operation": "="
+                  "operation": "=",
+                  "table": "tbl_users"
                 }
               ],
               "conditional": null,
@@ -225,6 +257,14 @@
           {
             "type": "text",
             "name": "tenantName"
+          },
+          {
+            "type": "boolean",
+            "name": "isActive"
+          },
+          {
+            "type": "text",
+            "name": "teamName"
           }
         ],
         "outputType": "array",

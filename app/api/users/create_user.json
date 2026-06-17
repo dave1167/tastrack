@@ -5,38 +5,157 @@
     }
   },
   "meta": {
+    "options": {
+      "linkedFile": "/views/users/create_user.ejs",
+      "linkedForm": "frmCreateUser"
+    },
     "$_POST": [
       {
         "type": "text",
+        "fieldName": "email",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            },
+            "core:email": {}
+          }
+        },
         "name": "email"
       },
       {
         "type": "text",
+        "fieldName": "fName",
         "name": "fName"
       },
       {
         "type": "text",
+        "fieldName": "lName",
         "name": "lName"
       },
       {
         "type": "text",
+        "fieldName": "displayName",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
         "name": "displayName"
       },
       {
         "type": "text",
+        "fieldName": "password",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
         "name": "password"
       },
       {
         "type": "number",
+        "fieldName": "roleId",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
         "name": "roleId"
       },
       {
         "type": "number",
+        "fieldName": "teamId",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
         "name": "teamId"
       },
       {
         "type": "text",
+        "fieldName": "teamRole",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
         "name": "teamRole"
+      },
+      {
+        "type": "text",
+        "name": "passwordHash"
+      },
+      {
+        "type": "boolean",
+        "name": "isActive"
+      },
+      {
+        "type": "datetime",
+        "name": "lastLoginDate"
+      },
+      {
+        "type": "datetime",
+        "name": "createdDate"
+      },
+      {
+        "type": "datetime",
+        "name": "modifiedDate"
+      },
+      {
+        "type": "text",
+        "name": "verifycode"
+      },
+      {
+        "type": "number",
+        "name": "userId"
+      },
+      {
+        "type": "text",
+        "fieldName": "text1",
+        "multiple": true,
+        "name": "text1"
+      },
+      {
+        "type": "text",
+        "fieldName": "hidTeamId",
+        "name": "hidTeamId"
+      },
+      {
+        "type": "text",
+        "fieldName": "hidTeamRole",
+        "name": "hidTeamRole"
+      },
+      {
+        "type": "number",
+        "fieldName": "hidRoleId",
+        "options": {
+          "rules": {
+            "core:number": {}
+          }
+        },
+        "name": "hidRoleId"
+      }
+    ],
+    "$_SESSION": [
+      {
+        "type": "number",
+        "name": "TENANT_ID"
+      },
+      {
+        "type": "number",
+        "name": "ROLE_ID"
       }
     ]
   },
@@ -54,38 +173,159 @@
         "outputType": "text"
       },
       {
-        "name": "insertUser",
+        "name": "accessCode",
+        "module": "core",
+        "action": "setvalue",
+        "options": {
+          "value": "{{$_POST.lName.encodeBase64().substr(7, 6)}}"
+        },
+        "meta": [],
+        "outputType": "text",
+        "output": true
+      },
+      {
+        "name": "qryInsertUser",
         "module": "dbupdater",
-        "action": "custom",
+        "action": "insert",
         "options": {
           "connection": "db",
           "sql": {
-            "query": "INSERT INTO tbl_users (email, fName, lName, displayName, passwordHash, status) VALUES (:email, :fName, :lName, :displayName, :passwordHash, 'active')",
+            "type": "insert",
+            "values": [
+              {
+                "table": "tbl_users",
+                "column": "email",
+                "type": "text",
+                "value": "{{$_POST.email.lowercase()}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "fName",
+                "type": "text",
+                "value": "{{$_POST.fName.lowercase().capitalize()}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "lName",
+                "type": "text",
+                "value": "{{$_POST.lName.lowercase().capitalize()}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "displayName",
+                "type": "text",
+                "value": "{{$_POST.displayName.lowercase().capitalize()}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "passwordHash",
+                "type": "text",
+                "value": "{{passwordHash}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "isActive",
+                "type": "boolean",
+                "value": "1"
+              },
+              {
+                "table": "tbl_users",
+                "column": "lastLoginDate",
+                "type": "datetime",
+                "value": "{{NOW}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "createdDate",
+                "type": "datetime",
+                "value": "{{NOW.formatDate('yyyy-MM-dd', false)}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "modifiedDate",
+                "type": "datetime",
+                "value": "{{NOW.formatDate('yyyy-MM-dd', false)}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "verifycode",
+                "type": "text",
+                "value": "{{accessCode}}"
+              }
+            ],
+            "table": "tbl_users",
+            "returning": "id",
+            "query": "insert into `tbl_users` (`createdDate`, `displayName`, `email`, `fName`, `isActive`, `lName`, `lastLoginDate`, `modifiedDate`, `passwordHash`, `verifycode`) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             "params": [
               {
-                "name": ":email",
-                "value": "{{$_POST.email}}"
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_POST.email.lowercase()}}",
+                "test": ""
               },
               {
-                "name": ":fName",
-                "value": "{{$_POST.fName}}"
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{$_POST.fName.lowercase().capitalize()}}",
+                "test": ""
               },
               {
-                "name": ":lName",
-                "value": "{{$_POST.lName}}"
+                "name": ":P3",
+                "type": "expression",
+                "value": "{{$_POST.lName.lowercase().capitalize()}}",
+                "test": ""
               },
               {
-                "name": ":displayName",
-                "value": "{{$_POST.displayName}}"
+                "name": ":P4",
+                "type": "expression",
+                "value": "{{$_POST.displayName.lowercase().capitalize()}}",
+                "test": ""
               },
               {
-                "name": ":passwordHash",
-                "value": "{{passwordHash}}"
+                "name": ":P5",
+                "type": "expression",
+                "value": "{{passwordHash}}",
+                "test": ""
+              },
+              {
+                "name": ":P6",
+                "type": "expression",
+                "value": "{{NOW}}",
+                "test": ""
+              },
+              {
+                "name": ":P7",
+                "type": "expression",
+                "value": "{{NOW.formatDate('yyyy-MM-dd', false)}}",
+                "test": ""
+              },
+              {
+                "name": ":P8",
+                "type": "expression",
+                "value": "{{NOW.formatDate('yyyy-MM-dd', false)}}",
+                "test": ""
+              },
+              {
+                "name": ":P9",
+                "type": "expression",
+                "value": "{{accessCode}}",
+                "test": ""
               }
             ]
           }
         },
-        "output": true
+        "meta": [
+          {
+            "name": "identity",
+            "type": "text"
+          },
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ],
+        "output": true,
+        "collapsed": true
       },
       {
         "name": "insertTenantRole",
@@ -94,24 +334,131 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "INSERT INTO tbl_user_tenant_roles (userId, tenantId, roleId, isPrimary, status) SELECT id, :tenantId, :roleId, 1, 'active' FROM tbl_users WHERE email = :email",
+            "query": "INSERT INTO tbl_user_tenant_roles (userId, tenantId, roleId, isPrimary, isActive) SELECT id, :tenantId, :roleId, 1, 'active' FROM tbl_users WHERE email = :email",
             "params": [
               {
                 "name": ":tenantId",
-                "value": "{{$_SESSION.TENANT_ID}}"
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "recid": 1
               },
               {
                 "name": ":roleId",
-                "value": "{{$_POST.roleId}}"
+                "value": "{{$_POST.roleId}}",
+                "recid": 2
               },
               {
                 "name": ":email",
-                "value": "{{$_POST.email}}"
+                "value": "{{$_POST.email}}",
+                "recid": 3
               }
             ]
           }
         },
-        "output": true
+        "output": true,
+        "disabled": true,
+        "collapsed": true
+      },
+      {
+        "name": "qryInsTenantRole",
+        "module": "dbupdater",
+        "action": "insert",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "insert",
+            "values": [
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "userId",
+                "type": "number",
+                "value": "{{qryInsertUser.identity}}"
+              },
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "tenantId",
+                "type": "number",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "roleId",
+                "type": "number",
+                "value": "{{$_POST.hidRoleId}}"
+              },
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "isPrimary",
+                "type": "boolean",
+                "value": "1"
+              },
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "createdDate",
+                "type": "datetime",
+                "value": "{{NOW}}"
+              },
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "modifiedDate",
+                "type": "datetime",
+                "value": "{{NOW}}"
+              },
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "isActive",
+                "type": "boolean",
+                "value": "1"
+              }
+            ],
+            "table": "tbl_user_tenant_roles",
+            "returning": "id",
+            "query": "insert into `tbl_user_tenant_roles` (`createdDate`, `isActive`, `isPrimary`, `modifiedDate`, `roleId`, `tenantId`, `userId`) values (?, ?, ?, ?, ?, ?, ?)",
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{qryInsertUser.identity}}",
+                "test": ""
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "test": ""
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "{{$_POST.hidRoleId}}",
+                "test": ""
+              },
+              {
+                "name": ":P4",
+                "type": "expression",
+                "value": "{{NOW}}",
+                "test": ""
+              },
+              {
+                "name": ":P5",
+                "type": "expression",
+                "value": "{{NOW}}",
+                "test": ""
+              }
+            ]
+          }
+        },
+        "meta": [
+          {
+            "name": "identity",
+            "type": "text"
+          },
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ],
+        "output": true,
+        "collapsed": true
       },
       {
         "name": "insertTeamMember",
@@ -124,28 +471,150 @@
             "params": [
               {
                 "name": ":teamId",
-                "value": "{{$_POST.teamId}}"
+                "value": "{{$_POST.teamId}}",
+                "recid": 1
               },
               {
                 "name": ":teamRole",
-                "value": "{{$_POST.teamRole.default('member')}}"
+                "value": "{{$_POST.teamRole.default('member')}}",
+                "recid": 2
               },
               {
                 "name": ":email",
-                "value": "{{$_POST.email}}"
+                "value": "{{$_POST.email}}",
+                "recid": 3
               },
               {
                 "name": ":tenantId",
-                "value": "{{$_SESSION.TENANT_ID}}"
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "recid": 4
               },
               {
                 "name": ":roleId",
-                "value": "{{$_POST.roleId}}"
+                "value": "{{$_POST.roleId}}",
+                "recid": 5
               }
             ]
           }
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "array",
+        "disabled": true,
+        "collapsed": true
+      },
+      {
+        "name": "qryInsTeamMember",
+        "module": "dbupdater",
+        "action": "insert",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "insert",
+            "values": [
+              {
+                "table": "tbl_team_members",
+                "column": "tenantId",
+                "type": "number",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "tenantUserId",
+                "type": "number",
+                "value": "{{qryInsTenantRole.identity}}"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "teamId",
+                "type": "number",
+                "value": "{{$_POST.hidTeamId}}"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "teamRole",
+                "type": "number",
+                "value": "{{$_POST.hidTeamRole}}"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "isPrimary",
+                "type": "boolean",
+                "value": "1"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "isActive",
+                "type": "boolean",
+                "value": "1"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "createdDate",
+                "type": "datetime",
+                "value": "{{NOW}}"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "modifiedDate",
+                "type": "datetime",
+                "value": "{{NOW}}"
+              }
+            ],
+            "table": "tbl_team_members",
+            "returning": "id",
+            "query": "insert into `tbl_team_members` (`createdDate`, `isActive`, `isPrimary`, `modifiedDate`, `teamId`, `teamRole`, `tenantId`, `tenantUserId`) values (?, ?, ?, ?, ?, ?, ?, ?)",
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "test": ""
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{qryInsTenantRole.identity}}",
+                "test": ""
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "{{$_POST.hidTeamId}}",
+                "test": ""
+              },
+              {
+                "name": ":P4",
+                "type": "expression",
+                "value": "{{$_POST.hidTeamRole}}",
+                "test": ""
+              },
+              {
+                "name": ":P5",
+                "type": "expression",
+                "value": "{{NOW}}",
+                "test": ""
+              },
+              {
+                "name": ":P6",
+                "type": "expression",
+                "value": "{{NOW}}",
+                "test": ""
+              }
+            ]
+          }
+        },
+        "meta": [
+          {
+            "name": "identity",
+            "type": "text"
+          },
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ],
+        "collapsed": true
       },
       {
         "module": "core",
@@ -156,5 +625,8 @@
         }
       }
     ]
+  },
+  "usedModules": {
+    "argon2": "^0.30.2"
   }
 }

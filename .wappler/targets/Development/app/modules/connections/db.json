@@ -10,6 +10,10 @@
       "user": "root",
       "password": "%Joanne@01",
       "database": "task_tracker"
-    }
-  }
+    },
+    "meta": {}
+  },
+  "actionFilePath": "file:///C:/WapplerNewProj/TasTrack/app/modules/connections/db.json",
+  "serverType": "node",
+  "fileName": "db.json"
 }

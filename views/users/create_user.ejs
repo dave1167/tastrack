@@ -48,7 +48,7 @@
                         </div>
 
                         <div class="col-12">
-                            <div class="form-floating mb-3"> <input id="inp_displayName" name="displayName" type="text" class="form-control" required="" dmx-bind:value="inp_fName.value+' '+inp_lName.value" disabled="true">
+                            <div class="form-floating mb-3"> <input id="inp_displayName" name="displayName" type="text" class="form-control" required="" dmx-bind:value="inp_fName.value+' '+inp_lName.value">
                                 <label for="inp_displayName" class="form-label">Display name</label>
                             </div>
 
@@ -71,21 +71,22 @@
                             </div>
 
 
-                            <input id="hidTeamId" name="text1" type="hidden" class="form-control" dmx-bind:value="inp_teamId.value">
+                            <input id="hidTeamId" name="hidTeamId" type="hidden" class="form-control" dmx-bind:value="inp_teamId.value">
                         </div>
                         <div class="col-12 col-md-6">
-                            <div class="form-floating mb-3"> <select id="inp_teamRole" name="teamRole" class="form-select" required="" dmx-bind:options="scTeamRoles.data.qryTeamRoles" optiontext="desc" optionvalue="id">
+                            <div class="form-floating mb-3"> <select id="inp_teamRole" name="teamRole" class="form-select" required="" dmx-bind:options="scTeamRoles.data.qryTeamRoles" optiontext="roleDesc" optionvalue="id">
                                     <option value="">Select Role</option>
-                                </select><label for="inp_teamRole" class="form-label">Team member Role</label><input id="hidTeamRole" name="text1" type="hidden" class="form-control" dmx-bind:value="inp_teamRole.value">
+                                </select><label for="inp_teamRole" class="form-label">Team member Role</label><input id="hidTeamRole" name="hidTeamRole" type="hidden" class="form-control" dmx-bind:value="inp_teamRole.value">
                             </div>
 
 
 
                         </div>
                         <div class="col-12 col-md-6">
-                            <div class="form-floating mb-3"> <select id="inp_roleId" name="roleId" class="form-select" required dmx-bind:options="scRoles.data.query" optiontext="roleName" optionvalue="id">
+                            <div class="form-floating mb-3"> <select id="inp_roleId" name="roleId" class="form-select form-select-sm" required="" dmx-bind:options="scRoles.data.query" optiontext="roleName" optionvalue="id">
                                     <option value="">Select User Access Level</option>
-                                </select><label for="inp_roleId" class="form-label">User Access</label>
+                                </select>
+                                <input id="hidRoleId" name="hidRoleId" type="number" class="form-control" dmx-bind:value="inp_roleId.value"><label for="inp_roleId" class="form-label">User Access</label>
                             </div>
 
 

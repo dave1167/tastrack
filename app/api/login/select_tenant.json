@@ -22,7 +22,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT utr.userId, utr.tenantId, utr.roleId, utr.isPrimary, u.fName, u.lName, u.displayName, t.tenantName, r.roleName, r.roleKey FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id = utr.userId INNER JOIN tbl_tenants t ON t.id = utr.tenantId INNER JOIN tbl_roles r ON r.id = utr.roleId WHERE utr.userId = :userId AND utr.tenantId = :tenantId AND utr.status = 'active' ORDER BY utr.isPrimary DESC, utr.roleId ASC LIMIT 1",
+            "query": "SELECT utr.userId, utr.tenantId, utr.roleId, utr.isPrimary, u.fName, u.lName, u.displayName, t.tenantName, r.roleName, r.roleKey FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id = utr.userId INNER JOIN tbl_tenants t ON t.id = utr.tenantId INNER JOIN tbl_roles r ON r.id = utr.roleId WHERE utr.userId = :userId AND utr.tenantId = :tenantId AND utr.isActive = 1 ORDER BY utr.isPrimary DESC, utr.roleId ASC LIMIT 1",
             "params": [
               {
                 "name": ":userId",

@@ -5,133 +5,67 @@
     }
   },
   "exec": {
-    "steps": [
-      {
-        "name": "",
-        "module": "core",
-        "action": "setvalue",
-        "options": {},
-        "meta": [],
-        "outputType": "text"
+    "steps": {
+      "name": "query",
+      "module": "dbconnector",
+      "action": "select",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "type": "SELECT",
+          "distinct": false,
+          "columns": [
+            {
+              "table": "tbl_roles",
+              "column": "id",
+              "field": "id"
+            },
+            {
+              "table": "tbl_roles",
+              "column": "roleKey",
+              "field": "roleKey"
+            },
+            {
+              "table": "tbl_roles",
+              "column": "roleName",
+              "field": "roleName"
+            }
+          ],
+          "table": {
+            "name": "tbl_roles"
+          },
+          "joins": [],
+          "orders": [
+            {
+              "column": "roleName",
+              "field": "roleName",
+              "direction": "ASC",
+              "recid": 1
+            }
+          ],
+          "params": [],
+          "primary": "id",
+          "query": "select `id`, `roleKey`, `roleName` from `tbl_roles` order by `roleName` ASC"
+        }
       },
-      {
-        "name": "query",
-        "module": "dbconnector",
-        "action": "select",
-        "options": {
-          "connection": "db",
-          "sql": {
-            "type": "SELECT",
-            "distinct": false,
-            "columns": [
-              {
-                "table": "tbl_roles",
-                "column": "id",
-                "field": "id"
-              },
-              {
-                "table": "tbl_roles",
-                "column": "roleKey",
-                "field": "roleKey"
-              },
-              {
-                "table": "tbl_roles",
-                "column": "roleName",
-                "field": "roleName"
-              }
-            ],
-            "table": {
-              "name": "tbl_roles"
-            },
-            "joins": [],
-            "wheres": {
-              "condition": "AND",
-              "rules": [
-                {
-                  "id": "tbl_roles.isActive",
-                  "field": "tbl_roles.isActive",
-                  "type": "boolean",
-                  "operator": "equal",
-                  "value": 1,
-                  "data": {
-                    "table": "tbl_roles",
-                    "column": "isActive",
-                    "type": "boolean",
-                    "columnObj": {
-                      "type": "boolean",
-                      "default": "1",
-                      "primary": false,
-                      "nullable": false,
-                      "name": "isActive"
-                    }
-                  },
-                  "operation": "="
-                },
-                {
-                  "id": "tbl_roles.tenantId",
-                  "field": "tbl_roles.tenantId",
-                  "type": "string",
-                  "operator": "equal",
-                  "value": "{{$_SESSION.TENANT_ID}}",
-                  "data": {
-                    "table": "tbl_roles",
-                    "column": "tenantId",
-                    "type": "text",
-                    "columnObj": {
-                      "type": "string",
-                      "default": "",
-                      "maxLength": 100,
-                      "primary": false,
-                      "nullable": true,
-                      "name": "tenantId"
-                    }
-                  },
-                  "operation": "="
-                }
-              ],
-              "conditional": null,
-              "valid": true
-            },
-            "orders": [
-              {
-                "column": "roleName",
-                "field": "roleName",
-                "direction": "ASC",
-                "recid": 1
-              }
-            ],
-            "params": [
-              {
-                "operator": "equal",
-                "type": "expression",
-                "name": ":P1",
-                "value": "{{$_SESSION.TENANT_ID}}",
-                "test": ""
-              }
-            ],
-            "primary": "id",
-            "query": "select `id`, `roleKey`, `roleName` from `tbl_roles` where `tbl_roles`.`isActive` = ? and `tbl_roles`.`tenantId` = ? order by `roleName` ASC"
-          }
+      "output": true,
+      "outputType": "array",
+      "meta": [
+        {
+          "type": "number",
+          "name": "id"
         },
-        "output": true,
-        "outputType": "array",
-        "meta": [
-          {
-            "type": "number",
-            "name": "id"
-          },
-          {
-            "type": "text",
-            "name": "roleKey"
-          },
-          {
-            "type": "text",
-            "name": "roleName"
-          }
-        ],
-        "type": "dbconnector_select",
-        "collapsed": true
-      }
-    ]
+        {
+          "type": "text",
+          "name": "roleKey"
+        },
+        {
+          "type": "text",
+          "name": "roleName"
+        }
+      ],
+      "type": "dbconnector_select",
+      "collapsed": true
+    }
   }
 }

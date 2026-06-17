@@ -1,0 +1,9 @@
+{
+    "name": "extensions",
+    "version": "1.0.0",
+    "description": "Using_Resend_Email",
+    "license": "MIT",
+    "keywords": [
+        "wappler-extension"
+    ]
+}

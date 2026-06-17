@@ -49,7 +49,7 @@
             },
             {
               "table": "tbl_team_roles",
-              "column": "desc"
+              "column": "roleDesc"
             }
           ],
           "params": [
@@ -73,7 +73,7 @@
           },
           "primary": "id",
           "joins": [],
-          "query": "select `id`, `tenantId`, `teamId`, `isActive`, `desc` from `tbl_team_roles` where `tbl_team_roles`.`tenantId` = ? and `tbl_team_roles`.`teamId` = ?",
+          "query": "select `id`, `tenantId`, `teamId`, `isActive`, `roleDesc` from `tbl_team_roles` where `tbl_team_roles`.`tenantId` = ? and `tbl_team_roles`.`teamId` = ?",
           "wheres": {
             "condition": "AND",
             "rules": [
@@ -143,7 +143,7 @@
         },
         {
           "type": "text",
-          "name": "desc"
+          "name": "roleDesc"
         }
       ],
       "outputType": "array",

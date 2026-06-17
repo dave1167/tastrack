@@ -17,7 +17,6 @@
       "type": "local"
     }
   ],
-  "hostingType": "wappler",
   "projectServerModel": "node",
   "runtime": "capacitor",
   "projectLinksType": "site",
@@ -27,19 +26,13 @@
   "targets": [
     {
       "name": "Development",
-      "remoteURL": "http://localhost:3000",
-      "targetType": "wappler",
-      "databaseConnectionType": "custom",
-      "databaseType": "mariadb",
-      "db_host": "localhost",
-      "db_port": "3307",
-      "db_user": "root",
-      "db_password": "%Joanne@01",
-      "db_database": "task_tracker"
+      "remoteURL": "http://localhost:3000/",
+      "access": "local"
     }
   ],
   "activeTarget": "Development",
   "projectType": "web",
   "extensions": [],
-  "userUploadsFolder": "/uploads"
+  "userUploadsFolder": "/uploads",
+  "addBase": true
 }
