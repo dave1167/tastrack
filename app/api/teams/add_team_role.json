@@ -6,14 +6,60 @@
     }
   },
   "meta": {
+    "options": {
+      "linkedFile": "/views/teams/team_roles.ejs",
+      "linkedForm": "frmTeamRole"
+    },
     "$_POST": [
       {
         "type": "number",
+        "fieldName": "teamId",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
         "name": "teamId"
       },
       {
         "type": "text",
+        "fieldName": "teamRoleName",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
         "name": "teamRoleName"
+      },
+      {
+        "type": "number",
+        "name": "tenantId"
+      },
+      {
+        "type": "text",
+        "name": "roleDesc"
+      },
+      {
+        "type": "boolean",
+        "name": "isActive"
+      },
+      {
+        "type": "text",
+        "name": "status"
+      },
+      {
+        "type": "number",
+        "name": "id"
+      }
+    ],
+    "$_SESSION": [
+      {
+        "type": "number",
+        "name": "TENANT_ID"
       }
     ]
   },
@@ -30,20 +76,110 @@
             "params": [
               {
                 "name": ":tenantId",
-                "value": "{{$_SESSION.TENANT_ID}}"
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "recid": 1
               },
               {
                 "name": ":teamId",
-                "value": "{{$_POST.teamId}}"
+                "value": "{{$_POST.teamId}}",
+                "recid": 2
               },
               {
                 "name": ":teamRoleName",
-                "value": "{{$_POST.teamRoleName}}"
+                "value": "{{$_POST.teamRoleName}}",
+                "recid": 3
               }
             ]
           }
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "array",
+        "disabled": true,
+        "collapsed": true
+      },
+      {
+        "name": "insTeamRole",
+        "module": "dbupdater",
+        "action": "insert",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "insert",
+            "values": [
+              {
+                "table": "tbl_team_roles",
+                "column": "tenantId",
+                "type": "number",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "table": "tbl_team_roles",
+                "column": "teamId",
+                "type": "number",
+                "value": "{{$_POST.teamId}}"
+              },
+              {
+                "table": "tbl_team_roles",
+                "column": "roleDesc",
+                "type": "text",
+                "value": "{{$_POST.teamRoleName}}"
+              },
+              {
+                "table": "tbl_team_roles",
+                "column": "isActive",
+                "type": "boolean",
+                "value": "1"
+              },
+              {
+                "table": "tbl_team_roles",
+                "column": "id",
+                "type": "number",
+                "value": "{{$_POST.id}}"
+              }
+            ],
+            "table": "tbl_team_roles",
+            "returning": "id",
+            "query": "insert into `tbl_team_roles` (`id`, `isActive`, `roleDesc`, `teamId`, `tenantId`) values (?, ?, ?, ?, ?)",
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "test": ""
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{$_POST.teamId}}",
+                "test": ""
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "{{$_POST.teamRoleName}}",
+                "test": ""
+              },
+              {
+                "name": ":P4",
+                "type": "expression",
+                "value": "{{$_POST.id}}",
+                "test": ""
+              }
+            ]
+          }
+        },
+        "meta": [
+          {
+            "name": "identity",
+            "type": "text"
+          },
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ],
+        "collapsed": true
       },
       {
         "module": "core",

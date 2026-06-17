@@ -1,9 +1,9 @@
-<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="all_users" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" --><!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="all_users" appconnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="all_users" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{},dmxBootstrap5Tooltips:{}}" --><!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="all_users" appconnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
 <dmx-query-manager id="query1"></dmx-query-manager>
 <dmx-serverconnect id="scListAllUsers" url="/api/users/list"></dmx-serverconnect>
 <div class="row">
     <div class="col">
-        <button id="btn1" class="btn btn-secondary mt-2 mb-2">Add New User</button>
+        <button id="btn1" class="btn btn-secondary mt-2 mb-2" dmx-on:click="browser1.goto('/users/create_user')">Add New User</button>
     </div>
 </div>
 <div class="d-flex">
@@ -11,22 +11,22 @@
         <table class="table table-striped table-bordered table-hover table-sm">
             <thead>
                 <tr>
-                    <th class="sorting" dmx-on:click="query1.set('sort','id');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort=='id' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort=='id' && query1.data.dir == 'desc'">Id</th>
+                    <th class="sorting" dmx-on:click="query1.set('sort','userId');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort=='userId' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort=='userId' && query1.data.dir == 'desc'">Id</th>
                     <th class="sorting" dmx-on:click="query1.set('sort','fName');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort=='fName' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort=='fName' && query1.data.dir == 'desc'">First Name</th>
                     <th class="sorting" dmx-on:click="query1.set('sort','lName');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort=='lName' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort=='lName' && query1.data.dir == 'desc'">Last Name</th>
-                    <th class="sorting" dmx-on:click="query1.set('sort','roleName');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort=='roleName' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort=='roleName' && query1.data.dir == 'desc'">Security Level</th>
-                    <th class="sorting" dmx-on:click="query1.set('sort','isActive');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort=='isActive' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort=='isActive' && query1.data.dir == 'desc'">Is active</th>
+                    <th class="sorting" dmx-on:click="query1.set('sort','accessRole');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort=='accessRole' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort=='accessRole' && query1.data.dir == 'desc'">Security Level</th>
                     <th class="sorting" dmx-on:click="query1.set('sort','teamName');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort=='teamName' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort=='teamName' && query1.data.dir == 'desc'">Team name</th>
+                    <th class="sorting" dmx-on:click="query1.set('sort','teamRoleDesc');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort=='teamRoleDesc' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort=='teamRoleDesc' && query1.data.dir == 'desc'">Role</th>
                 </tr>
             </thead>
-            <tbody is="dmx-repeat" dmx-generator="bs5table" dmx-bind:repeat="scListAllUsers.data.query" id="tableRepeat1" dmx-state="query1" dmx-sort="sort" dmx-order="dir">
+            <tbody is="dmx-repeat" dmx-generator="bs5table" dmx-bind:repeat="scListAllUsers.data.query" id="tableRepeat2" dmx-state="query1" dmx-sort="sort" dmx-order="dir">
                 <tr>
-                    <td dmx-text="id"></td>
+                    <td dmx-text="userId"></td>
                     <td dmx-text="fName"></td>
                     <td dmx-text="lName"></td>
                     <td dmx-text="accessRole"></td>
-                    <td dmx-text="isActive"></td>
                     <td dmx-text="teamName"></td>
+                    <td dmx-text="teamRoleDesc"></td>
                 </tr>
             </tbody>
         </table>

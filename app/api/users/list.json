@@ -31,7 +31,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT u.id AS userId,u.fName,u.lName,u.displayName,u.email,u.isActive AS userActive,utr.id AS tenantUserRoleId,utr.tenantId,utr.roleId,r.roleName AS accessRole,tm.id AS teamMemberId,tm.teamId,t.teamName,tm.teamRole AS teamRoleId,tr.roleDesc AS teamRole FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id=utr.userId LEFT JOIN tbl_roles r ON r.id=utr.roleId LEFT JOIN tbl_team_members tm ON tm.tenantUserId=utr.id AND tm.tenantId=utr.tenantId AND tm.isPrimary=1 LEFT JOIN tbl_teams t ON t.id=tm.teamId AND t.tenantId=tm.tenantId LEFT JOIN tbl_team_roles tr ON tr.id=tm.teamRole AND tr.teamId=tm.teamId AND tr.tenantId=tm.tenantId WHERE utr.tenantId=? AND utr.isPrimary=1 ORDER BY u.displayName;",
+            "query": "SELECT u.id AS userId,u.fName,u.lName,u.displayName,u.email,u.isActive AS userActive,utr.id AS tenantUserRoleId,utr.tenantId,utr.roleId,r.roleName AS accessRole,r.description AS accessRoleDesc,perm.permissionsTooltip,tm.id AS teamMemberId,tm.teamId,t.teamName,tm.teamRole AS teamRoleId,tr.roleDesc AS teamRoleDesc FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id=utr.userId LEFT JOIN tbl_roles r ON r.id=utr.roleId LEFT JOIN (SELECT rp.roleId,GROUP_CONCAT(p.description ORDER BY p.permissionKey SEPARATOR ' | ') AS permissionsTooltip FROM tbl_role_permissions rp INNER JOIN tbl_permissions p ON p.id=rp.permissionId WHERE p.isActive=1 GROUP BY rp.roleId) perm ON perm.roleId=r.id LEFT JOIN tbl_team_members tm ON tm.tenantUserId=utr.id AND tm.tenantId=utr.tenantId AND tm.isPrimary=1 LEFT JOIN tbl_teams t ON t.id=tm.teamId AND t.tenantId=tm.tenantId LEFT JOIN tbl_team_roles tr ON tr.id=tm.teamRole AND tr.teamId=tm.teamId AND tr.tenantId=tm.tenantId WHERE utr.tenantId=? AND utr.isPrimary=1 ORDER BY u.displayName;",
             "params": [
               {
                 "name": ":P1",
@@ -84,6 +84,10 @@
             "type": "text"
           },
           {
+            "name": "accessRoleDesc",
+            "type": "file"
+          },
+          {
             "name": "teamMemberId",
             "type": "number"
           },
@@ -100,10 +104,11 @@
             "type": "number"
           },
           {
-            "name": "teamRole",
+            "name": "teamRoleDesc",
             "type": "text"
           }
         ],
+        "outputType": "array",
         "collapsed": true,
         "type": "dbcustom_query"
       }

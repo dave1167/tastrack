@@ -5,17 +5,38 @@
     }
   },
   "meta": {
+    "options": {
+      "linkedFile": "/views/teams/create_team.ejs",
+      "linkedForm": "frmCreateTeam"
+    },
     "$_POST": [
       {
         "type": "text",
+        "fieldName": "teamName",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
         "name": "teamName"
       },
       {
         "type": "text",
+        "fieldName": "description",
         "name": "description"
       },
       {
         "type": "number",
+        "fieldName": "isActive",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
         "name": "isActive"
       }
     ]
@@ -50,7 +71,10 @@
             ]
           }
         },
-        "output": true
+        "output": true,
+        "meta": [],
+        "outputType": "array",
+        "collapsed": true
       },
       {
         "module": "core",

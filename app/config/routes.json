@@ -154,6 +154,12 @@
     }
   ],
   "layouts": {
-    "main_shell": {}
+    "main_shell": {
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    }
   }
 }

@@ -1,0 +1,139 @@
+{
+  "meta": {
+    "$_POST": [
+      {
+        "type": "number",
+        "name": "tenantId"
+      },
+      {
+        "type": "text",
+        "name": "teamName"
+      },
+      {
+        "type": "text",
+        "name": "description"
+      },
+      {
+        "type": "boolean",
+        "name": "isActive"
+      },
+      {
+        "type": "datetime",
+        "name": "createdDate"
+      },
+      {
+        "type": "datetime",
+        "name": "modifiedDate"
+      }
+    ],
+    "$_SESSION": [
+      {
+        "type": "number",
+        "name": "TENANT_ID"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "insert",
+      "module": "dbupdater",
+      "action": "insert",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "type": "insert",
+          "values": [
+            {
+              "table": "tbl_teams",
+              "column": "tenantId",
+              "type": "number",
+              "value": "{{$_SESSION.TENANT_ID}}"
+            },
+            {
+              "table": "tbl_teams",
+              "column": "teamName",
+              "type": "text",
+              "value": "{{$_POST.teamName}}"
+            },
+            {
+              "table": "tbl_teams",
+              "column": "description",
+              "type": "text",
+              "value": "{{$_POST.description}}"
+            },
+            {
+              "table": "tbl_teams",
+              "column": "isActive",
+              "type": "boolean",
+              "value": "{{$_POST.isActive}}"
+            },
+            {
+              "table": "tbl_teams",
+              "column": "createdDate",
+              "type": "datetime",
+              "value": "{{NOW}}"
+            },
+            {
+              "table": "tbl_teams",
+              "column": "modifiedDate",
+              "type": "datetime",
+              "value": "{{NOW}}"
+            }
+          ],
+          "table": "tbl_teams",
+          "returning": "id",
+          "query": "insert into `tbl_teams` (`createdDate`, `description`, `isActive`, `modifiedDate`, `teamName`, `tenantId`) values (?, ?, ?, ?, ?, ?)",
+          "params": [
+            {
+              "name": ":P1",
+              "type": "expression",
+              "value": "{{$_SESSION.TENANT_ID}}",
+              "test": ""
+            },
+            {
+              "name": ":P2",
+              "type": "expression",
+              "value": "{{$_POST.teamName}}",
+              "test": ""
+            },
+            {
+              "name": ":P3",
+              "type": "expression",
+              "value": "{{$_POST.description}}",
+              "test": ""
+            },
+            {
+              "name": ":P4",
+              "type": "expression",
+              "value": "{{$_POST.isActive}}",
+              "test": ""
+            },
+            {
+              "name": ":P5",
+              "type": "expression",
+              "value": "{{NOW}}",
+              "test": ""
+            },
+            {
+              "name": ":P6",
+              "type": "expression",
+              "value": "{{NOW}}",
+              "test": ""
+            }
+          ]
+        }
+      },
+      "meta": [
+        {
+          "name": "identity",
+          "type": "text"
+        },
+        {
+          "name": "affected",
+          "type": "number"
+        }
+      ],
+      "collapsed": true
+    }
+  }
+}
