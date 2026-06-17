@@ -173,15 +173,61 @@
         "outputType": "text"
       },
       {
-        "name": "accessCode",
-        "module": "core",
-        "action": "setvalue",
+        "name": "",
         "options": {
-          "value": "{{$_POST.lName.encodeBase64().substr(7, 6)}}"
+          "comment": "Create the verification code"
+        }
+      },
+      {
+        "name": "accessCode",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT LPAD(FLOOR(RAND() * 1000000), 6, '0') AS accessCode;",
+            "params": []
+          }
         },
+        "output": true,
         "meta": [],
-        "outputType": "text",
-        "output": true
+        "outputType": "array",
+        "collapsed": true
+      },
+      {
+        "name": "",
+        "options": {
+          "comment": "check for duplicate emails"
+        }
+      },
+      {
+        "name": "validate",
+        "module": "validator",
+        "action": "validate",
+        "options": {
+          "data": [
+            {
+              "name": "email",
+              "value": "{{$_POST.email.lowercase()}}",
+              "rules": {
+                "core:required": {
+                  "param": ""
+                },
+                "core:email": {},
+                "db:notexists": {
+                  "param": {
+                    "connection": "db",
+                    "table": "tbl_users",
+                    "column": "email"
+                  },
+                  "message": "A user with this email address already exists. They may already be a member of another organisation. Please search for the existing user and add them to this organisation instead."
+                }
+              },
+              "fieldName": "email"
+            }
+          ]
+        },
+        "collapsed": true
       },
       {
         "name": "qryInsertUser",
@@ -250,7 +296,7 @@
                 "table": "tbl_users",
                 "column": "verifycode",
                 "type": "text",
-                "value": "{{accessCode}}"
+                "value": "{{accessCode[0].accessCode}}"
               }
             ],
             "table": "tbl_users",
@@ -308,7 +354,7 @@
               {
                 "name": ":P9",
                 "type": "expression",
-                "value": "{{accessCode}}",
+                "value": "{{accessCode[0].accessCode}}",
                 "test": ""
               }
             ]
@@ -328,34 +374,28 @@
         "collapsed": true
       },
       {
-        "name": "insertTenantRole",
-        "module": "dbupdater",
-        "action": "custom",
+        "name": "",
+        "module": "core",
+        "action": "condition",
         "options": {
-          "connection": "db",
-          "sql": {
-            "query": "INSERT INTO tbl_user_tenant_roles (userId, tenantId, roleId, isPrimary, isActive) SELECT id, :tenantId, :roleId, 1, 'active' FROM tbl_users WHERE email = :email",
-            "params": [
+          "if": "{{qryInsertUser.affected != 1 || qryInsertUser.identity == ''}}",
+          "then": {
+            "steps": [
               {
-                "name": ":tenantId",
-                "value": "{{$_SESSION.TENANT_ID}}",
-                "recid": 1
-              },
-              {
-                "name": ":roleId",
-                "value": "{{$_POST.roleId}}",
-                "recid": 2
-              },
-              {
-                "name": ":email",
-                "value": "{{$_POST.email}}",
-                "recid": 3
+                "name": "errUserInsertFailed",
+                "module": "core",
+                "action": "error",
+                "options": {
+                  "message": "The user account could not be created. No records have been saved."
+                }
               }
             ]
+          },
+          "else": {
+            "steps": []
           }
         },
-        "output": true,
-        "disabled": true,
+        "outputType": "boolean",
         "collapsed": true
       },
       {
@@ -461,46 +501,28 @@
         "collapsed": true
       },
       {
-        "name": "insertTeamMember",
-        "module": "dbupdater",
-        "action": "custom",
+        "name": "",
+        "module": "core",
+        "action": "condition",
         "options": {
-          "connection": "db",
-          "sql": {
-            "query": "INSERT INTO tbl_team_members (tenantUserId, teamId, teamRole, isPrimary, isActive) SELECT utr.id, :teamId, :teamRole, 1, 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_users u ON u.id = utr.userId WHERE u.email = :email AND utr.tenantId = :tenantId AND utr.roleId = :roleId ORDER BY utr.id DESC LIMIT 1",
-            "params": [
+          "if": "{{qryInsTenantRole.affected != 1 || qryInsTenantRole.identity == ''}}",
+          "then": {
+            "steps": [
               {
-                "name": ":teamId",
-                "value": "{{$_POST.teamId}}",
-                "recid": 1
-              },
-              {
-                "name": ":teamRole",
-                "value": "{{$_POST.teamRole.default('member')}}",
-                "recid": 2
-              },
-              {
-                "name": ":email",
-                "value": "{{$_POST.email}}",
-                "recid": 3
-              },
-              {
-                "name": ":tenantId",
-                "value": "{{$_SESSION.TENANT_ID}}",
-                "recid": 4
-              },
-              {
-                "name": ":roleId",
-                "value": "{{$_POST.roleId}}",
-                "recid": 5
+                "name": "errTenantRoleInsertFailed",
+                "module": "core",
+                "action": "error",
+                "options": {
+                  "message": "The user account was created, but the organisation access could not be assigned."
+                }
               }
             ]
+          },
+          "else": {
+            "steps": []
           }
         },
-        "output": true,
-        "meta": [],
-        "outputType": "array",
-        "disabled": true,
+        "outputType": "boolean",
         "collapsed": true
       },
       {
@@ -614,15 +636,49 @@
             "type": "number"
           }
         ],
+        "collapsed": true,
+        "output": true
+      },
+      {
+        "name": "",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{qryInsTeamMember.affected != 1 || qryInsTeamMember.identity == ''}}",
+          "then": {
+            "steps": [
+              {
+                "name": "errTeamMemberInsertFailed",
+                "module": "core",
+                "action": "error",
+                "options": {
+                  "message": "The user account was created, but the team membership could not be assigned."
+                }
+              }
+            ]
+          },
+          "else": {
+            "steps": []
+          }
+        },
+        "outputType": "boolean",
         "collapsed": true
       },
       {
+        "name": "success",
         "module": "core",
-        "action": "redirect",
+        "action": "setvalue",
         "options": {
-          "url": "/users/all_users",
-          "status": 302
-        }
+          "value": {
+            "message": "User created successfully",
+            "userId": "{{qryInsertUser.identity}}",
+            "tenantUserRoleId": "{{qryInsTenantRole.identity}}",
+            "teamMemberId": "{{qryInsTeamMember.identity}}"
+          }
+        },
+        "output": true,
+        "outputType": "object",
+        "collapsed": true
       }
     ]
   },
