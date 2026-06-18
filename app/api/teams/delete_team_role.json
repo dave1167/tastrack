@@ -1,31 +1,46 @@
 {
   "settings": {
     "options": {
+      "nocsrf": true,
       "method": "post"
     }
   },
   "meta": {
-    "$_GET": [
+    "$_POST": [
       {
         "type": "number",
-        "name": "id"
+        "fieldName": "roleId",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "roleId"
+      }
+    ],
+    "$_SESSION": [
+      {
+        "type": "number",
+        "name": "TENANT_ID"
       }
     ]
   },
   "exec": {
     "steps": [
       {
-        "name": "deleteTeamRole",
+        "name": "qryRoleUsage",
         "module": "dbupdater",
         "action": "custom",
         "options": {
           "connection": "db",
           "sql": {
-            "query": "DELETE FROM tbl_team_roles WHERE id = :id AND tenantId = :tenantId",
+            "query": "SELECT COUNT(*) AS userCount FROM tbl_team_members tm INNER JOIN tbl_team_roles tr ON tr.tenantId = tm.tenantId AND tr.teamId = tm.teamId AND tr.id = tm.teamRole WHERE tr.id = :roleId AND tr.tenantId = :tenantId",
             "params": [
               {
-                "name": ":id",
-                "value": "{{$_GET.id}}"
+                "name": ":roleId",
+                "value": "{{$_POST.roleId}}"
               },
               {
                 "name": ":tenantId",
@@ -34,15 +49,65 @@
             ]
           }
         },
-        "output": true
+        "output": true,
+        "meta": [
+          {
+            "name": "userCount",
+            "type": "number"
+          }
+        ],
+        "outputType": "array",
+        "collapsed": true
       },
       {
+        "name": "checkRoleUsage",
         "module": "core",
-        "action": "redirect",
+        "action": "condition",
         "options": {
-          "url": "/teams/team_roles",
-          "status": 302
-        }
+          "if": "{{qryRoleUsage[0].userCount > 0}}",
+          "then": {
+            "steps": [
+              {
+                "name": "errRoleInUse",
+                "module": "core",
+                "action": "error",
+                "options": {
+                  "message": "This team role cannot be deleted because one or more users are still assigned to it. Move those users to another role first."
+                }
+              }
+            ]
+          },
+          "else": {
+            "steps": []
+          }
+        },
+        "outputType": "boolean",
+        "collapsed": true
+      },
+      {
+        "name": "deleteTeamRole",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "DELETE FROM tbl_team_roles WHERE id = :roleId AND tenantId = :tenantId",
+            "params": [
+              {
+                "name": ":roleId",
+                "value": "{{$_POST.roleId}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "meta": [],
+        "outputType": "array",
+        "collapsed": true
       }
     ]
   }
