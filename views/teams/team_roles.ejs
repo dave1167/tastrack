@@ -28,10 +28,6 @@
                         <select id="inp_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-on:changed="varSelectedTeam.setValue(value); scTeamRoles.load({teamid: value})">
                             <option value="">Select team</option>
                         </select>
-
-                        <div class="form-text">
-                            Selected team ID: {{varSelectedTeam.value}}
-                        </div>
                     </div>
 
                     <div class="mb-4">
@@ -90,4 +86,4 @@
     </div>
 </div>
 
-<meta name="ac:route" content="/teams/team_roles">s
+<meta name="ac:route" content="/teams/team_roles">

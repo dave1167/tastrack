@@ -34,26 +34,6 @@
           }
         },
         "name": "teamRoleName"
-      },
-      {
-        "type": "number",
-        "name": "tenantId"
-      },
-      {
-        "type": "text",
-        "name": "roleDesc"
-      },
-      {
-        "type": "boolean",
-        "name": "isActive"
-      },
-      {
-        "type": "text",
-        "name": "status"
-      },
-      {
-        "type": "number",
-        "name": "id"
       }
     ],
     "$_SESSION": [
@@ -65,39 +45,6 @@
   },
   "exec": {
     "steps": [
-      {
-        "name": "insertTeamRole",
-        "module": "dbupdater",
-        "action": "custom",
-        "options": {
-          "connection": "db",
-          "sql": {
-            "query": "INSERT INTO tbl_team_roles (tenantId, teamId, `desc`) VALUES (:tenantId, :teamId, :teamRoleName)",
-            "params": [
-              {
-                "name": ":tenantId",
-                "value": "{{$_SESSION.TENANT_ID}}",
-                "recid": 1
-              },
-              {
-                "name": ":teamId",
-                "value": "{{$_POST.teamId}}",
-                "recid": 2
-              },
-              {
-                "name": ":teamRoleName",
-                "value": "{{$_POST.teamRoleName}}",
-                "recid": 3
-              }
-            ]
-          }
-        },
-        "output": true,
-        "meta": [],
-        "outputType": "array",
-        "disabled": true,
-        "collapsed": true
-      },
       {
         "name": "insTeamRole",
         "module": "dbupdater",
@@ -130,45 +77,40 @@
                 "column": "isActive",
                 "type": "boolean",
                 "value": "1"
-              },
-              {
-                "table": "tbl_team_roles",
-                "column": "id",
-                "type": "number",
-                "value": "{{$_POST.id}}"
               }
             ],
             "table": "tbl_team_roles",
             "returning": "id",
-            "query": "insert into `tbl_team_roles` (`id`, `isActive`, `roleDesc`, `teamId`, `tenantId`) values (?, ?, ?, ?, ?)",
+            "query": "insert into `tbl_team_roles` (`tenantId`, `teamId`, `roleDesc`, `isActive`) values (?, ?, ?, ?)",
             "params": [
               {
                 "name": ":P1",
                 "type": "expression",
                 "value": "{{$_SESSION.TENANT_ID}}",
-                "test": ""
+                "test": "1"
               },
               {
                 "name": ":P2",
                 "type": "expression",
                 "value": "{{$_POST.teamId}}",
-                "test": ""
+                "test": "1"
               },
               {
                 "name": ":P3",
                 "type": "expression",
                 "value": "{{$_POST.teamRoleName}}",
-                "test": ""
+                "test": "Finance Assistant"
               },
               {
                 "name": ":P4",
                 "type": "expression",
-                "value": "{{$_POST.id}}",
-                "test": ""
+                "value": "1",
+                "test": "1"
               }
             ]
           }
         },
+        "output": true,
         "meta": [
           {
             "name": "identity",
@@ -179,15 +121,7 @@
             "type": "number"
           }
         ],
-        "collapsed": true
-      },
-      {
-        "module": "core",
-        "action": "redirect",
-        "options": {
-          "url": "/teams/team_roles",
-          "status": 302
-        }
+        "outputType": "object"
       }
     ]
   }
