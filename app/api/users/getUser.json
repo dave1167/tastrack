@@ -1,0 +1,255 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "userid"
+      }
+    ],
+    "$_SESSION": [
+      {
+        "type": "number",
+        "name": "TENANT_ID"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "query",
+      "module": "dbconnector",
+      "action": "select",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "type": "SELECT",
+          "query": "SELECT tbl_users.id AS userId,tbl_users.email,tbl_users.fName,tbl_users.lName,tbl_users.displayName,tbl_users.isActive AS userActive,tbl_users.lastLoginDate,tbl_users.modifiedDate,tbl_user_tenant_roles.id AS tenantUserRoleId,tbl_user_tenant_roles.tenantId,tbl_user_tenant_roles.roleId,tbl_tenants.tenantName,tbl_roles.roleName AS accessRole,tbl_roles.description AS accessRoleDesc,tbl_team_members.id AS teamMemberId,tbl_team_members.teamId,tbl_team_members.teamRole AS teamRoleId,tbl_teams.teamName,tbl_team_roles.roleDesc AS teamRoleDesc FROM tbl_users INNER JOIN tbl_user_tenant_roles ON tbl_user_tenant_roles.userId=tbl_users.id INNER JOIN tbl_tenants ON tbl_tenants.id=tbl_user_tenant_roles.tenantId LEFT JOIN tbl_roles ON tbl_roles.id=tbl_user_tenant_roles.roleId LEFT JOIN tbl_team_members ON tbl_team_members.tenantUserId=tbl_user_tenant_roles.id AND tbl_team_members.tenantId=tbl_user_tenant_roles.tenantId AND tbl_team_members.isPrimary=1 LEFT JOIN tbl_teams ON tbl_teams.id=tbl_team_members.teamId AND tbl_teams.tenantId=tbl_team_members.tenantId LEFT JOIN tbl_team_roles ON tbl_team_roles.id=tbl_team_members.teamRole AND tbl_team_roles.teamId=tbl_team_members.teamId AND tbl_team_roles.tenantId=tbl_team_members.tenantId WHERE tbl_users.id=? AND tbl_user_tenant_roles.tenantId=? LIMIT 1;",
+          "params": [
+            {
+              "operator": "equal",
+              "type": "expression",
+              "name": ":P1",
+              "value": "{{$_GET.userid}}",
+              "test": "1"
+            }
+          ],
+          "columns": [
+            {
+              "table": "tbl_users",
+              "column": "id"
+            },
+            {
+              "table": "tbl_users",
+              "column": "email"
+            },
+            {
+              "table": "tbl_users",
+              "column": "fName"
+            },
+            {
+              "table": "tbl_users",
+              "column": "lName"
+            },
+            {
+              "table": "tbl_users",
+              "column": "displayName"
+            },
+            {
+              "table": "tbl_users",
+              "column": "lastLoginDate"
+            },
+            {
+              "table": "tbl_users",
+              "column": "modifiedDate"
+            },
+            {
+              "table": "tbl_user_tenant_roles",
+              "column": "tenantId"
+            },
+            {
+              "table": "tbl_tenants",
+              "column": "tenantName"
+            },
+            {
+              "table": "tbl_user_tenant_roles",
+              "column": "roleId"
+            }
+          ],
+          "table": {
+            "name": "tbl_users"
+          },
+          "primary": "id",
+          "joins": [
+            {
+              "table": "tbl_user_tenant_roles",
+              "column": "*",
+              "type": "INNER",
+              "clauses": {
+                "condition": "AND",
+                "rules": [
+                  {
+                    "table": "tbl_user_tenant_roles",
+                    "column": "userId",
+                    "operator": "equal",
+                    "operation": "=",
+                    "value": {
+                      "table": "tbl_users",
+                      "column": "id",
+                      "type": "number"
+                    }
+                  }
+                ]
+              },
+              "primary": "id"
+            },
+            {
+              "table": "tbl_tenants",
+              "column": "*",
+              "type": "INNER",
+              "clauses": {
+                "condition": "AND",
+                "rules": [
+                  {
+                    "table": "tbl_tenants",
+                    "column": "id",
+                    "operator": "equal",
+                    "operation": "=",
+                    "value": {
+                      "table": "tbl_user_tenant_roles",
+                      "column": "tenantId",
+                      "type": "number"
+                    }
+                  }
+                ]
+              },
+              "primary": "id",
+              "sub": {
+                "tbl_user_tenant_roles": {
+                  "table": {
+                    "name": "tbl_user_tenant_roles",
+                    "alias": "tbl_user_tenant_roles"
+                  },
+                  "key": "tenantId"
+                }
+              }
+            }
+          ],
+          "wheres": {
+            "condition": "AND",
+            "rules": [
+              {
+                "id": "tbl_users.id",
+                "field": "tbl_users.id",
+                "type": "double",
+                "operator": "equal",
+                "value": "{{$_GET.userid}}",
+                "data": {
+                  "table": "tbl_users",
+                  "column": "id",
+                  "type": "number",
+                  "columnObj": {
+                    "type": "increments",
+                    "primary": true,
+                    "nullable": false,
+                    "name": "id"
+                  }
+                },
+                "operation": "="
+              }
+            ],
+            "conditional": null,
+            "valid": true
+          }
+        }
+      },
+      "output": true,
+      "meta": [
+        {
+          "type": "number",
+          "name": "id"
+        },
+        {
+          "type": "text",
+          "name": "email"
+        },
+        {
+          "type": "text",
+          "name": "fName"
+        },
+        {
+          "type": "text",
+          "name": "lName"
+        },
+        {
+          "type": "text",
+          "name": "displayName"
+        },
+        {
+          "type": "datetime",
+          "name": "lastLoginDate"
+        },
+        {
+          "type": "datetime",
+          "name": "modifiedDate"
+        },
+        {
+          "type": "number",
+          "name": "tenantId"
+        },
+        {
+          "type": "text",
+          "name": "tenantName"
+        },
+        {
+          "name": "tbl_user_tenant_roles",
+          "type": "array",
+          "sub": [
+            {
+              "type": "number",
+              "name": "id"
+            },
+            {
+              "type": "number",
+              "name": "userId"
+            },
+            {
+              "type": "number",
+              "name": "tenantId"
+            },
+            {
+              "type": "number",
+              "name": "roleId"
+            },
+            {
+              "type": "boolean",
+              "name": "isPrimary"
+            },
+            {
+              "type": "datetime",
+              "name": "createdDate"
+            },
+            {
+              "type": "datetime",
+              "name": "modifiedDate"
+            },
+            {
+              "type": "boolean",
+              "name": "isActive"
+            }
+          ]
+        },
+        {
+          "type": "number",
+          "name": "roleId"
+        }
+      ],
+      "outputType": "array",
+      "collapsed": true
+    }
+  }
+}

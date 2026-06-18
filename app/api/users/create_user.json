@@ -278,7 +278,7 @@
                 "table": "tbl_users",
                 "column": "lastLoginDate",
                 "type": "datetime",
-                "value": "{{NOW}}"
+                "value": "sds"
               },
               {
                 "table": "tbl_users",
@@ -336,7 +336,7 @@
               {
                 "name": ":P6",
                 "type": "expression",
-                "value": "{{NOW}}",
+                "value": "{{NOW.formatDate('yyyy-MM-dd', false)}}",
                 "test": ""
               },
               {
@@ -347,12 +347,6 @@
               },
               {
                 "name": ":P8",
-                "type": "expression",
-                "value": "{{NOW.formatDate('yyyy-MM-dd', false)}}",
-                "test": ""
-              },
-              {
-                "name": ":P9",
                 "type": "expression",
                 "value": "{{accessCode[0].accessCode}}",
                 "test": ""
@@ -380,19 +374,14 @@
         "options": {
           "if": "{{qryInsertUser.affected != 1 || qryInsertUser.identity == ''}}",
           "then": {
-            "steps": [
-              {
-                "name": "errUserInsertFailed",
-                "module": "core",
-                "action": "error",
-                "options": {
-                  "message": "The user account could not be created. No records have been saved."
-                }
+            "steps": {
+              "name": "errUserInsertFailed",
+              "module": "core",
+              "action": "error",
+              "options": {
+                "message": "The user account could not be created. No records have been saved."
               }
-            ]
-          },
-          "else": {
-            "steps": []
+            }
           }
         },
         "outputType": "boolean",
@@ -507,23 +496,17 @@
         "options": {
           "if": "{{qryInsTenantRole.affected != 1 || qryInsTenantRole.identity == ''}}",
           "then": {
-            "steps": [
-              {
-                "name": "errTenantRoleInsertFailed",
-                "module": "core",
-                "action": "error",
-                "options": {
-                  "message": "The user account was created, but the organisation access could not be assigned."
-                }
+            "steps": {
+              "name": "errTenantRoleInsertFailed",
+              "module": "core",
+              "action": "error",
+              "options": {
+                "message": "The user account was created, but the organisation access could not be assigned."
               }
-            ]
-          },
-          "else": {
-            "steps": []
+            }
           }
         },
-        "outputType": "boolean",
-        "collapsed": true
+        "outputType": "boolean"
       },
       {
         "name": "qryInsTeamMember",
@@ -646,19 +629,14 @@
         "options": {
           "if": "{{qryInsTeamMember.affected != 1 || qryInsTeamMember.identity == ''}}",
           "then": {
-            "steps": [
-              {
-                "name": "errTeamMemberInsertFailed",
-                "module": "core",
-                "action": "error",
-                "options": {
-                  "message": "The user account was created, but the team membership could not be assigned."
-                }
+            "steps": {
+              "name": "errTeamMemberInsertFailed",
+              "module": "core",
+              "action": "error",
+              "options": {
+                "message": "The user account was created, but the team membership could not be assigned."
               }
-            ]
-          },
-          "else": {
-            "steps": []
+            }
           }
         },
         "outputType": "boolean",
@@ -678,7 +656,8 @@
         },
         "output": true,
         "outputType": "object",
-        "collapsed": true
+        "collapsed": true,
+        "meta": []
       }
     ]
   },

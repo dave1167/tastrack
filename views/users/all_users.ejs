@@ -1,6 +1,7 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="all_users" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{},dmxBootstrap5Tooltips:{}}" --><!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="all_users" appconnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
 <dmx-query-manager id="query1"></dmx-query-manager>
 <dmx-serverconnect id="scListAllUsers" url="/api/users/list"></dmx-serverconnect>
+<dmx-serverconnect id="scEditUsers" url="/api/users/editUser"></dmx-serverconnect>
 <div class="row">
     <div class="col">
         <button id="btn1" class="btn btn-secondary mt-2 mb-2" dmx-on:click="browser1.goto('/users/create_user')">Add New User</button>
@@ -27,6 +28,11 @@
                     <td dmx-text="accessRole"></td>
                     <td dmx-text="teamName"></td>
                     <td dmx-text="teamRoleDesc"></td>
+                    <td>
+                        <button id="btn2" class="btn" dmx-on:click="scEditUsers.load({userid: userId})">
+                            <i class="fas fa-marker"></i>
+                        </button>
+                    </td>
                 </tr>
             </tbody>
         </table>

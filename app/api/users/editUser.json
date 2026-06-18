@@ -1,3 +1,470 @@
 {
-  "exec": {}
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "post"
+    }
+  },
+  "meta": {
+    "options": {
+      "linkedFile": "/views/users/edit_user.ejs",
+      "linkedForm": "frmEditUser"
+    },
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "userid"
+      }
+    ],
+    "$_POST": [
+      {
+        "type": "number",
+        "fieldName": "userId",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "userId"
+      },
+      {
+        "type": "number",
+        "fieldName": "tenantUserRoleId",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "tenantUserRoleId"
+      },
+      {
+        "type": "number",
+        "fieldName": "teamMemberId",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "teamMemberId"
+      },
+      {
+        "type": "text",
+        "fieldName": "email",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            },
+            "core:email": {}
+          }
+        },
+        "name": "email"
+      },
+      {
+        "type": "text",
+        "fieldName": "fName",
+        "name": "fName"
+      },
+      {
+        "type": "text",
+        "fieldName": "lName",
+        "name": "lName"
+      },
+      {
+        "type": "text",
+        "fieldName": "displayName",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "displayName"
+      },
+      {
+        "type": "boolean",
+        "fieldName": "isActive",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "isActive"
+      },
+      {
+        "type": "number",
+        "fieldName": "hidRoleId",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "hidRoleId"
+      },
+      {
+        "type": "number",
+        "fieldName": "hidTeamId",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "hidTeamId"
+      },
+      {
+        "type": "number",
+        "fieldName": "hidTeamRole",
+        "options": {
+          "rules": {
+            "core:required": {
+              "param": ""
+            }
+          }
+        },
+        "name": "hidTeamRole"
+      }
+    ],
+    "$_SESSION": [
+      {
+        "type": "number",
+        "name": "TENANT_ID"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "updUser",
+        "module": "dbupdater",
+        "action": "update",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "update",
+            "values": [
+              {
+                "table": "tbl_users",
+                "column": "email",
+                "type": "text",
+                "value": "{{$_POST.email}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "fName",
+                "type": "text",
+                "value": "{{$_POST.fName}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "lName",
+                "type": "text",
+                "value": "{{$_POST.lName}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "displayName",
+                "type": "text",
+                "value": "{{$_POST.displayName}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "isActive",
+                "type": "boolean",
+                "value": "{{$_POST.isActive}}"
+              },
+              {
+                "table": "tbl_users",
+                "column": "modifiedDate",
+                "type": "datetime",
+                "value": "{{NOW}}"
+              }
+            ],
+            "table": "tbl_users",
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "id",
+                  "field": "id",
+                  "type": "double",
+                  "operator": "equal",
+                  "value": "{{$_GET.userid}}",
+                  "data": {
+                    "column": "id"
+                  },
+                  "operation": "="
+                }
+              ],
+              "conditional": null,
+              "valid": true
+            },
+            "returning": "id",
+            "query": "update `tbl_users` set `email` = ?, `fName` = ?, `lName` = ?, `displayName` = ?, `isActive` = ?, `modifiedDate` = ? where `id` = ?",
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_POST.email}}"
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{$_POST.fName}}"
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "{{$_POST.lName}}"
+              },
+              {
+                "name": ":P4",
+                "type": "expression",
+                "value": "{{$_POST.displayName}}"
+              },
+              {
+                "name": ":P5",
+                "type": "expression",
+                "value": "{{$_POST.isActive}}"
+              },
+              {
+                "name": ":P6",
+                "type": "expression",
+                "value": "{{NOW}}"
+              },
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P7",
+                "value": "{{$_GET.userid}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ],
+        "collapsed": true
+      },
+      {
+        "name": "updTenantRole",
+        "module": "dbupdater",
+        "action": "update",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "update",
+            "values": [
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "roleId",
+                "type": "number",
+                "value": "{{$_POST.hidRoleId}}"
+              },
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "isActive",
+                "type": "boolean",
+                "value": "{{$_POST.isActive}}"
+              },
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "modifiedDate",
+                "type": "datetime",
+                "value": "{{NOW}}"
+              }
+            ],
+            "table": "tbl_user_tenant_roles",
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "id",
+                  "type": "double",
+                  "operator": "equal",
+                  "value": "{{$_POST.tenantUserRoleId}}",
+                  "data": {
+                    "column": "id"
+                  },
+                  "operation": "="
+                },
+                {
+                  "id": "tenantId",
+                  "type": "double",
+                  "operator": "equal",
+                  "value": "{{$_SESSION.TENANT_ID}}",
+                  "data": {
+                    "column": "tenantId"
+                  },
+                  "operation": "="
+                }
+              ]
+            },
+            "returning": "id",
+            "query": "update `tbl_user_tenant_roles` set `roleId` = ?, `isActive` = ?, `modifiedDate` = ? where `id` = ? and `tenantId` = ?",
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_POST.hidRoleId}}"
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{$_POST.isActive}}"
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "{{NOW}}"
+              },
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P4",
+                "value": "{{$_POST.tenantUserRoleId}}"
+              },
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P5",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ],
+        "collapsed": true
+      },
+      {
+        "name": "updTeamMember",
+        "module": "dbupdater",
+        "action": "update",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "update",
+            "values": [
+              {
+                "table": "tbl_team_members",
+                "column": "teamId",
+                "type": "number",
+                "value": "{{$_POST.hidTeamId}}"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "teamRole",
+                "type": "number",
+                "value": "{{$_POST.hidTeamRole}}"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "isActive",
+                "type": "boolean",
+                "value": "{{$_POST.isActive}}"
+              },
+              {
+                "table": "tbl_team_members",
+                "column": "modifiedDate",
+                "type": "datetime",
+                "value": "{{NOW}}"
+              }
+            ],
+            "table": "tbl_team_members",
+            "wheres": {
+              "condition": "AND",
+              "rules": [
+                {
+                  "id": "id",
+                  "type": "double",
+                  "operator": "equal",
+                  "value": "{{$_POST.teamMemberId}}",
+                  "data": {
+                    "column": "id"
+                  },
+                  "operation": "="
+                },
+                {
+                  "id": "tenantId",
+                  "type": "double",
+                  "operator": "equal",
+                  "value": "{{$_SESSION.TENANT_ID}}",
+                  "data": {
+                    "column": "tenantId"
+                  },
+                  "operation": "="
+                }
+              ]
+            },
+            "returning": "id",
+            "query": "update `tbl_team_members` set `teamId` = ?, `teamRole` = ?, `isActive` = ?, `modifiedDate` = ? where `id` = ? and `tenantId` = ?",
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_POST.hidTeamId}}"
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{$_POST.hidTeamRole}}"
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "{{$_POST.isActive}}"
+              },
+              {
+                "name": ":P4",
+                "type": "expression",
+                "value": "{{NOW}}"
+              },
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P5",
+                "value": "{{$_POST.teamMemberId}}"
+              },
+              {
+                "operator": "equal",
+                "type": "expression",
+                "name": ":P6",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "meta": [
+          {
+            "name": "affected",
+            "type": "number"
+          }
+        ],
+        "collapsed": true
+      }
+    ]
+  }
 }
