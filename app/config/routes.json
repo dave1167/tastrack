@@ -151,6 +151,11 @@
         "loginUrl": "/login/login",
         "forbiddenUrl": "/unauthorised"
       }
+    },
+    {
+      "path": "/users/edit_user",
+      "page": "users/edit_user",
+      "layout": "main_shell"
     }
   ],
   "layouts": {

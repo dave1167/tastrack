@@ -2,5 +2,9 @@
   "all_users.ejs": {
     "layoutPage": "main_shell",
     "description": ""
+  },
+  "edit_user.ejs": {
+    "layoutPage": "main_shell",
+    "description": ""
   }
 }
