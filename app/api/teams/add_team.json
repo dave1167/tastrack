@@ -54,19 +54,23 @@
             "params": [
               {
                 "name": ":tenantId",
-                "value": "{{$_SESSION.TENANT_ID}}"
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "recid": 1
               },
               {
                 "name": ":teamName",
-                "value": "{{$_POST.teamName}}"
+                "value": "{{$_POST.teamName}}",
+                "recid": 2
               },
               {
                 "name": ":description",
-                "value": "{{$_POST.description}}"
+                "value": "{{$_POST.description}}",
+                "recid": 3
               },
               {
                 "name": ":isActive",
-                "value": "{{$_POST.isActive.default(1)}}"
+                "value": "{{$_POST.isActive.default(1)}}",
+                "recid": 4
               }
             ]
           }
