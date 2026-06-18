@@ -14,6 +14,10 @@
       {
         "type": "text",
         "name": "dir"
+      },
+      {
+        "type": "number",
+        "name": "teamid"
       }
     ]
   },
@@ -54,7 +58,14 @@
               "type": "expression",
               "name": ":P1",
               "value": "{{$_SESSION.TENANT_ID}}",
-              "test": "6"
+              "test": ""
+            },
+            {
+              "operator": "equal",
+              "type": "expression",
+              "name": ":P2",
+              "value": "{{$_GET.teamid}}",
+              "test": ""
             }
           ],
           "table": {
@@ -89,12 +100,37 @@
                   }
                 },
                 "operation": "="
+              },
+              {
+                "id": "tbl_team_roles.teamId",
+                "field": "tbl_team_roles.teamId",
+                "type": "double",
+                "operator": "equal",
+                "value": "{{$_GET.teamid}}",
+                "data": {
+                  "table": "tbl_team_roles",
+                  "column": "teamId",
+                  "type": "number",
+                  "columnObj": {
+                    "type": "reference",
+                    "default": "",
+                    "primary": false,
+                    "nullable": false,
+                    "references": "id",
+                    "inTable": "tbl_teams",
+                    "referenceType": "integer",
+                    "onUpdate": "RESTRICT",
+                    "onDelete": "CASCADE",
+                    "name": "teamId"
+                  }
+                },
+                "operation": "="
               }
             ],
             "conditional": null,
             "valid": true
           },
-          "query": "select `id`, `tenantId`, `teamId`, `roleDesc`, `isActive` from `tbl_team_roles` where `tbl_team_roles`.`tenantId` = ?"
+          "query": "select `id`, `tenantId`, `teamId`, `roleDesc`, `isActive` from `tbl_team_roles` where `tbl_team_roles`.`tenantId` = ? and `tbl_team_roles`.`teamId` = ?"
         }
       },
       "output": true,

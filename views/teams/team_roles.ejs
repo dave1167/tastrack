@@ -1,10 +1,6 @@
-<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="team_roles" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{},dmxBrowser:{}}" -->
-<dmx-query-manager id="query1"></dmx-query-manager>
-<dmx-browser id="browser1"></dmx-browser>
-
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="team_roles" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
 <dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
-
-<dmx-serverconnect id="scTeamRoles" url="/api/teams/list_team_roles" dmx-param:teamid="inp_teamId.value" noload="true"></dmx-serverconnect>
+<dmx-serverconnect id="scTeamRoles" url="/api/teams/list_team_roles"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -17,13 +13,11 @@
             <div class="card-header bg-white">
                 <h2 class="h5 mb-0">Add team role</h2>
             </div>
-
             <div class="card-body">
-                <form id="frmTeamRole" is="dmx-serverconnect-form" method="post" action="/api/teams/add_team_role" dmx-on:success="scTeamRoles.load()">
-
+                <form id="frmTeamRole" method="post" action="/api/teams/add_team_role">
                     <div class="mb-3">
                         <label for="inp_teamId" class="form-label">Team</label>
-                        <select id="inp_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-on:changed="scTeamRoles.load()">
+                        <select id="inp_teamId" name="teamId" class="form-select" required="" dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-on:changed="scTeamRoles.load({})">
                             <option value="">Select team</option>
                         </select>
                     </div>
@@ -33,10 +27,7 @@
                         <input id="inp_teamRoleName" name="teamRoleName" type="text" class="form-control" placeholder="Finance Assistant" required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" dmx-bind:disabled="frmTeamRole.state.executing || !inp_teamId.value">
-                        <span dmx-show="!frmTeamRole.state.executing">Save Team Role</span>
-                        <span style="display: none;" dmx-show="frmTeamRole.state.executing">Saving...</span>
-                    </button>
+                    <button type="submit" class="btn btn-primary">Save Team Role</button>
                 </form>
             </div>
         </div>
@@ -44,49 +35,29 @@
 
     <div class="col-12 col-xl-7">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white d-flex align-items-center justify-content-between">
+            <div class="card-header bg-white">
                 <h2 class="h5 mb-0">Existing team roles</h2>
-                <span class="text-muted small" dmx-show="inp_teamId.value">
-                    Showing roles for selected team
-                </span>
             </div>
-
             <div class="card-body">
-                <div class="alert alert-info mb-0" dmx-show="!inp_teamId.value">
-                    Select a team to view its roles.
-                </div>
-
-                <div class="text-muted small mb-3" dmx-show="inp_teamId.value && scTeamRoles.state.executing">
-                    Loading team roles...
-                </div>
-
-                <div class="table-responsive" dmx-show="inp_teamId.value && !scTeamRoles.state.executing">
-                    <table class="table table-striped table-bordered table-sm align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Role</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-
-                        <tbody is="dmx-repeat" dmx-bind:repeat="scTeamRoles.data.query" id="tableRepeat1">
-                            <tr>
-                                <td dmx-text="roleDesc"></td>
-                                <td>
-                                    <span class="badge text-bg-success" dmx-show="isActive == 1">Active</span>
-                                    <span class="badge text-bg-secondary" dmx-show="isActive != 1">Inactive</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="text-muted small mt-3" dmx-show="inp_teamId.value && scTeamRoles.data.query && scTeamRoles.data.query.count() == 0 && !scTeamRoles.state.executing">
-                    No roles have been created for this team yet.
+                <div class="row">
+                    <div class="col">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered table-sm">
+                                <thead>
+                                    <tr>
+                                    </tr>
+                                </thead>
+                                <tbody is="dmx-repeat" dmx-generator="bs5table" dmx-bind:repeat="scTeamRoles.data.query" id="tableRepeat1">
+                                    <tr>
+                                        <td dmx-text="roleDesc"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
 <meta name="ac:route" content="/teams/team_roles">
