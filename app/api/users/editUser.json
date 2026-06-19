@@ -10,12 +10,6 @@
       "linkedFile": "/views/users/edit_user.ejs",
       "linkedForm": "frmEditUser"
     },
-    "$_GET": [
-      {
-        "type": "number",
-        "name": "userid"
-      }
-    ],
     "$_POST": [
       {
         "type": "number",
@@ -201,7 +195,7 @@
                   "field": "id",
                   "type": "double",
                   "operator": "equal",
-                  "value": "{{$_GET.userid}}",
+                  "value": "{{$_POST.userId}}",
                   "data": {
                     "column": "id"
                   },
@@ -248,7 +242,7 @@
                 "operator": "equal",
                 "type": "expression",
                 "name": ":P7",
-                "value": "{{$_GET.userid}}"
+                "value": "{{$_POST.userId}}"
               }
             ]
           }

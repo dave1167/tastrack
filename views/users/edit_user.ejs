@@ -7,7 +7,7 @@
 <dmx-serverconnect id="scTeamRoles" url="/api/teams/get_team_role" noload="true"></dmx-serverconnect>
 <dmx-serverconnect id="scSessContext" url="/api/security/sessionContext"></dmx-serverconnect>
 
-<dmx-serverconnect id="scGetUser" url="/api/users/get_user" dmx-param:userId="query1.data.userId" dmx-on:success="scTeamRoles.load({teamid: scGetUser.data.query[0].teamId, id: scGetUser.data.query[0].teamId})">
+<dmx-serverconnect id="scGetUser" url="/api/users/getUser" dmx-param:userid="query1.data.userid" dmx-on:success="scTeamRoles.load({teamid: scGetUser.data.query[0].teamId})">
 </dmx-serverconnect>
 
 <div class="row g-4">
@@ -37,7 +37,7 @@
                     <span dmx-text="frmEditUser.lastError.response.message"></span>
                 </div>
 
-                <form id="frmEditUser" is="dmx-serverconnect-form" method="post" action="/api/users/update_user" dmx-on:success="browser1.goto('/users/all_users')">
+                <form id="frmEditUser" is="dmx-serverconnect-form" method="post" action="/api/users/editUser" dmx-on:success="browser1.goto('/users/all_users')">
 
                     <input id="hidUserId" name="userId" type="hidden" dmx-bind:value="scGetUser.data.query[0].userId">
                     <input id="hidTenantUserRoleId" name="tenantUserRoleId" type="hidden" dmx-bind:value="scGetUser.data.query[0].tenantUserRoleId">
@@ -47,7 +47,7 @@
 
                         <div class="col-12">
                             <div class="form-floating">
-                                <input id="inp_email" name="email" type="email" class="form-control" placeholder="Email" required dmx-bind:value="scGetUser.data.query[0].email" dmx-class:is-invalid="frmEditUser.lastError.response.form.email">
+                                <input id="inp_email" name="email" type="email" class="form-control" placeholder="Email" required="" dmx-bind:value="scGetUser.data.query[0].email" dmx-class:is-invalid="frmEditUser.lastError.response.form.email">
                                 <label for="inp_email">Email</label>
                             </div>
 
@@ -101,7 +101,7 @@
 
                         <div class="col-12 col-md-6">
                             <div class="form-floating">
-                                <select id="inp_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-bind:value="scGetUser.data.query[0].teamId" dmx-on:changed="scTeamRoles.load({teamid: value, id: value})">
+                                <select id="inp_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-bind:value="scGetUser.data.query[0].teamId" dmx-on:changed="scTeamRoles.load({teamid: value})">
                                     <option value="">Select team</option>
                                 </select>
                                 <label for="inp_teamId">Team</label>
