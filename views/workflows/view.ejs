@@ -7,7 +7,7 @@
     <div class="col-12">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
             <div><h1 class="mb-1" dmx-text="scWorkflow.data.query[0].workflowName"></h1><p class="text-muted mb-0"><span dmx-text="scWorkflow.data.query[0].referenceCode"></span><span> &middot; </span><span dmx-text="scWorkflow.data.query[0].templateName"></span></p></div>
-            <div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="/workflows">Workflows</a><a class="btn btn-outline-primary" dmx-bind:href="'/workflows/edit?id=' + query.id">Edit workflow</a></div>
+            <div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="/workflows" dmx-text="scTerminology.data.query[0].workflowPlural">Workflows</a><a class="btn btn-outline-primary" dmx-bind:href="'/workflows/edit?id=' + query.id" dmx-text="'Edit ' + scTerminology.data.query[0].workflowSingular.lowercase()">Edit workflow</a></div>
         </div>
     </div>
 
@@ -19,15 +19,15 @@
     </div></div>
 
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3"><div><h2 class="h4 mb-1">Stages and tasks</h2><p class="text-muted small mb-0">Each stage shows its next due task. Expand it to manage every task in that stage.</p></div><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + ' stages'"></span></div>
+        <div class="d-flex justify-content-between align-items-center mb-3"><div><h2 class="h4 mb-1" dmx-text="scTerminology.data.query[0].stagePlural + ' and ' + scTerminology.data.query[0].taskPlural.lowercase()">Stages and tasks</h2><p class="text-muted small mb-0">Each section shows its next due item. Expand it to manage everything in that section.</p></div><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + ' ' + scTerminology.data.query[0].stagePlural.lowercase()"></span></div>
 
         <div is="dmx-repeat" id="repWorkflowStages" dmx-bind:repeat="scStages.data.query">
             <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body">
                     <div class="row g-3 align-items-center">
                         <div class="col-auto"><span class="d-block rounded-circle" dmx-bind:style.background-color="$value.colour" style="width: 18px; height: 18px;"></span></div>
-                        <div class="col-12 col-md-3"><div class="fw-semibold" dmx-text="$value.stageName"></div><div class="small text-muted" dmx-text="$value.completedTaskCount + '/' + $value.taskCount + ' tasks complete'"></div></div>
-                        <div class="col"><div class="small text-muted text-uppercase">Next task</div><div class="fw-semibold" dmx-show="$value.nextTaskId" dmx-text="$value.nextTaskName"></div><div class="text-muted" dmx-show="!$value.nextTaskId">No open tasks</div><div class="small text-muted" dmx-show="$value.nextTaskId"><span dmx-text="$value.nextAssignee"></span><span dmx-show="$value.nextDueDate"> &middot; Due </span><span dmx-text="$value.nextDueDate.formatDate('dd MMM yyyy')"></span></div></div>
+                        <div class="col-12 col-md-3"><div class="fw-semibold" dmx-text="$value.stageName"></div><div class="small text-muted" dmx-text="$value.completedTaskCount + '/' + $value.taskCount + ' ' + scTerminology.data.query[0].taskPlural.lowercase() + ' complete'"></div></div>
+                        <div class="col"><div class="small text-muted text-uppercase" dmx-text="'Next ' + scTerminology.data.query[0].taskSingular.lowercase()">Next task</div><div class="fw-semibold" dmx-show="$value.nextTaskId" dmx-text="$value.nextTaskName"></div><div class="text-muted" dmx-show="!$value.nextTaskId" dmx-text="'No open ' + scTerminology.data.query[0].taskPlural.lowercase()">No open tasks</div><div class="small text-muted" dmx-show="$value.nextTaskId"><span dmx-text="$value.nextAssignee"></span><span dmx-show="$value.nextDueDate"> &middot; Due </span><span dmx-text="$value.nextDueDate.formatDate('dd MMM yyyy')"></span></div></div>
                         <div class="col-auto"><span class="badge text-capitalize" dmx-class:bg-secondary="$value.status == 'not_started'" dmx-class:bg-primary="$value.status == 'in_progress'" dmx-class:bg-warning="$value.status == 'waiting'" dmx-class:text-dark="$value.status == 'waiting'" dmx-class:bg-success="$value.status == 'complete'" dmx-class:bg-danger="$value.status == 'overdue'" dmx-text="$value.status.replace('_',' ')"></span></div>
                         <div class="col-auto"><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" dmx-bind:data-bs-target="'#workflowStageTasks' + $value.id" dmx-bind:aria-controls="'workflowStageTasks' + $value.id" aria-expanded="false" aria-label="Show all tasks"><i class="fas fa-chevron-down"></i></button></div>
                     </div>
@@ -35,14 +35,14 @@
 
                 <div class="collapse" dmx-bind:id="'workflowStageTasks' + $value.id">
                     <div class="border-top">
-                        <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Task</th><th>Assigned to</th><th>Due</th><th>Priority</th><th>Status</th><th></th></tr></thead>
+                        <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th dmx-text="scTerminology.data.query[0].taskSingular">Task</th><th>Assigned to</th><th>Due</th><th>Priority</th><th>Status</th><th></th></tr></thead>
                             <tbody is="dmx-repeat" dmx-bind:repeat="scTasks.data.query.where('workflowStageId',$value.id)"><tr><td><div class="fw-semibold" dmx-text="$value.taskName"></div><div class="small text-muted" dmx-text="$value.description"></div></td><td dmx-text="$value.assignedUserName || $value.assignedTeamName || $value.assignedRoleName || 'Unassigned'"></td><td dmx-text="$value.dueDate.formatDate('dd MMM yyyy')"></td><td><span class="badge bg-light text-dark border text-capitalize" dmx-text="$value.priority"></span></td><td><form class="d-flex gap-2" method="post" action="/api/workflows/update_task_status"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><select class="form-select form-select-sm" name="status" dmx-bind:value="$value.status"><option value="not_started">Not started</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="complete">Complete</option><option value="skipped">Skipped</option><option value="cancelled">Cancelled</option></select><button class="btn btn-sm btn-outline-primary" type="submit">Save</button></form></td><td><a class="btn btn-sm btn-outline-secondary" dmx-bind:href="'/tasks/edit?id=' + $value.id"><i class="fas fa-pen"></i></a></td></tr></tbody>
                         </table></div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="text-center text-muted py-5" dmx-show="!scStages.state.executing && scStages.data.query.count() == 0">No stages exist for this workflow.</div>
+        <div class="text-center text-muted py-5" dmx-show="!scStages.state.executing && scStages.data.query.count() == 0" dmx-text="'No ' + scTerminology.data.query[0].stagePlural.lowercase() + ' exist for this ' + scTerminology.data.query[0].workflowSingular.lowercase() + '.'">No stages exist for this workflow.</div>
     </div>
 </div>
 <meta name="ac:route" content="/workflows/view">

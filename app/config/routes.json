@@ -148,6 +148,13 @@
       "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
+      "path": "/settings",
+      "page": "settings/settings",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
       "path": "/templates",
       "page": "workflow_templates/workflow_templates",
       "layout": "main_shell",

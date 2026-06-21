@@ -26,6 +26,7 @@
 <body is="dmx-app" id="main_shell" class="shell-app">
     <div is="dmx-browser" id="browser1"></div>
     <dmx-serverconnect id="scWelcome" url="/api/security/sessionContext"></dmx-serverconnect>
+    <dmx-serverconnect id="scTerminology" url="/api/settings/terminology"></dmx-serverconnect>
     <header class="navbar shell-navbar sticky-top">
         <div class="container-fluid px-3 px-lg-4">
             <button class="shell-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open menu">
@@ -86,11 +87,11 @@
                                 </a>
                                 <a class="shell-nav-link" href="/workflows">
                                     <i class="fas fa-route"></i>
-                                    <span>Workflows</span>
+                                    <span dmx-text="scTerminology.data.query[0].workflowPlural">Workflows</span>
                                 </a>
                                 <a class="shell-nav-link" href="/tasks">
                                     <i class="fas fa-tasks"></i>
-                                    <span>Tasks</span>
+                                    <span dmx-text="scTerminology.data.query[0].taskPlural">Tasks</span>
                                 </a>
                                 <a class="shell-nav-link" href="/contacts">
                                     <i class="fas fa-address-book"></i>
@@ -114,7 +115,7 @@
                             <div class="collapse shell-nav-collapse" id="navSetup" data-bs-parent="#sidebarNavAccordion">
                                 <a class="shell-nav-link" href="/workflow_templates">
                                     <i class="fas fa-layer-group"></i>
-                                    <span>Templates</span>
+                                    <span dmx-text="scTerminology.data.query[0].workflowSingular + ' templates'">Templates</span>
                                 </a>
                                 <a class="shell-nav-link" href="/automation">
                                     <i class="fas fa-bolt"></i>

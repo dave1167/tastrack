@@ -5,13 +5,13 @@
 <div class="row g-4">
     <div class="col-12">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-            <div><h1 class="mb-1">Template Stages</h1><p class="text-muted mb-0"><span dmx-text="scTemplate.data.query[0].templateName"></span> · Build the ordered stages of this workflow.</p></div>
+            <div><h1 class="mb-1" dmx-text="'Template ' + scTerminology.data.query[0].stagePlural">Template Stages</h1><p class="text-muted mb-0"><span dmx-text="scTemplate.data.query[0].templateName"></span><span> · Build the ordered </span><span dmx-text="scTerminology.data.query[0].stagePlural.lowercase()">stages</span><span> of this </span><span dmx-text="scTerminology.data.query[0].workflowSingular.lowercase()">workflow</span><span>.</span></p></div>
             <div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="/workflow_templates">Templates</a><a class="btn btn-outline-primary" dmx-bind:href="'/workflow_templates/template_task_dependencies?templateId=' + query.id">Dependencies</a></div>
         </div>
     </div>
 
     <div class="col-12 col-xl-4">
-        <div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Add stage</h2></div><div class="card-body">
+        <div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0" dmx-text="'Add ' + scTerminology.data.query[0].stageSingular.lowercase()">Add stage</h2></div><div class="card-body">
             <form method="post" action="/api/workflow_templates/create_stage"><%- _csrfInput() %>
                 <input type="hidden" name="templateId" dmx-bind:value="query.id">
                 <div class="mb-3"><label class="form-label">Stage name</label><input class="form-control" name="stageName" required></div>
@@ -24,7 +24,7 @@
     </div>
 
     <div class="col-12 col-xl-8">
-        <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Ordered stages</h2><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + (scStages.data.query.count() == 1 ? ' stage' : ' stages')"></span></div>
+        <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0" dmx-text="'Ordered ' + scTerminology.data.query[0].stagePlural.lowercase()">Ordered stages</h2><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + ' ' + (scStages.data.query.count() == 1 ? scTerminology.data.query[0].stageSingular.lowercase() : scTerminology.data.query[0].stagePlural.lowercase())"></span></div>
 
         <div is="dmx-repeat" id="repStages" dmx-bind:repeat="scStages.data.query">
             <div class="card border-0 shadow-sm mb-3"><div class="card-body">

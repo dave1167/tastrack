@@ -7,7 +7,7 @@
 <div class="row g-4">
     <div class="col-12">
         <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-            <div><h1 class="mb-1">Tasks</h1><p class="text-muted mb-0">See what is next, where work is blocked, and how workload is distributed.</p></div>
+            <div><h1 class="mb-1" dmx-text="scTerminology.data.query[0].taskPlural">Tasks</h1><p class="text-muted mb-0">See what is next, where work is blocked, and how workload is distributed.</p></div>
             <div class="btn-group" role="group" aria-label="Task perspective">
                 <button class="btn btn-outline-primary" dmx-class:active="!queryView.data.view || queryView.data.view == 'overview'" dmx-on:click="queryView.set('view','overview')"><i class="fas fa-binoculars me-2"></i>Overview</button>
                 <button class="btn btn-outline-primary" dmx-class:active="queryView.data.view == 'user'" dmx-on:click="queryView.set('view','user')"><i class="fas fa-user me-2"></i>By user</button>
@@ -24,7 +24,7 @@
     <div class="col-6 col-lg-4 col-xl"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="small text-muted">Done in 30 days</div><div class="fs-2 fw-semibold text-success" dmx-text="scTasks.data.summary[0].completedLast30Days"></div></div></div></div>
 
     <div class="col-12" dmx-show="!queryView.data.view || queryView.data.view == 'overview'">
-        <div class="d-flex justify-content-between align-items-center mb-3"><div><h2 class="h4 mb-1">Workflow stages</h2><p class="text-muted small mb-0">The next due task is shown for each stage. Expand a stage to see everything beneath it.</p></div><span class="badge rounded-pill bg-primary" dmx-text="scStageOverview.data.query.count() + ' stages'"></span></div>
+        <div class="d-flex justify-content-between align-items-center mb-3"><div><h2 class="h4 mb-1" dmx-text="scTerminology.data.query[0].workflowSingular + ' ' + scTerminology.data.query[0].stagePlural.lowercase()">Workflow stages</h2><p class="text-muted small mb-0">The next due item is shown for each section. Expand one to see everything beneath it.</p></div><span class="badge rounded-pill bg-primary" dmx-text="scStageOverview.data.query.count() + ' ' + scTerminology.data.query[0].stagePlural.lowercase()"></span></div>
 
         <div is="dmx-repeat" id="repStageOverview" dmx-bind:repeat="scStageOverview.data.query">
             <div class="card border-0 shadow-sm mb-3" dmx-class:border-danger="$value.overdueTaskCount > 0">
