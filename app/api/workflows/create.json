@@ -1,0 +1,55 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type":"number","name":"templateId"}, {"type":"text","name":"workflowName"},
+    {"type":"text","name":"referenceCode"}, {"type":"text","name":"status"},
+    {"type":"number","name":"ownerTeamId"}, {"type":"text","name":"startDate"},
+    {"type":"text","name":"targetDate"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name":"getTemplate","module":"dbupdater","action":"custom",
+      "options":{"connection":"db","sql":{"query":"SELECT id,versionNumber FROM tbl_workflow_templates WHERE id=:id AND tenantId=:tenantId AND status='published' LIMIT 1","params":[{"name":":id","value":"{{$_POST.templateId}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},
+      "output":true,"outputType":"array","meta":[{"name":"id","type":"number"},{"name":"versionNumber","type":"number"}]
+    },
+    {
+      "name":"insertWorkflow","module":"dbupdater","action":"insert",
+      "options":{"connection":"db","sql":{"type":"insert","values":[
+        {"table":"tbl_workflows","column":"tenantId","type":"number","value":"{{$_SESSION.TENANT_ID}}"},
+        {"table":"tbl_workflows","column":"templateId","type":"number","value":"{{getTemplate[0].id}}"},
+        {"table":"tbl_workflows","column":"templateVersionNumber","type":"number","value":"{{getTemplate[0].versionNumber}}"},
+        {"table":"tbl_workflows","column":"workflowName","type":"text","value":"{{$_POST.workflowName}}"},
+        {"table":"tbl_workflows","column":"referenceCode","type":"text","value":"{{$_POST.referenceCode}}"},
+        {"table":"tbl_workflows","column":"status","type":"text","value":"{{$_POST.status}}"},
+        {"table":"tbl_workflows","column":"ownerUserId","type":"number","value":"{{$_SESSION.USER_ID}}"},
+        {"table":"tbl_workflows","column":"ownerTeamId","type":"number","value":"{{$_POST.ownerTeamId}}"},
+        {"table":"tbl_workflows","column":"startDate","type":"date","value":"{{$_POST.startDate}}"},
+        {"table":"tbl_workflows","column":"targetDate","type":"date","value":"{{$_POST.targetDate}}"},
+        {"table":"tbl_workflows","column":"createdByUserId","type":"number","value":"{{$_SESSION.USER_ID}}"}
+      ],"table":"tbl_workflows","returning":"id","query":"insert into `tbl_workflows` (`tenantId`,`templateId`,`templateVersionNumber`,`workflowName`,`referenceCode`,`status`,`ownerUserId`,`ownerTeamId`,`startDate`,`targetDate`,`createdByUserId`) values (?,?,?,?,?,?,?,?,?,?,?)","params":[
+        {"name":":P1","type":"expression","value":"{{$_SESSION.TENANT_ID}}"},{"name":":P2","type":"expression","value":"{{getTemplate[0].id}}"},{"name":":P3","type":"expression","value":"{{getTemplate[0].versionNumber}}"},{"name":":P4","type":"expression","value":"{{$_POST.workflowName}}"},{"name":":P5","type":"expression","value":"{{$_POST.referenceCode}}"},{"name":":P6","type":"expression","value":"{{$_POST.status}}"},{"name":":P7","type":"expression","value":"{{$_SESSION.USER_ID}}"},{"name":":P8","type":"expression","value":"{{$_POST.ownerTeamId}}"},{"name":":P9","type":"expression","value":"{{$_POST.startDate}}"},{"name":":P10","type":"expression","value":"{{$_POST.targetDate}}"},{"name":":P11","type":"expression","value":"{{$_SESSION.USER_ID}}"}
+      ]}},"meta":[{"name":"identity","type":"text"},{"name":"affected","type":"number"}],"output":true
+    },
+    {
+      "name":"cloneStages","module":"dbupdater","action":"custom",
+      "options":{"connection":"db","sql":{"query":"INSERT INTO tbl_workflow_stages (tenantId,workflowId,sourceTemplateStageId,stageName,description,sortOrder,status,colour) SELECT :tenantId,:workflowId,s.id,s.stageName,s.description,s.sortOrder,'not_started',s.colour FROM tbl_template_stages s WHERE s.templateId=:templateId AND s.tenantId=:tenantId2 AND s.status='active' ORDER BY s.sortOrder","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":templateId","value":"{{getTemplate[0].id}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
+    },
+    {
+      "name":"cloneTasks","module":"dbupdater","action":"custom",
+      "options":{"connection":"db","sql":{"query":"INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,sourceTemplateTaskId,taskName,description,status,priority,isRequired,assignedToUserId,assignedToTeamId,assignedToRoleId,dueDate,createdByUserId) SELECT :tenantId,:workflowId,ws.id,tt.id,tt.taskName,tt.description,'not_started',tt.priority,tt.isRequired,CASE WHEN tt.defaultOwnerType='workflow_owner' THEN :ownerUser WHEN tt.defaultOwnerType='specific_user' THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType='team' THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType='role' THEN tt.defaultOwnerId ELSE NULL END,CASE tt.dueOffsetType WHEN 'workflow_creation_date' THEN DATE_ADD(CURRENT_DATE,INTERVAL (CASE WHEN tt.dueRelation='before' THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN 'workflow_start_date' THEN DATE_ADD(NULLIF(:startDate,''),INTERVAL (CASE WHEN tt.dueRelation='before' THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN 'event_target_date' THEN DATE_ADD(NULLIF(:targetDate,''),INTERVAL (CASE WHEN tt.dueRelation='before' THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) ELSE NULL END,:createdBy FROM tbl_template_tasks tt INNER JOIN tbl_workflow_stages ws ON ws.workflowId=:workflowId2 AND ws.sourceTemplateStageId=tt.templateStageId AND ws.tenantId=:tenantId2 WHERE tt.templateId=:templateId AND tt.tenantId=:tenantId3 AND tt.status='active' ORDER BY tt.templateStageId,tt.sortOrder","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":ownerUser","value":"{{$_SESSION.USER_ID}}"},{"name":":startDate","value":"{{$_POST.startDate.default('')}}"},{"name":":targetDate","value":"{{$_POST.targetDate.default('')}}"},{"name":":createdBy","value":"{{$_SESSION.USER_ID}}"},{"name":":workflowId2","value":"{{insertWorkflow.identity}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"},{"name":":templateId","value":"{{getTemplate[0].id}}"},{"name":":tenantId3","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
+    },
+    {
+      "name":"cloneDependencies","module":"dbupdater","action":"custom",
+      "options":{"connection":"db","sql":{"query":"INSERT INTO tbl_task_dependencies (tenantId,workflowId,taskId,dependsOnTaskId,dependencyType) SELECT :tenantId,:workflowId,t.id,d.id,td.dependencyType FROM tbl_template_task_dependencies td INNER JOIN tbl_tasks t ON t.workflowId=:workflowId2 AND t.sourceTemplateTaskId=td.templateTaskId AND t.tenantId=:tenantId2 INNER JOIN tbl_tasks d ON d.workflowId=:workflowId3 AND d.sourceTemplateTaskId=td.dependsOnTemplateTaskId AND d.tenantId=:tenantId3 WHERE td.templateId=:templateId AND td.tenantId=:tenantId4","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":workflowId2","value":"{{insertWorkflow.identity}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId3","value":"{{insertWorkflow.identity}}"},{"name":":tenantId3","value":"{{$_SESSION.TENANT_ID}}"},{"name":":templateId","value":"{{getTemplate[0].id}}"},{"name":":tenantId4","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
+    },
+    {
+      "name":"cloneFields","module":"dbupdater","action":"custom",
+      "options":{"connection":"db","sql":{"query":"INSERT INTO tbl_workflow_field_values (tenantId,workflowId,templateCustomFieldId,fieldKey) SELECT :tenantId,:workflowId,f.id,f.fieldKey FROM tbl_template_custom_fields f WHERE f.templateId=:templateId AND f.tenantId=:tenantId2 AND f.status='active'","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":templateId","value":"{{getTemplate[0].id}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
+    },
+    {
+      "name":"setCurrentStage","module":"dbupdater","action":"custom",
+      "options":{"connection":"db","sql":{"query":"UPDATE tbl_workflows w SET w.currentStageId=(SELECT ws.id FROM tbl_workflow_stages ws WHERE ws.workflowId=w.id AND ws.tenantId=w.tenantId ORDER BY ws.sortOrder LIMIT 1) WHERE w.id=:workflowId AND w.tenantId=:tenantId","params":[{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
+    },
+    {"module":"core","action":"redirect","options":{"url":"/workflows/view?id={{insertWorkflow.identity}}","status":302}}
+  ]}
+}

@@ -45,6 +45,7 @@
       "path": "/users/all_users",
       "page": "users/all_users",
       "layout": "main_shell",
+      "routeType": "page",
       "restrict": {
         "provider": "security",
         "permissions": [
@@ -57,6 +58,238 @@
     {
       "path": "/users/create_user",
       "page": "users/create_user",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/users/edit_user",
+      "page": "users/edit_user",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/contacts",
+      "page": "contacts/contacts",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/workflows",
+      "page": "workflows/workflows",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/workflows/create",
+      "page": "workflows/create",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/workflows/view",
+      "page": "workflows/view",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/workflows/edit",
+      "page": "workflows/edit",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/tasks",
+      "page": "tasks/tasks",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/tasks/edit",
+      "page": "tasks/edit",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/templates",
+      "page": "workflow_templates/workflow_templates",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/templates/create",
+      "page": "workflow_templates/create_workflow_template",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/templates/edit",
+      "page": "workflow_templates/edit_workflow_template",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/templates/archive",
+      "page": "workflow_templates/archive_workflow_template",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/workflow_templates",
+      "page": "workflow_templates/workflow_templates",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/workflow_templates/create_workflow_template",
+      "page": "workflow_templates/create_workflow_template",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/workflow_templates/edit_workflow_template",
+      "page": "workflow_templates/edit_workflow_template",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/workflow_templates/template_stages",
+      "page": "workflow_templates/template_stages",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/workflow_templates/template_tasks",
+      "page": "workflow_templates/template_tasks",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/workflow_templates/template_task_dependencies",
+      "page": "workflow_templates/template_task_dependencies",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/contacts/create",
+      "page": "contacts/create",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/contacts/edit",
+      "page": "contacts/edit",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/contacts/delete",
+      "page": "contacts/delete",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/contacts/categories",
+      "page": "contacts/categories",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/contacts/edit_category",
+      "page": "contacts/edit_category",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/contacts/delete_category",
+      "page": "contacts/delete_category",
       "layout": "main_shell",
       "routeType": "page",
       "restrict": {
@@ -151,11 +384,6 @@
         "loginUrl": "/login/login",
         "forbiddenUrl": "/unauthorised"
       }
-    },
-    {
-      "path": "/users/edit_user",
-      "page": "users/edit_user",
-      "layout": "main_shell"
     }
   ],
   "layouts": {

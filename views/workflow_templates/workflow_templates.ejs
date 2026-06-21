@@ -1,0 +1,18 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="workflow_templates" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{}}" -->
+<dmx-serverconnect id="scTemplates" url="/api/templates/list"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12"><div class="d-flex justify-content-between align-items-center gap-3"><div><h1 class="mb-1">Workflow Templates</h1><p class="text-muted mb-0">Define reusable stages, tasks and dependencies for new workflows.</p></div><a class="btn btn-primary" href="/workflow_templates/create_workflow_template"><i class="fas fa-plus me-2"></i>New template</a></div></div>
+    <div class="col-12"><div class="card border-0 shadow-sm"><div class="card-header bg-white d-flex justify-content-between align-items-center py-3"><h2 class="h5 mb-0">Templates</h2><span class="badge rounded-pill bg-primary" dmx-text="scTemplates.data.query.count() + (scTemplates.data.query.count() == 1 ? ' template' : ' templates')"></span></div><div class="card-body"><div class="table-responsive"><table class="table table-striped table-hover align-middle mb-0">
+        <thead><tr><th>Template</th><th>Version</th><th>Structure</th><th>Status</th><th>Default</th><th class="text-end">Actions</th></tr></thead>
+        <tbody is="dmx-repeat" dmx-bind:repeat="scTemplates.data.query"><tr>
+            <td><div class="fw-semibold" dmx-text="templateName"></div><div class="text-muted small" dmx-text="description"></div></td>
+            <td><span class="badge bg-light text-dark border" dmx-text="'v' + versionNumber"></span></td>
+            <td><span dmx-text="stageCount + ' stages'"></span><span class="text-muted mx-1">·</span><span dmx-text="taskCount + ' tasks'"></span></td>
+            <td><span class="badge bg-warning text-dark" dmx-show="status == 'draft'">Draft</span><span class="badge bg-success" dmx-show="status == 'published'">Published</span><span class="badge bg-secondary" dmx-show="status == 'inactive'">Inactive</span><span class="badge bg-dark" dmx-show="status == 'archived'">Archived</span></td>
+            <td><i class="fas fa-check-circle text-success" dmx-show="isDefault == 1"></i><span class="text-muted" dmx-show="isDefault != 1">—</span></td>
+            <td class="text-end"><div class="d-inline-flex gap-2"><a class="btn btn-sm btn-primary" dmx-bind:href="'/workflow_templates/template_stages?id=' + id"><i class="fas fa-stream me-1"></i>Build</a><a class="btn btn-sm btn-outline-primary" dmx-bind:href="'/workflow_templates/edit_workflow_template?id=' + id">Edit</a><a class="btn btn-sm btn-outline-danger" dmx-bind:href="'/templates/archive?id=' + id"><i class="fas fa-archive"></i></a></div></td>
+        </tr></tbody>
+    </table></div><div class="text-center py-5" dmx-show="!scTemplates.state.executing && scTemplates.data.query.count() == 0"><i class="fas fa-layer-group fa-2x text-muted mb-3"></i><h3 class="h6">No workflow templates yet</h3><p class="text-muted small">Create a template, then add its stages and tasks.</p></div></div></div></div>
+</div>
+<meta name="ac:route" content="/workflow_templates">

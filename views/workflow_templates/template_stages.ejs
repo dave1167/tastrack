@@ -1,0 +1,50 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="template_stages" appConnect="local" components="{dmxStateManagement:{}}" -->
+<dmx-serverconnect id="scTemplate" url="/api/templates/get" dmx-param:id="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scStages" url="/api/workflow_templates/list_stages" dmx-param:templateid="query.id"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+            <div><h1 class="mb-1">Template Stages</h1><p class="text-muted mb-0"><span dmx-text="scTemplate.data.query[0].templateName"></span> · Build the ordered stages of this workflow.</p></div>
+            <div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="/workflow_templates">Templates</a><a class="btn btn-outline-primary" dmx-bind:href="'/workflow_templates/template_task_dependencies?templateId=' + query.id">Dependencies</a></div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-4">
+        <div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Add stage</h2></div><div class="card-body">
+            <form method="post" action="/api/workflow_templates/create_stage"><%- _csrfInput() %>
+                <input type="hidden" name="templateId" dmx-bind:value="query.id">
+                <div class="mb-3"><label class="form-label">Stage name</label><input class="form-control" name="stageName" required></div>
+                <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="3"></textarea></div>
+                <div class="mb-3"><label class="form-label">Colour</label><input class="form-control form-control-color" name="colour" type="color" value="#0d6efd"></div>
+                <div class="mb-4"><label class="form-label">Require all tasks complete</label><select class="form-select" name="requiresAllTasksComplete"><option value="0" selected>No</option><option value="1">Yes</option></select></div>
+                <button class="btn btn-primary" type="submit">Add Stage</button>
+            </form>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-xl-8">
+        <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0">Ordered stages</h2><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + (scStages.data.query.count() == 1 ? ' stage' : ' stages')"></span></div>
+
+        <div is="dmx-repeat" id="repStages" dmx-bind:repeat="scStages.data.query">
+            <div class="card border-0 shadow-sm mb-3"><div class="card-body">
+                <form method="post" action="/api/workflow_templates/update_stage"><%- _csrfInput() %>
+                    <input type="hidden" name="id" dmx-bind:value="$value.id">
+                    <input type="hidden" name="templateId" dmx-bind:value="$value.templateId">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-2"><label class="form-label">Order</label><input class="form-control" name="sortOrder" type="number" min="1" dmx-bind:value="$value.sortOrder"></div>
+                        <div class="col-md-5"><label class="form-label">Stage</label><input class="form-control" name="stageName" required dmx-bind:value="$value.stageName"></div>
+                        <div class="col-md-3"><label class="form-label">Status</label><select class="form-select" name="status" dmx-bind:value="$value.status"><option value="active">Active</option><option value="inactive">Inactive</option><option value="archived">Archived</option></select></div>
+                        <div class="col-md-2"><label class="form-label">Colour</label><input class="form-control form-control-color" name="colour" type="color" dmx-bind:value="$value.colour"></div>
+                        <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="2" dmx-bind:value="$value.description"></textarea></div>
+                        <div class="col-md-5"><label class="form-label">Require all tasks complete</label><select class="form-select" name="requiresAllTasksComplete" dmx-bind:value="$value.requiresAllTasksComplete"><option value="0">No</option><option value="1">Yes</option></select></div>
+                        <div class="col-md-7 text-md-end"><span class="text-muted small me-3" dmx-text="$value.taskCount + ($value.taskCount == 1 ? ' task' : ' tasks')"></span><a class="btn btn-sm btn-primary me-2" dmx-bind:href="'/workflow_templates/template_tasks?templateId=' + $value.templateId + '&stageId=' + $value.id">Manage tasks</a><button class="btn btn-sm btn-outline-primary" type="submit">Save</button></div>
+                    </div>
+                </form>
+            </div></div>
+        </div>
+
+        <div class="text-muted" dmx-show="!scStages.state.executing && scStages.data.query.count() == 0">No stages yet. Add the first stage to begin shaping the workflow.</div>
+    </div>
+</div>
+<meta name="ac:route" content="/workflow_templates/template_stages">

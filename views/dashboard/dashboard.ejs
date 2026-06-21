@@ -1,87 +1,35 @@
-wel<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="dashboard" appConnect="local" -->
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="dashboard" appConnect="local" components="{dmxStateManagement:{}}" -->
 <dmx-serverconnect id="scSessionContext" url="/api/security/sessionContext"></dmx-serverconnect>
-<dmx-serverconnect id="serverconnect1"></dmx-serverconnect>
+<dmx-serverconnect id="scDashboard" url="/api/dashboard/overview"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
-        <h1 class="mb-1">Dashboard</h1>
-        <p class="text-muted mb-0">Session values set during login.</p>
-    </div>
-
-    <div class="col-12 col-xl-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white">
-                <h2 class="h5 mb-0">Session check</h2>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 rounded border bg-light">
-                            <div class="small text-muted">User ID</div>
-                            <div class="fs-5 fw-semibold">{{scSessionContext.data.USER_ID}}</div>
-                            <input id="text1" name="text1" type="text" class="form-control">
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 rounded border bg-light">
-                            <div class="small text-muted">Tenant ID</div>
-                            <div class="fs-5 fw-semibold">{{scSessionContext.data.TENANT_ID}}</div>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 rounded border bg-light">
-                            <div class="small text-muted">Role ID</div>
-                            <div class="fs-5 fw-semibold">{{scSessionContext.data.ROLE_ID}}</div>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 rounded border bg-light">
-                            <div class="small text-muted">Tenant Name</div>
-                            <div class="fs-6 fw-semibold">{{scSessionContext.data.TENANT_NAME}}</div>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 rounded border bg-light">
-                            <div class="small text-muted">First Name</div>
-                            <div class="fs-6 fw-semibold">{{scSessionContext.data.FNAME}}</div>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 rounded border bg-light">
-                            <div class="small text-muted">Last Name</div>
-                            <div class="fs-6 fw-semibold">{{scSessionContext.data.LNAME}}</div>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 rounded border bg-light">
-                            <div class="small text-muted">Display Name</div>
-                            <div class="fs-6 fw-semibold">{{scSessionContext.data.DISPLAY_NAME}}</div>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 rounded border bg-light">
-                            <div class="small text-muted">Role Name</div>
-                            <div class="fs-6 fw-semibold">{{scSessionContext.data.ROLE_NAME}}</div>
-                        </div>
-                    </div>
-
-                    <div class="col-12 col-md-4">
-                        <div class="p-3 rounded border bg-light">
-                            <div class="small text-muted">Role Key</div>
-                            <div class="fs-6 fw-semibold">{{scSessionContext.data.ROLE_KEY}}</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
+            <div><h1 class="mb-1">Dashboard</h1><p class="text-muted mb-0">Welcome back, <span dmx-text="scSessionContext.data.DISPLAY_NAME"></span>. Here is what needs attention across <span dmx-text="scSessionContext.data.TENANT_NAME"></span>.</p></div>
+            <a class="btn btn-primary" href="/workflows/create"><i class="fas fa-plus me-2"></i>New workflow</a>
         </div>
     </div>
+
+    <div class="col-6 col-lg-4 col-xxl-2"><a class="card border-0 shadow-sm h-100 text-decoration-none text-reset" href="/workflows"><div class="card-body"><div class="d-flex justify-content-between"><div><div class="small text-muted">Active workflows</div><div class="fs-2 fw-semibold" dmx-text="scDashboard.data.summary[0].activeWorkflows"></div></div><div class="text-primary"><i class="fas fa-route fa-lg"></i></div></div></div></a></div>
+    <div class="col-6 col-lg-4 col-xxl-2"><a class="card border-0 shadow-sm h-100 text-decoration-none text-reset" href="/tasks"><div class="card-body"><div class="d-flex justify-content-between"><div><div class="small text-muted">Open tasks</div><div class="fs-2 fw-semibold" dmx-text="scDashboard.data.summary[0].openTasks"></div></div><div class="text-primary"><i class="fas fa-tasks fa-lg"></i></div></div></div></a></div>
+    <div class="col-6 col-lg-4 col-xxl-2"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="d-flex justify-content-between"><div><div class="small text-muted">Overdue</div><div class="fs-2 fw-semibold text-danger" dmx-text="scDashboard.data.summary[0].overdueTasks"></div></div><div class="text-danger"><i class="fas fa-exclamation-circle fa-lg"></i></div></div></div></div></div>
+    <div class="col-6 col-lg-4 col-xxl-2"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="d-flex justify-content-between"><div><div class="small text-muted">Due in 7 days</div><div class="fs-2 fw-semibold text-warning" dmx-text="scDashboard.data.summary[0].dueSoonTasks"></div></div><div class="text-warning"><i class="fas fa-calendar-alt fa-lg"></i></div></div></div></div></div>
+    <div class="col-6 col-lg-4 col-xxl-2"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="d-flex justify-content-between"><div><div class="small text-muted">My open tasks</div><div class="fs-2 fw-semibold" dmx-text="scDashboard.data.summary[0].myOpenTasks"></div></div><div class="text-info"><i class="fas fa-user-check fa-lg"></i></div></div></div></div></div>
+    <div class="col-6 col-lg-4 col-xxl-2"><div class="card border-0 shadow-sm h-100"><div class="card-body"><div class="d-flex justify-content-between"><div><div class="small text-muted">Unassigned</div><div class="fs-2 fw-semibold" dmx-text="scDashboard.data.summary[0].unassignedTasks"></div></div><div class="text-secondary"><i class="fas fa-user-slash fa-lg"></i></div></div></div></div></div>
+
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm h-100"><div class="card-header bg-white d-flex justify-content-between align-items-center py-3"><h2 class="h5 mb-0">Upcoming task deadlines</h2><span class="text-muted small">Next 12 by due date</span></div><div class="card-body"><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Task</th><th>Owner</th><th>Due</th><th>Priority</th></tr></thead><tbody is="dmx-repeat" dmx-bind:repeat="scDashboard.data.upcomingTasks"><tr><td><a class="fw-semibold text-decoration-none" dmx-bind:href="'/workflows/view?id=' + workflowId" dmx-text="taskName"></a><div class="small text-muted"><span dmx-text="workflowName"></span><span> · </span><span dmx-text="stageName"></span></div></td><td dmx-text="assigneeName"></td><td><span dmx-class:text-danger="isOverdue == 1" dmx-class:fw-semibold="isOverdue == 1" dmx-text="dueDate.formatDate('dd MMM yyyy')"></span><div class="small text-danger" dmx-show="isOverdue == 1">Overdue</div></td><td><span class="badge text-capitalize" dmx-class:bg-danger="priority == 'urgent'" dmx-class:bg-warning="priority == 'high'" dmx-class:text-dark="priority == 'high'" dmx-class:bg-primary="priority == 'normal'" dmx-class:bg-secondary="priority == 'low'" dmx-text="priority"></span></td></tr></tbody></table></div><div class="text-muted small py-4 text-center" dmx-show="!scDashboard.state.executing && scDashboard.data.upcomingTasks.count() == 0">No open tasks currently have a due date.</div></div></div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm mb-4"><div class="card-header bg-white py-3"><h2 class="h5 mb-0">Workflow health</h2></div><div class="card-body"><div class="d-flex flex-wrap gap-2" is="dmx-repeat" dmx-bind:repeat="scDashboard.data.workflowHealth"><span class="badge bg-light text-dark border fs-6 fw-normal"><span class="text-capitalize" dmx-text="status.replace('_',' ')"></span><span class="badge bg-primary ms-2" dmx-text="workflowCount"></span></span></div><div class="text-muted small" dmx-show="scDashboard.data.workflowHealth.count() == 0">No workflows have been created yet.</div></div></div>
+        <div class="card border-0 shadow-sm"><div class="card-header bg-white d-flex justify-content-between py-3"><h2 class="h5 mb-0">Open tasks by priority</h2><span class="text-muted small"><span dmx-text="scDashboard.data.summary[0].completedLast30Days"></span> completed in 30 days</span></div><div class="card-body"><div class="row g-2" is="dmx-repeat" dmx-bind:repeat="scDashboard.data.priorityBreakdown"><div class="col-6"><div class="border rounded p-3"><div class="small text-muted text-capitalize" dmx-text="priority"></div><div class="fs-4 fw-semibold" dmx-text="taskCount"></div></div></div></div><div class="text-muted small" dmx-show="scDashboard.data.priorityBreakdown.count() == 0">No open tasks.</div></div></div>
+    </div>
+
+    <div class="col-12 col-xl-6"><div class="card border-0 shadow-sm h-100"><div class="card-header bg-white py-3"><h2 class="h5 mb-0">Tasks by user</h2></div><div class="card-body"><div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>User</th><th class="text-end">In progress</th><th class="text-end">Overdue</th><th class="text-end">Open</th></tr></thead><tbody is="dmx-repeat" dmx-bind:repeat="scDashboard.data.tasksByUser"><tr><td class="fw-semibold" dmx-text="displayName"></td><td class="text-end" dmx-text="inProgressCount"></td><td class="text-end text-danger" dmx-text="overdueCount"></td><td class="text-end"><span class="badge bg-primary" dmx-text="openTaskCount"></span></td></tr></tbody></table></div><div class="text-muted small py-3" dmx-show="scDashboard.data.tasksByUser.count() == 0">No tasks are assigned directly to users.</div></div></div></div>
+
+    <div class="col-12 col-xl-6"><div class="card border-0 shadow-sm h-100"><div class="card-header bg-white py-3"><h2 class="h5 mb-0">Tasks by team</h2></div><div class="card-body"><div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>Team</th><th class="text-end">Overdue</th><th class="text-end">Open</th></tr></thead><tbody is="dmx-repeat" dmx-bind:repeat="scDashboard.data.tasksByTeam"><tr><td class="fw-semibold" dmx-text="teamName"></td><td class="text-end text-danger" dmx-text="overdueCount"></td><td class="text-end"><span class="badge bg-primary" dmx-text="openTaskCount"></span></td></tr></tbody></table></div><div class="text-muted small py-3" dmx-show="scDashboard.data.tasksByTeam.count() == 0">No tasks are assigned directly to teams.</div></div></div></div>
+
+    <div class="col-12"><div class="card border-0 shadow-sm"><div class="card-header bg-white d-flex justify-content-between align-items-center py-3"><h2 class="h5 mb-0">Recently updated workflows</h2><a class="btn btn-sm btn-outline-primary" href="/workflows">View all</a></div><div class="card-body"><div class="row g-3" is="dmx-repeat" dmx-bind:repeat="scDashboard.data.recentWorkflows"><div class="col-12 col-md-6 col-xl-4"><a class="d-block border rounded p-3 text-decoration-none text-reset h-100" dmx-bind:href="'/workflows/view?id=' + id"><div class="d-flex justify-content-between gap-2"><div class="fw-semibold" dmx-text="workflowName"></div><span class="badge bg-light text-dark border text-capitalize" dmx-text="status.replace('_',' ')"></span></div><div class="small text-muted mt-1" dmx-text="templateName"></div><div class="small mt-3"><span dmx-text="completedTaskCount + '/' + taskCount + ' tasks complete'"></span><span class="float-end text-muted" dmx-text="targetDate.formatDate('dd MMM')"></span></div></a></div></div><div class="text-muted small" dmx-show="scDashboard.data.recentWorkflows.count() == 0">No workflows have been created yet.</div></div></div></div>
 </div>
 <meta name="ac:route" content="/">
