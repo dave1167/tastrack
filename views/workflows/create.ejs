@@ -1,3 +1,37 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="create_workflow" appConnect="local" components="{dmxStateManagement:{}}" -->
-<dmx-serverconnect id="scTemplates" url="/api/workflows/template_options"></dmx-serverconnect><dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
-<div class="row g-4"><div class="col-12"><div class="d-flex justify-content-between align-items-center"><div><h1 class="mb-1">Create Workflow</h1><p class="text-muted mb-0">Start a live workflow from a published template.</p></div><a class="btn btn-outline-secondary" href="/workflows">Back to workflows</a></div></div><div class="col-12 col-xl-7"><div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Workflow details</h2></div><div class="card-body"><form method="post" action="/api/workflows/create"><%- _csrfInput() %><div class="mb-3"><label class="form-label">Template</label><select class="form-select" name="templateId" required dmx-bind:options="scTemplates.data.query" optiontext="templateName" optionvalue="id"><option value="">Select published template</option></select></div><div class="mb-3"><label class="form-label">Workflow name</label><input class="form-control" name="workflowName" required></div><div class="mb-3"><label class="form-label">Reference code</label><input class="form-control" name="referenceCode" required></div><div class="row g-3"><div class="col-md-6"><label class="form-label">Owner team</label><select class="form-select" name="ownerTeamId" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id"><option value="">Select team</option></select></div><div class="col-md-6"><label class="form-label">Initial status</label><select class="form-select" name="status"><option value="draft">Draft</option><option value="not_started" selected>Not started</option><option value="active">Active</option></select></div><div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" name="startDate" type="date" required></div><div class="col-md-6"><label class="form-label">Target date</label><input class="form-control" name="targetDate" type="date" required></div></div><div class="alert alert-info mt-4"><i class="fas fa-info-circle me-2"></i>Stages, tasks and dependencies will be copied from the selected template.</div><div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Create Workflow</button><a class="btn btn-light" href="/workflows">Cancel</a></div></form></div></div></div></div><meta name="ac:route" content="/workflows/create">
+<dmx-serverconnect id="scTemplates" url="/api/workflows/template_options"></dmx-serverconnect>
+<dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-1" dmx-text="'Create ' + scTerminology.data.query[0].workflowSingular">Create workflow</h1>
+                <p class="text-muted mb-0" dmx-text="'Start a live ' + scTerminology.data.query[0].workflowSingular.lowercase() + ' from a published template.'">Start from a published template.</p>
+            </div>
+            <a class="btn btn-outline-secondary" href="/workflows" dmx-text="'Back to ' + scTerminology.data.query[0].workflowPlural.lowercase()">Back</a>
+        </div>
+    </div>
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0" dmx-text="scTerminology.data.query[0].workflowSingular + ' details'">Details</h2></div>
+            <div class="card-body">
+                <form method="post" action="/api/workflows/create">
+                    <%- _csrfInput() %>
+                    <div class="mb-3"><label class="form-label">Template</label><select class="form-select" name="templateId" required dmx-bind:options="scTemplates.data.query" optiontext="templateName" optionvalue="id"><option value="">Select published template</option></select></div>
+                    <div class="mb-3"><label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' name'">Name</label><input class="form-control" name="workflowName" required></div>
+                    <div class="mb-3"><label class="form-label">Reference code</label><input class="form-control" name="referenceCode" required></div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Owner team</label><select class="form-select" name="ownerTeamId" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id"><option value="">Select team</option></select></div>
+                        <div class="col-md-6"><label class="form-label">Status</label><div class="form-control bg-light">Not started</div><div class="form-text" dmx-text="'Calculated automatically from ' + scTerminology.data.query[0].taskPlural.lowercase() + '.'">Calculated automatically.</div></div>
+                        <div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" name="startDate" type="date" required></div>
+                        <div class="col-md-6"><label class="form-label">Target date</label><input class="form-control" name="targetDate" type="date" required></div>
+                    </div>
+                    <div class="alert alert-info mt-4"><i class="fas fa-info-circle me-2"></i><span dmx-text="scTerminology.data.query[0].stagePlural + ', ' + scTerminology.data.query[0].taskPlural.lowercase() + ' and dependencies will be copied from the selected template.'">Template content will be copied.</span></div>
+                    <div class="d-flex gap-2"><button class="btn btn-primary" type="submit" dmx-text="'Create ' + scTerminology.data.query[0].workflowSingular">Create</button><a class="btn btn-light" href="/workflows">Cancel</a></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/workflows/create">

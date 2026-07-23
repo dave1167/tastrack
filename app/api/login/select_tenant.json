@@ -103,6 +103,28 @@
         }
       },
       {
+        "name": "logTenantLogin",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_activity_log (tenantId,userId,entityType,entityId,actionType,summary,afterJson,createdDate) SELECT :tenantId,:userId,'user',:userId2,'user.login',CONCAT(:displayName,' logged in to ',:tenantName),JSON_OBJECT('tenantId',:tenantId2,'role',:roleName),CURRENT_TIMESTAMP FROM tbl_activity_types at WHERE at.tenantId=:tenantId3 AND at.activityKey='user.login' AND at.isActive=1 LIMIT 1",
+            "params": [
+              {"name": ":tenantId", "value": "{{selectedAccess[0].tenantId}}"},
+              {"name": ":userId", "value": "{{selectedAccess[0].userId}}"},
+              {"name": ":userId2", "value": "{{selectedAccess[0].userId}}"},
+              {"name": ":displayName", "value": "{{selectedAccess[0].displayName}}"},
+              {"name": ":tenantName", "value": "{{selectedAccess[0].tenantName}}"},
+              {"name": ":tenantId2", "value": "{{selectedAccess[0].tenantId}}"},
+              {"name": ":roleName", "value": "{{selectedAccess[0].roleName}}"},
+              {"name": ":tenantId3", "value": "{{selectedAccess[0].tenantId}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
         "module": "core",
         "action": "redirect",
         "options": {

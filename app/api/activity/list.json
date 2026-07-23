@@ -1,0 +1,163 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "workflowid"
+      },
+      {
+        "type": "number",
+        "name": "userid"
+      },
+      {
+        "type": "text",
+        "name": "entitytype"
+      },
+      {
+        "type": "text",
+        "name": "actiontype"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "query",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {
+        "connection": "db",
+        "sql": {
+            "query": "SELECT log.id,log.tenantId,log.userId,COALESCE(u.displayName,'System') actorName,log.workflowId,w.workflowName,log.taskId,t.taskName,log.entityType,log.entityId,log.actionType,COALESCE(at.activityName,REPLACE(log.actionType,'.',' ')) activityName,COALESCE(at.activityCategory,'system') activityCategory,at.icon,at.colour,log.summary,log.beforeJson,log.afterJson,log.ipAddress,log.createdDate FROM tbl_activity_log log LEFT JOIN tbl_activity_types at ON at.tenantId=log.tenantId AND at.activityKey=log.actionType LEFT JOIN tbl_users u ON u.id=log.userId LEFT JOIN tbl_workflows w ON w.id=log.workflowId AND w.tenantId=log.tenantId LEFT JOIN tbl_tasks t ON t.id=log.taskId AND t.tenantId=log.tenantId WHERE log.tenantId=:tenantId AND (:workflowId=0 OR log.workflowId=:workflowId2) AND (:userId=0 OR log.userId=:userId2) AND (:entityType='' OR log.entityType=:entityType2) AND (:actionType='' OR log.actionType=:actionType2) ORDER BY log.createdDate DESC,log.id DESC LIMIT 250",
+          "params": [
+            {
+              "name": ":tenantId",
+              "value": "{{$_SESSION.TENANT_ID}}"
+            },
+            {
+              "name": ":workflowId",
+              "value": "{{$_GET.workflowid.default(0)}}"
+            },
+            {
+              "name": ":workflowId2",
+              "value": "{{$_GET.workflowid.default(0)}}"
+            },
+            {
+              "name": ":userId",
+              "value": "{{$_GET.userid.default(0)}}"
+            },
+            {
+              "name": ":userId2",
+              "value": "{{$_GET.userid.default(0)}}"
+            },
+            {
+              "name": ":entityType",
+              "value": "{{$_GET.entitytype.default('')}}"
+            },
+            {
+              "name": ":entityType2",
+              "value": "{{$_GET.entitytype.default('')}}"
+            },
+            {
+              "name": ":actionType",
+              "value": "{{$_GET.actiontype.default('')}}"
+            },
+            {
+              "name": ":actionType2",
+              "value": "{{$_GET.actiontype.default('')}}"
+              }
+          ]
+        }
+      },
+      "output": true,
+      "outputType": "array",
+      "meta": [
+        {
+          "name": "id",
+          "type": "number"
+        },
+        {
+          "name": "tenantId",
+          "type": "number"
+        },
+        {
+          "name": "userId",
+          "type": "number"
+        },
+        {
+          "name": "actorName",
+          "type": "text"
+        },
+        {
+          "name": "workflowId",
+          "type": "number"
+        },
+        {
+          "name": "workflowName",
+          "type": "text"
+        },
+        {
+          "name": "taskId",
+          "type": "number"
+        },
+        {
+          "name": "taskName",
+          "type": "text"
+        },
+        {
+          "name": "entityType",
+          "type": "text"
+        },
+        {
+          "name": "entityId",
+          "type": "number"
+        },
+        {
+          "name": "actionType",
+          "type": "text"
+        },
+        {
+          "name": "activityName",
+          "type": "text"
+        },
+        {
+          "name": "activityCategory",
+          "type": "text"
+        },
+        {
+          "name": "icon",
+          "type": "text"
+        },
+        {
+          "name": "colour",
+          "type": "text"
+        },
+        {
+          "name": "summary",
+          "type": "text"
+        },
+        {
+          "name": "beforeJson",
+          "type": "text"
+        },
+        {
+          "name": "afterJson",
+          "type": "text"
+        },
+        {
+          "name": "ipAddress",
+          "type": "text"
+        },
+        {
+          "name": "createdDate",
+          "type": "datetime"
+        }
+      ]
+    }
+  }
+}

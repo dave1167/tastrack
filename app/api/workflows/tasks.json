@@ -1,1 +1,30 @@
-{"settings":{"options":{"nocsrf":true,"method":"get"}},"meta":{"$_GET":[{"type":"number","name":"workflowid"}]},"exec":{"steps":{"name":"query","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"SELECT t.id,t.workflowId,t.workflowStageId,t.taskName,t.description,t.status,t.priority,t.isRequired,t.dueDate,t.startedDate,t.completedDate,ws.stageName,ws.sortOrder AS stageSortOrder,u.displayName AS assignedUserName,tm.teamName AS assignedTeamName,r.roleName AS assignedRoleName FROM tbl_tasks t INNER JOIN tbl_workflows w ON w.id=t.workflowId AND w.tenantId=t.tenantId LEFT JOIN tbl_workflow_stages ws ON ws.id=t.workflowStageId AND ws.tenantId=t.tenantId LEFT JOIN tbl_users u ON u.id=t.assignedToUserId LEFT JOIN tbl_teams tm ON tm.id=t.assignedToTeamId AND tm.tenantId=t.tenantId LEFT JOIN tbl_roles r ON r.id=t.assignedToRoleId WHERE t.workflowId=:workflowId AND t.tenantId=:tenantId ORDER BY ws.sortOrder,t.id","params":[{"name":":workflowId","value":"{{$_GET.workflowid}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true,"outputType":"array","meta":[{"name":"id","type":"number"},{"name":"workflowId","type":"number"},{"name":"workflowStageId","type":"number"},{"name":"taskName","type":"text"},{"name":"description","type":"text"},{"name":"status","type":"text"},{"name":"priority","type":"text"},{"name":"isRequired","type":"number"},{"name":"dueDate","type":"datetime"},{"name":"startedDate","type":"datetime"},{"name":"completedDate","type":"datetime"},{"name":"stageName","type":"text"},{"name":"stageSortOrder","type":"number"},{"name":"assignedUserName","type":"text"},{"name":"assignedTeamName","type":"text"},{"name":"assignedRoleName","type":"text"}]}}}
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "workflowid"}]},
+  "exec": {"steps": {
+    "name": "query",
+    "module": "dbupdater",
+    "action": "custom",
+    "options": {"connection": "db", "sql": {
+      "query": "SELECT t.id,t.workflowId,t.workflowStageId,t.taskName,t.description,t.status,t.priority,t.isRequired,t.dueDate,t.startedDate,t.completedDate,ws.stageName,ws.sortOrder AS stageSortOrder,u.displayName AS assignedUserName,tm.teamName AS assignedTeamName,r.roleName AS assignedRoleName,CAST((SELECT COUNT(*) FROM tbl_task_dependencies d INNER JOIN tbl_tasks p ON p.id=d.dependsOnTaskId AND p.workflowId=t.workflowId AND p.tenantId=t.tenantId WHERE d.taskId=t.id AND d.workflowId=t.workflowId AND d.tenantId=t.tenantId AND ((d.dependencyType IN ('finish_to_start','blocking') AND p.status NOT IN ('complete','skipped','cancelled')) OR (d.dependencyType='start_to_start' AND p.status='not_started'))) AS UNSIGNED) AS startBlockerCount,CAST((SELECT COUNT(*) FROM tbl_task_dependencies d INNER JOIN tbl_tasks p ON p.id=d.dependsOnTaskId AND p.workflowId=t.workflowId AND p.tenantId=t.tenantId WHERE d.taskId=t.id AND d.workflowId=t.workflowId AND d.tenantId=t.tenantId AND d.dependencyType='finish_to_finish' AND p.status NOT IN ('complete','skipped','cancelled')) AS UNSIGNED) AS finishBlockerCount,(SELECT GROUP_CONCAT(DISTINCT p.taskName ORDER BY p.id SEPARATOR ', ') FROM tbl_task_dependencies d INNER JOIN tbl_tasks p ON p.id=d.dependsOnTaskId AND p.workflowId=t.workflowId AND p.tenantId=t.tenantId WHERE d.taskId=t.id AND d.workflowId=t.workflowId AND d.tenantId=t.tenantId AND ((d.dependencyType IN ('finish_to_start','blocking','finish_to_finish') AND p.status NOT IN ('complete','skipped','cancelled')) OR (d.dependencyType='start_to_start' AND p.status='not_started'))) AS blockerNames FROM tbl_tasks t INNER JOIN tbl_workflows w ON w.id=t.workflowId AND w.tenantId=t.tenantId LEFT JOIN tbl_workflow_stages ws ON ws.id=t.workflowStageId AND ws.tenantId=t.tenantId LEFT JOIN tbl_users u ON u.id=t.assignedToUserId LEFT JOIN tbl_teams tm ON tm.id=t.assignedToTeamId AND tm.tenantId=t.tenantId LEFT JOIN tbl_roles r ON r.id=t.assignedToRoleId WHERE t.workflowId=:workflowId AND t.tenantId=:tenantId ORDER BY ws.sortOrder,t.id",
+      "params": [
+        {"name": ":workflowId", "value": "{{$_GET.workflowid}}"},
+        {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+      ]
+    }},
+    "output": true,
+    "outputType": "array",
+    "meta": [
+      {"name": "id", "type": "number"}, {"name": "workflowId", "type": "number"},
+      {"name": "workflowStageId", "type": "number"}, {"name": "taskName", "type": "text"},
+      {"name": "description", "type": "text"}, {"name": "status", "type": "text"},
+      {"name": "priority", "type": "text"}, {"name": "isRequired", "type": "number"},
+      {"name": "dueDate", "type": "datetime"}, {"name": "startedDate", "type": "datetime"},
+      {"name": "completedDate", "type": "datetime"}, {"name": "stageName", "type": "text"},
+      {"name": "stageSortOrder", "type": "number"}, {"name": "assignedUserName", "type": "text"},
+      {"name": "assignedTeamName", "type": "text"}, {"name": "assignedRoleName", "type": "text"},
+      {"name": "startBlockerCount", "type": "number"}, {"name": "finishBlockerCount", "type": "number"},
+      {"name": "blockerNames", "type": "text"}
+    ]
+  }}
+}

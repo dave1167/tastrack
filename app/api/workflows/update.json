@@ -1,1 +1,62 @@
-{"settings":{"options":{"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"id"},{"type":"text","name":"workflowName"},{"type":"text","name":"referenceCode"},{"type":"text","name":"status"},{"type":"number","name":"ownerTeamId"},{"type":"text","name":"startDate"},{"type":"text","name":"targetDate"}]},"exec":{"steps":[{"name":"updateWorkflow","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_workflows SET workflowName=:workflowName,referenceCode=NULLIF(:referenceCode,''),status=:status,ownerTeamId=NULLIF(:ownerTeamId,''),startDate=NULLIF(:startDate,''),targetDate=NULLIF(:targetDate,''),completedDate=CASE WHEN :status2='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND tenantId=:tenantId","params":[{"name":":workflowName","value":"{{$_POST.workflowName}}"},{"name":":referenceCode","value":"{{$_POST.referenceCode.default('')}}"},{"name":":status","value":"{{$_POST.status}}"},{"name":":ownerTeamId","value":"{{$_POST.ownerTeamId.default('')}}"},{"name":":startDate","value":"{{$_POST.startDate.default('')}}"},{"name":":targetDate","value":"{{$_POST.targetDate.default('')}}"},{"name":":status2","value":"{{$_POST.status}}"},{"name":":id","value":"{{$_POST.id}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true},{"module":"core","action":"redirect","options":{"url":"/workflows/view?id={{$_POST.id}}","status":302}}]}}
+{
+  "settings": { "options": { "method": "post" } },
+  "meta": {
+    "$_POST": [
+      { "type": "number", "name": "id" },
+      { "type": "text", "name": "workflowName" },
+      { "type": "text", "name": "referenceCode" },
+      { "type": "text", "name": "status" },
+      { "type": "number", "name": "ownerTeamId" },
+      { "type": "text", "name": "startDate" },
+      { "type": "text", "name": "targetDate" }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {"name":"workflowBeforeChange","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"SELECT id,workflowName,referenceCode,status,ownerTeamId,startDate,targetDate FROM tbl_workflows WHERE id=:id AND tenantId=:tenantId LIMIT 1","params":[{"name":":id","value":"{{$_POST.id}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true,"outputType":"array"},
+      {
+        "name": "updateWorkflow",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_workflows SET workflowName=:workflowName,referenceCode=NULLIF(:referenceCode,''),status=:status,ownerTeamId=NULLIF(:ownerTeamId,''),startDate=NULLIF(:startDate,''),targetDate=NULLIF(:targetDate,''),completedDate=CASE WHEN :status2='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND tenantId=:tenantId",
+            "params": [
+              { "name": ":workflowName", "value": "{{$_POST.workflowName}}" },
+              {
+                "name": ":referenceCode",
+                "value": "{{$_POST.referenceCode.default('')}}"
+              },
+              { "name": ":status", "value": "{{$_POST.status}}" },
+              {
+                "name": ":ownerTeamId",
+                "value": "{{$_POST.ownerTeamId.default('')}}"
+              },
+              {
+                "name": ":startDate",
+                "value": "{{$_POST.startDate.default('')}}"
+              },
+              {
+                "name": ":targetDate",
+                "value": "{{$_POST.targetDate.default('')}}"
+              },
+              { "name": ":status2", "value": "{{$_POST.status}}" },
+              { "name": ":id", "value": "{{$_POST.id}}" },
+              { "name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}" }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name":"logWorkflowUpdated","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"INSERT INTO tbl_activity_log (tenantId,userId,workflowId,entityType,entityId,actionType,summary,beforeJson,afterJson,createdDate) SELECT :tenantId,:userId,:workflowId,'workflow',:entityId,CASE WHEN :oldStatus<>:newStatus THEN 'workflow.status_changed' ELSE 'workflow.updated' END,CASE WHEN :oldStatus2<>:newStatus2 THEN CONCAT(:displayName,' changed ',:workflowName,' from ',REPLACE(:oldStatus3,'_',' '),' to ',REPLACE(:newStatus3,'_',' ')) ELSE CONCAT(:displayName,' updated ',:workflowName2) END,JSON_OBJECT('workflowName',:oldName,'referenceCode',:oldReference,'status',:oldStatus4,'ownerTeamId',:oldTeam,'startDate',:oldStart,'targetDate',:oldTarget),JSON_OBJECT('workflowName',:newName,'referenceCode',:newReference,'status',:newStatus4,'ownerTeamId',:newTeam,'startDate',:newStart,'targetDate',:newTarget),CURRENT_TIMESTAMP FROM tbl_activity_types at WHERE at.tenantId=:tenantId2 AND at.activityKey=CASE WHEN :oldStatus5<>:newStatus5 THEN 'workflow.status_changed' ELSE 'workflow.updated' END AND at.isActive=1 LIMIT 1","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":userId","value":"{{$_SESSION.USER_ID}}"},{"name":":workflowId","value":"{{$_POST.id}}"},{"name":":entityId","value":"{{$_POST.id}}"},{"name":":oldStatus","value":"{{workflowBeforeChange[0].status}}"},{"name":":newStatus","value":"{{$_POST.status}}"},{"name":":oldStatus2","value":"{{workflowBeforeChange[0].status}}"},{"name":":newStatus2","value":"{{$_POST.status}}"},{"name":":displayName","value":"{{$_SESSION.DISPLAY_NAME.default('A user')}}"},{"name":":workflowName","value":"{{$_POST.workflowName}}"},{"name":":oldStatus3","value":"{{workflowBeforeChange[0].status}}"},{"name":":newStatus3","value":"{{$_POST.status}}"},{"name":":workflowName2","value":"{{$_POST.workflowName}}"},{"name":":oldName","value":"{{workflowBeforeChange[0].workflowName}}"},{"name":":oldReference","value":"{{workflowBeforeChange[0].referenceCode}}"},{"name":":oldStatus4","value":"{{workflowBeforeChange[0].status}}"},{"name":":oldTeam","value":"{{workflowBeforeChange[0].ownerTeamId}}"},{"name":":oldStart","value":"{{workflowBeforeChange[0].startDate}}"},{"name":":oldTarget","value":"{{workflowBeforeChange[0].targetDate}}"},{"name":":newName","value":"{{$_POST.workflowName}}"},{"name":":newReference","value":"{{$_POST.referenceCode.default('')}}"},{"name":":newStatus4","value":"{{$_POST.status}}"},{"name":":newTeam","value":"{{$_POST.ownerTeamId}}"},{"name":":newStart","value":"{{$_POST.startDate.default('')}}"},{"name":":newTarget","value":"{{$_POST.targetDate.default('')}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"},{"name":":oldStatus5","value":"{{workflowBeforeChange[0].status}}"},{"name":":newStatus5","value":"{{$_POST.status}}"}]}},"output":true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": { "url": "/workflows/view?id={{$_POST.id}}", "status": 302 }
+      }
+    ]
+  }
+}

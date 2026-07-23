@@ -1,0 +1,262 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "summary",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT COUNT(DISTINCT CASE WHEN t.status NOT IN ('complete','skipped','cancelled') THEN t.workflowId END) activeWorkflows,COUNT(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') THEN 1 END) openTasks,COUNT(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') AND t.dueDate<CURRENT_TIMESTAMP THEN 1 END) overdueTasks,COUNT(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') AND t.dueDate BETWEEN CURRENT_TIMESTAMP AND DATE_ADD(CURRENT_TIMESTAMP,INTERVAL 7 DAY) THEN 1 END) dueSoonTasks,COUNT(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') THEN 1 END) myOpenTasks,0 unassignedTasks,COUNT(CASE WHEN t.completedDate>=DATE_SUB(CURRENT_TIMESTAMP,INTERVAL 30 DAY) THEN 1 END) completedLast30Days,(SELECT COUNT(*) FROM tbl_notifications n WHERE n.tenantId=:tenantId2 AND n.userId=:userId2 AND n.status='unread') unreadNotifications FROM tbl_tasks t WHERE t.tenantId=:tenantId AND (t.assignedToUserId=:userId OR EXISTS(SELECT 1 FROM tbl_team_members m INNER JOIN tbl_user_tenant_roles utr ON utr.id=m.tenantUserId AND utr.tenantId=m.tenantId AND utr.isActive=1 WHERE m.teamId=t.assignedToTeamId AND m.tenantId=t.tenantId AND m.isActive=1 AND utr.userId=:teamUserId))",
+            "params": [
+              {
+                "name": ":tenantId2",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId2",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":teamUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array",
+        "meta": [
+          {
+            "name": "activeWorkflows",
+            "type": "number"
+          },
+          {
+            "name": "openTasks",
+            "type": "number"
+          },
+          {
+            "name": "overdueTasks",
+            "type": "number"
+          },
+          {
+            "name": "dueSoonTasks",
+            "type": "number"
+          },
+          {
+            "name": "myOpenTasks",
+            "type": "number"
+          },
+          {
+            "name": "unassignedTasks",
+            "type": "number"
+          },
+          {
+            "name": "completedLast30Days",
+            "type": "number"
+          },
+          {
+            "name": "unreadNotifications",
+            "type": "number"
+          }
+        ]
+      },
+      {
+        "name": "tasksByUser",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT u.id userId,u.displayName,COUNT(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') THEN 1 END) openTaskCount,COUNT(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') AND t.dueDate<CURRENT_TIMESTAMP THEN 1 END) overdueCount,COUNT(CASE WHEN t.status='in_progress' THEN 1 END) inProgressCount FROM tbl_users u LEFT JOIN tbl_tasks t ON t.tenantId=:tenantId AND (t.assignedToUserId=u.id OR EXISTS(SELECT 1 FROM tbl_team_members m INNER JOIN tbl_user_tenant_roles utr ON utr.id=m.tenantUserId AND utr.tenantId=m.tenantId AND utr.isActive=1 WHERE m.teamId=t.assignedToTeamId AND m.tenantId=t.tenantId AND m.isActive=1 AND utr.userId=u.id)) WHERE u.id=:userId GROUP BY u.id,u.displayName",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "tasksByTeam",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT tm.id teamId,tm.teamName,COUNT(t.id) openTaskCount,COUNT(CASE WHEN t.dueDate<CURRENT_TIMESTAMP THEN 1 END) overdueCount FROM tbl_teams tm INNER JOIN tbl_team_members m ON m.teamId=tm.id AND m.tenantId=tm.tenantId AND m.isActive=1 INNER JOIN tbl_user_tenant_roles utr ON utr.id=m.tenantUserId AND utr.tenantId=m.tenantId INNER JOIN tbl_tasks t ON t.assignedToTeamId=tm.id AND t.tenantId=tm.tenantId AND t.status NOT IN ('complete','skipped','cancelled') WHERE tm.tenantId=:tenantId AND utr.userId=:userId GROUP BY tm.id,tm.teamName",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "workflowHealth",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT w.status,COUNT(DISTINCT w.id) workflowCount FROM tbl_workflows w INNER JOIN tbl_tasks t ON t.workflowId=w.id AND t.tenantId=w.tenantId AND (t.assignedToUserId=:userId OR EXISTS(SELECT 1 FROM tbl_team_members m INNER JOIN tbl_user_tenant_roles utr ON utr.id=m.tenantUserId AND utr.tenantId=m.tenantId AND utr.isActive=1 WHERE m.teamId=t.assignedToTeamId AND m.tenantId=t.tenantId AND m.isActive=1 AND utr.userId=:teamUserId)) WHERE w.tenantId=:tenantId GROUP BY w.status ORDER BY FIELD(w.status,'overdue','external_hold','internal_hold','in_progress','not_started','complete')",
+            "params": [
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":teamUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "priorityBreakdown",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT t.priority,COUNT(*) taskCount FROM tbl_tasks t WHERE t.tenantId=:tenantId AND (t.assignedToUserId=:userId OR EXISTS(SELECT 1 FROM tbl_team_members m INNER JOIN tbl_user_tenant_roles utr ON utr.id=m.tenantUserId AND utr.tenantId=m.tenantId AND utr.isActive=1 WHERE m.teamId=t.assignedToTeamId AND m.tenantId=t.tenantId AND m.isActive=1 AND utr.userId=:teamUserId)) AND t.status NOT IN ('complete','skipped','cancelled') GROUP BY t.priority ORDER BY FIELD(t.priority,'urgent','high','normal','low')",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":teamUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "upcomingTasks",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT t.id,t.taskName,t.status,t.priority,t.dueDate,w.id workflowId,w.workflowName,ws.stageName,COALESCE(u.displayName,tm.teamName,'Unassigned') assigneeName,CASE WHEN t.dueDate<CURRENT_TIMESTAMP THEN 1 ELSE 0 END isOverdue FROM tbl_tasks t INNER JOIN tbl_workflows w ON w.id=t.workflowId AND w.tenantId=t.tenantId LEFT JOIN tbl_workflow_stages ws ON ws.id=t.workflowStageId AND ws.tenantId=t.tenantId LEFT JOIN tbl_users u ON u.id=t.assignedToUserId LEFT JOIN tbl_teams tm ON tm.id=t.assignedToTeamId AND tm.tenantId=t.tenantId WHERE t.tenantId=:tenantId AND (t.assignedToUserId=:userId OR EXISTS(SELECT 1 FROM tbl_team_members m INNER JOIN tbl_user_tenant_roles utr ON utr.id=m.tenantUserId AND utr.tenantId=m.tenantId AND utr.isActive=1 WHERE m.teamId=t.assignedToTeamId AND m.tenantId=t.tenantId AND m.isActive=1 AND utr.userId=:teamUserId)) AND t.status NOT IN ('complete','skipped','cancelled') AND t.dueDate IS NOT NULL ORDER BY t.dueDate LIMIT 12",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":teamUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "recentWorkflows",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT w.id,w.workflowName,w.referenceCode,w.status,w.targetDate,w.modifiedDate,wt.templateName,COUNT(DISTINCT t.id) taskCount,COUNT(DISTINCT CASE WHEN t.status='complete' THEN t.id END) completedTaskCount FROM tbl_workflows w LEFT JOIN tbl_workflow_templates wt ON wt.id=w.templateId INNER JOIN tbl_tasks mine ON mine.workflowId=w.id AND mine.tenantId=w.tenantId AND (mine.assignedToUserId=:userId OR EXISTS(SELECT 1 FROM tbl_team_members m INNER JOIN tbl_user_tenant_roles utr ON utr.id=m.tenantUserId AND utr.tenantId=m.tenantId AND utr.isActive=1 WHERE m.teamId=mine.assignedToTeamId AND m.tenantId=mine.tenantId AND m.isActive=1 AND utr.userId=:teamUserId)) LEFT JOIN tbl_tasks t ON t.workflowId=w.id AND t.tenantId=w.tenantId WHERE w.tenantId=:tenantId GROUP BY w.id ORDER BY w.modifiedDate DESC LIMIT 6",
+            "params": [
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":teamUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "taskStatus",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT t.status,COUNT(*) taskCount FROM tbl_tasks t WHERE t.tenantId=:tenantId AND (t.assignedToUserId=:userId OR EXISTS(SELECT 1 FROM tbl_team_members m INNER JOIN tbl_user_tenant_roles utr ON utr.id=m.tenantUserId AND utr.tenantId=m.tenantId AND utr.isActive=1 WHERE m.teamId=t.assignedToTeamId AND m.tenantId=t.tenantId AND m.isActive=1 AND utr.userId=:teamUserId)) GROUP BY t.status ORDER BY FIELD(t.status,'in_progress','not_started','internal_hold','external_hold','complete','skipped','cancelled')",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":teamUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      }
+    ]
+  }
+}

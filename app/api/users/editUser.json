@@ -13,43 +13,33 @@
     "$_POST": [
       {
         "type": "number",
-        "fieldName": "userId",
+        "name": "userId",
         "options": {
           "rules": {
             "core:required": {
               "param": ""
             }
           }
-        },
-        "name": "userId"
+        }
       },
       {
         "type": "number",
-        "fieldName": "tenantUserRoleId",
+        "name": "tenantUserRoleId",
         "options": {
           "rules": {
             "core:required": {
               "param": ""
             }
           }
-        },
-        "name": "tenantUserRoleId"
+        }
       },
       {
         "type": "number",
-        "fieldName": "teamMemberId",
-        "options": {
-          "rules": {
-            "core:required": {
-              "param": ""
-            }
-          }
-        },
         "name": "teamMemberId"
       },
       {
         "type": "text",
-        "fieldName": "email",
+        "name": "email",
         "options": {
           "rules": {
             "core:required": {
@@ -57,78 +47,49 @@
             },
             "core:email": {}
           }
-        },
-        "name": "email"
+        }
       },
       {
         "type": "text",
-        "fieldName": "fName",
         "name": "fName"
       },
       {
         "type": "text",
-        "fieldName": "lName",
         "name": "lName"
       },
       {
         "type": "text",
-        "fieldName": "displayName",
+        "name": "displayName",
         "options": {
           "rules": {
             "core:required": {
               "param": ""
             }
           }
-        },
-        "name": "displayName"
+        }
       },
       {
         "type": "boolean",
-        "fieldName": "isActive",
-        "options": {
-          "rules": {
-            "core:required": {
-              "param": ""
-            }
-          }
-        },
         "name": "isActive"
       },
       {
         "type": "number",
-        "fieldName": "hidRoleId",
+        "name": "roleId",
         "options": {
           "rules": {
             "core:required": {
               "param": ""
             }
           }
-        },
-        "name": "hidRoleId"
+        }
       },
       {
         "type": "number",
-        "fieldName": "hidTeamId",
-        "options": {
-          "rules": {
-            "core:required": {
-              "param": ""
-            }
-          }
-        },
-        "name": "hidTeamId"
+        "name": "teamId"
       },
       {
         "type": "number",
-        "fieldName": "hidTeamRole",
-        "options": {
-          "rules": {
-            "core:required": {
-              "param": ""
-            }
-          }
-        },
-        "name": "hidTeamRole"
+        "name": "teamRole"
       }
     ],
     "$_SESSION": [
@@ -141,323 +102,233 @@
   "exec": {
     "steps": [
       {
-        "name": "updUser",
+        "name": "userBeforeChange",
         "module": "dbupdater",
-        "action": "update",
+        "action": "custom",
         "options": {
           "connection": "db",
           "sql": {
-            "type": "update",
-            "values": [
-              {
-                "table": "tbl_users",
-                "column": "email",
-                "type": "text",
-                "value": "{{$_POST.email}}"
-              },
-              {
-                "table": "tbl_users",
-                "column": "fName",
-                "type": "text",
-                "value": "{{$_POST.fName}}"
-              },
-              {
-                "table": "tbl_users",
-                "column": "lName",
-                "type": "text",
-                "value": "{{$_POST.lName}}"
-              },
-              {
-                "table": "tbl_users",
-                "column": "displayName",
-                "type": "text",
-                "value": "{{$_POST.displayName}}"
-              },
-              {
-                "table": "tbl_users",
-                "column": "isActive",
-                "type": "boolean",
-                "value": "{{$_POST.isActive}}"
-              },
-              {
-                "table": "tbl_users",
-                "column": "modifiedDate",
-                "type": "datetime",
-                "value": "{{NOW}}"
-              }
-            ],
-            "table": "tbl_users",
-            "wheres": {
-              "condition": "AND",
-              "rules": [
-                {
-                  "id": "id",
-                  "field": "id",
-                  "type": "double",
-                  "operator": "equal",
-                  "value": "{{$_POST.userId}}",
-                  "data": {
-                    "column": "id"
-                  },
-                  "operation": "="
-                }
-              ],
-              "conditional": null,
-              "valid": true
-            },
-            "returning": "id",
-            "query": "update `tbl_users` set `email` = ?, `fName` = ?, `lName` = ?, `displayName` = ?, `isActive` = ?, `modifiedDate` = ? where `id` = ?",
+            "query": "SELECT u.id,u.displayName,u.email,u.isActive,utr.roleId,tm.teamId FROM tbl_users u INNER JOIN tbl_user_tenant_roles utr ON utr.userId=u.id AND utr.tenantId=:tenantId LEFT JOIN tbl_team_members tm ON tm.tenantUserId=utr.id AND tm.tenantId=utr.tenantId AND tm.isPrimary=1 WHERE u.id=:userId AND utr.id=:tenantUserRoleId LIMIT 1",
             "params": [
               {
-                "name": ":P1",
-                "type": "expression",
-                "value": "{{$_POST.email}}"
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
               },
               {
-                "name": ":P2",
-                "type": "expression",
-                "value": "{{$_POST.fName}}"
-              },
-              {
-                "name": ":P3",
-                "type": "expression",
-                "value": "{{$_POST.lName}}"
-              },
-              {
-                "name": ":P4",
-                "type": "expression",
-                "value": "{{$_POST.displayName}}"
-              },
-              {
-                "name": ":P5",
-                "type": "expression",
-                "value": "{{$_POST.isActive}}"
-              },
-              {
-                "name": ":P6",
-                "type": "expression",
-                "value": "{{NOW}}"
-              },
-              {
-                "operator": "equal",
-                "type": "expression",
-                "name": ":P7",
+                "name": ":userId",
                 "value": "{{$_POST.userId}}"
+              },
+              {
+                "name": ":tenantUserRoleId",
+                "value": "{{$_POST.tenantUserRoleId}}"
               }
             ]
           }
         },
         "output": true,
-        "meta": [
-          {
-            "name": "affected",
-            "type": "number"
+        "outputType": "array"
+      },
+      {
+        "name": "updUser",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_users u INNER JOIN tbl_user_tenant_roles utr ON utr.userId=u.id AND utr.tenantId=:tenantId SET u.email=:email,u.fName=:fName,u.lName=:lName,u.displayName=:displayName,u.isActive=:isActive,u.modifiedDate=CURRENT_TIMESTAMP WHERE u.id=:userId AND utr.id=:tenantUserRoleId",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":email",
+                "value": "{{$_POST.email.lowercase()}}"
+              },
+              {
+                "name": ":fName",
+                "value": "{{$_POST.fName.lowercase().capitalize()}}"
+              },
+              {
+                "name": ":lName",
+                "value": "{{$_POST.lName.lowercase().capitalize()}}"
+              },
+              {
+                "name": ":displayName",
+                "value": "{{$_POST.displayName}}"
+              },
+              {
+                "name": ":isActive",
+                "value": "{{$_POST.isActive}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_POST.userId}}"
+              },
+              {
+                "name": ":tenantUserRoleId",
+                "value": "{{$_POST.tenantUserRoleId}}"
+              }
+            ]
           }
-        ],
-        "collapsed": true
+        },
+        "output": true
       },
       {
         "name": "updTenantRole",
         "module": "dbupdater",
-        "action": "update",
+        "action": "custom",
         "options": {
           "connection": "db",
           "sql": {
-            "type": "update",
-            "values": [
-              {
-                "table": "tbl_user_tenant_roles",
-                "column": "roleId",
-                "type": "number",
-                "value": "{{$_POST.hidRoleId}}"
-              },
-              {
-                "table": "tbl_user_tenant_roles",
-                "column": "isActive",
-                "type": "boolean",
-                "value": "{{$_POST.isActive}}"
-              },
-              {
-                "table": "tbl_user_tenant_roles",
-                "column": "modifiedDate",
-                "type": "datetime",
-                "value": "{{NOW}}"
-              }
-            ],
-            "table": "tbl_user_tenant_roles",
-            "wheres": {
-              "condition": "AND",
-              "rules": [
-                {
-                  "id": "id",
-                  "type": "double",
-                  "operator": "equal",
-                  "value": "{{$_POST.tenantUserRoleId}}",
-                  "data": {
-                    "column": "id"
-                  },
-                  "operation": "="
-                },
-                {
-                  "id": "tenantId",
-                  "type": "double",
-                  "operator": "equal",
-                  "value": "{{$_SESSION.TENANT_ID}}",
-                  "data": {
-                    "column": "tenantId"
-                  },
-                  "operation": "="
-                }
-              ]
-            },
-            "returning": "id",
-            "query": "update `tbl_user_tenant_roles` set `roleId` = ?, `isActive` = ?, `modifiedDate` = ? where `id` = ? and `tenantId` = ?",
+            "query": "UPDATE tbl_user_tenant_roles SET roleId=:roleId,isActive=:isActive,modifiedDate=CURRENT_TIMESTAMP WHERE id=:tenantUserRoleId AND userId=:userId AND tenantId=:tenantId",
             "params": [
               {
-                "name": ":P1",
-                "type": "expression",
-                "value": "{{$_POST.hidRoleId}}"
+                "name": ":roleId",
+                "value": "{{$_POST.roleId}}"
               },
               {
-                "name": ":P2",
-                "type": "expression",
+                "name": ":isActive",
                 "value": "{{$_POST.isActive}}"
               },
               {
-                "name": ":P3",
-                "type": "expression",
-                "value": "{{NOW}}"
-              },
-              {
-                "operator": "equal",
-                "type": "expression",
-                "name": ":P4",
+                "name": ":tenantUserRoleId",
                 "value": "{{$_POST.tenantUserRoleId}}"
               },
               {
-                "operator": "equal",
-                "type": "expression",
-                "name": ":P5",
+                "name": ":userId",
+                "value": "{{$_POST.userId}}"
+              },
+              {
+                "name": ":tenantId",
                 "value": "{{$_SESSION.TENANT_ID}}"
               }
             ]
           }
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "affected",
-            "type": "number"
-          }
-        ],
-        "collapsed": true
+        "output": true
       },
       {
-        "name": "updTeamMember",
+        "name": "saveTeamMembership",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{$_POST.teamId && $_POST.teamRole}}",
+          "then": {
+            "steps": {
+              "name": "upsertTeamMember",
+              "module": "dbupdater",
+              "action": "custom",
+              "options": {
+                "connection": "db",
+                "sql": {
+                  "query": "INSERT INTO tbl_team_members (tenantId,tenantUserId,teamId,teamRole,isPrimary,isActive) VALUES (:tenantId,:tenantUserRoleId,:teamId,:teamRole,1,:isActive) ON DUPLICATE KEY UPDATE teamRole=VALUES(teamRole),isPrimary=1,isActive=VALUES(isActive),modifiedDate=CURRENT_TIMESTAMP",
+                  "params": [
+                    {
+                      "name": ":tenantId",
+                      "value": "{{$_SESSION.TENANT_ID}}"
+                    },
+                    {
+                      "name": ":tenantUserRoleId",
+                      "value": "{{$_POST.tenantUserRoleId}}"
+                    },
+                    {
+                      "name": ":teamId",
+                      "value": "{{$_POST.teamId}}"
+                    },
+                    {
+                      "name": ":teamRole",
+                      "value": "{{$_POST.teamRole}}"
+                    },
+                    {
+                      "name": ":isActive",
+                      "value": "{{$_POST.isActive}}"
+                    }
+                  ]
+                }
+              },
+              "output": true
+            }
+          }
+        }
+      },
+      {
+        "name": "logUserUpdated",
         "module": "dbupdater",
-        "action": "update",
+        "action": "custom",
         "options": {
           "connection": "db",
           "sql": {
-            "type": "update",
-            "values": [
-              {
-                "table": "tbl_team_members",
-                "column": "teamId",
-                "type": "number",
-                "value": "{{$_POST.hidTeamId}}"
-              },
-              {
-                "table": "tbl_team_members",
-                "column": "teamRole",
-                "type": "number",
-                "value": "{{$_POST.hidTeamRole}}"
-              },
-              {
-                "table": "tbl_team_members",
-                "column": "isActive",
-                "type": "boolean",
-                "value": "{{$_POST.isActive}}"
-              },
-              {
-                "table": "tbl_team_members",
-                "column": "modifiedDate",
-                "type": "datetime",
-                "value": "{{NOW}}"
-              }
-            ],
-            "table": "tbl_team_members",
-            "wheres": {
-              "condition": "AND",
-              "rules": [
-                {
-                  "id": "id",
-                  "type": "double",
-                  "operator": "equal",
-                  "value": "{{$_POST.teamMemberId}}",
-                  "data": {
-                    "column": "id"
-                  },
-                  "operation": "="
-                },
-                {
-                  "id": "tenantId",
-                  "type": "double",
-                  "operator": "equal",
-                  "value": "{{$_SESSION.TENANT_ID}}",
-                  "data": {
-                    "column": "tenantId"
-                  },
-                  "operation": "="
-                }
-              ]
-            },
-            "returning": "id",
-            "query": "update `tbl_team_members` set `teamId` = ?, `teamRole` = ?, `isActive` = ?, `modifiedDate` = ? where `id` = ? and `tenantId` = ?",
+            "query": "INSERT INTO tbl_activity_log (tenantId,userId,entityType,entityId,actionType,summary,beforeJson,afterJson,createdDate) SELECT :tenantId,:actorUserId,'user',:targetUserId,'user.updated',CONCAT(:actor,' updated user ',:targetName),JSON_OBJECT('displayName',:oldName,'email',:oldEmail,'isActive',:oldActive,'roleId',:oldRole,'teamId',:oldTeam),JSON_OBJECT('displayName',:newName,'email',:newEmail,'isActive',:newActive,'roleId',:newRole,'teamId',:newTeam),CURRENT_TIMESTAMP FROM tbl_activity_types at WHERE at.tenantId=:tenantId2 AND at.activityKey='user.updated' AND at.isActive=1 LIMIT 1",
             "params": [
               {
-                "name": ":P1",
-                "type": "expression",
-                "value": "{{$_POST.hidTeamId}}"
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
               },
               {
-                "name": ":P2",
-                "type": "expression",
-                "value": "{{$_POST.hidTeamRole}}"
+                "name": ":actorUserId",
+                "value": "{{$_SESSION.USER_ID}}"
               },
               {
-                "name": ":P3",
-                "type": "expression",
+                "name": ":targetUserId",
+                "value": "{{$_POST.userId}}"
+              },
+              {
+                "name": ":actor",
+                "value": "{{$_SESSION.DISPLAY_NAME.default('A user')}}"
+              },
+              {
+                "name": ":targetName",
+                "value": "{{$_POST.displayName}}"
+              },
+              {
+                "name": ":oldName",
+                "value": "{{userBeforeChange[0].displayName}}"
+              },
+              {
+                "name": ":oldEmail",
+                "value": "{{userBeforeChange[0].email}}"
+              },
+              {
+                "name": ":oldActive",
+                "value": "{{userBeforeChange[0].isActive}}"
+              },
+              {
+                "name": ":oldRole",
+                "value": "{{userBeforeChange[0].roleId}}"
+              },
+              {
+                "name": ":oldTeam",
+                "value": "{{userBeforeChange[0].teamId}}"
+              },
+              {
+                "name": ":newName",
+                "value": "{{$_POST.displayName}}"
+              },
+              {
+                "name": ":newEmail",
+                "value": "{{$_POST.email.lowercase()}}"
+              },
+              {
+                "name": ":newActive",
                 "value": "{{$_POST.isActive}}"
               },
               {
-                "name": ":P4",
-                "type": "expression",
-                "value": "{{NOW}}"
+                "name": ":newRole",
+                "value": "{{$_POST.roleId}}"
               },
               {
-                "operator": "equal",
-                "type": "expression",
-                "name": ":P5",
-                "value": "{{$_POST.teamMemberId}}"
+                "name": ":newTeam",
+                "value": "{{$_POST.teamId}}"
               },
               {
-                "operator": "equal",
-                "type": "expression",
-                "name": ":P6",
+                "name": ":tenantId2",
                 "value": "{{$_SESSION.TENANT_ID}}"
               }
             ]
           }
         },
-        "output": true,
-        "meta": [
-          {
-            "name": "affected",
-            "type": "number"
-          }
-        ],
-        "collapsed": true
+        "output": true
       }
     ]
   }

@@ -1,0 +1,23 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "exec": {"steps": [{
+    "name": "columns",
+    "module": "dbupdater",
+    "action": "custom",
+    "options": {"connection": "db", "sql": {
+      "query": "SELECT catalogue.fieldKey,catalogue.columnLabel,catalogue.columnType,catalogue.groupLabel,COALESCE(saved.isVisible,0) AS isVisible,COALESCE(saved.sortOrder,catalogue.defaultSortOrder) AS sortOrder,COALESCE(saved.width,catalogue.defaultWidth) AS width FROM (SELECT 'workflowName' fieldKey,'Workflow' columnLabel,'core' columnType,'Core' groupLabel,10 defaultSortOrder,280 defaultWidth UNION ALL SELECT 'templateName','Template','core','Core',20,180 UNION ALL SELECT 'targetDate','Target date','core','Core',30,140 UNION ALL SELECT 'ownerName','Owner','core','Core',40,180 UNION ALL SELECT 'progress','Progress','calculated','Calculated',50,150 UNION ALL SELECT 'status','Status','core','Core',60,120 UNION ALL SELECT 'risk','Risk','calculated','Calculated',70,240 UNION ALL SELECT CONCAT('field:',f.fieldKey),MAX(f.fieldLabel),'field','Template fields',100+MIN(f.sortOrder),180 FROM tbl_template_custom_fields f WHERE f.tenantId=:tenantId AND f.status='active' GROUP BY f.fieldKey UNION ALL SELECT CONCAT('task:',t.taskName),t.taskName,'task','Task milestones',500+MIN(t.sortOrder),150 FROM tbl_template_tasks t WHERE t.tenantId=:tenantId2 AND t.status='active' GROUP BY t.taskName UNION ALL SELECT CONCAT('stage:',s.stageName),s.stageName,'stage','Stage progress',800+MIN(s.sortOrder),170 FROM tbl_template_stages s WHERE s.tenantId=:tenantId3 AND s.status='active' GROUP BY s.stageName) catalogue LEFT JOIN tbl_board_view_columns saved ON saved.boardViewId=(SELECT v.id FROM tbl_board_views v WHERE v.tenantId=:tenantId4 AND v.templateId IS NULL AND v.isDefault=1 AND (v.userId=:userId OR v.userId IS NULL) ORDER BY CASE WHEN v.userId=:userId2 THEN 0 ELSE 1 END,CASE v.viewType WHEN 'personal' THEN 0 WHEN 'tenant' THEN 1 ELSE 2 END LIMIT 1) AND saved.fieldKey=catalogue.fieldKey ORDER BY catalogue.groupLabel,COALESCE(saved.sortOrder,catalogue.defaultSortOrder),catalogue.columnLabel",
+      "params": [
+        {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+        {"name": ":tenantId2", "value": "{{$_SESSION.TENANT_ID}}"},
+        {"name": ":tenantId3", "value": "{{$_SESSION.TENANT_ID}}"},
+        {"name": ":tenantId4", "value": "{{$_SESSION.TENANT_ID}}"},
+        {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"},
+        {"name": ":userId2", "value": "{{$_SESSION.USER_ID}}"}
+      ]
+    }}, "output": true, "outputType": "array"},
+    {"name": "additionalColumns", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+      "query": "SELECT 'currentPhase' fieldKey,'Current phase' columnLabel,'calculated' columnType,'Calculated' groupLabel,COALESCE(c.isVisible,0) isVisible,COALESCE(c.sortOrder,35) sortOrder,COALESCE(c.width,180) width FROM (SELECT 1) seed LEFT JOIN tbl_board_view_columns c ON c.boardViewId=(SELECT v.id FROM tbl_board_views v WHERE v.tenantId=:tenantId AND v.templateId IS NULL AND v.isDefault=1 AND (v.userId=:userId OR v.userId IS NULL) ORDER BY CASE WHEN v.userId=:userId2 THEN 0 ELSE 1 END,CASE v.viewType WHEN 'personal' THEN 0 WHEN 'tenant' THEN 1 ELSE 2 END LIMIT 1) AND c.fieldKey='currentPhase'",
+      "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}, {"name": ":userId2", "value": "{{$_SESSION.USER_ID}}"}]
+    }}, "output": true, "outputType": "array"}
+  ]}
+}

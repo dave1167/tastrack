@@ -278,7 +278,7 @@
                 "table": "tbl_users",
                 "column": "lastLoginDate",
                 "type": "datetime",
-                "value": "sds"
+                "value": "{{NOW}}"
               },
               {
                 "table": "tbl_users",
@@ -336,7 +336,7 @@
               {
                 "name": ":P6",
                 "type": "expression",
-                "value": "{{NOW.formatDate('yyyy-MM-dd', false)}}",
+                "value": "{{NOW}}",
                 "test": ""
               },
               {
@@ -347,6 +347,12 @@
               },
               {
                 "name": ":P8",
+                "type": "expression",
+                "value": "{{NOW.formatDate('yyyy-MM-dd', false)}}",
+                "test": ""
+              },
+              {
+                "name": ":P9",
                 "type": "expression",
                 "value": "{{accessCode[0].accessCode}}",
                 "test": ""

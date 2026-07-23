@@ -1,0 +1,9 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "exec": {"steps": {"name": "query", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+    "query": "SELECT c.id,COALESCE(NULLIF(TRIM(CONCAT_WS(' ',c.firstName,c.lastName)),''),NULLIF(c.displayName,''),NULLIF(c.organisationName,''),'Unnamed contact') AS contactName,c.organisationName,COALESCE(cc.categoryName,c.contactType) AS categoryName,CONCAT(COALESCE(NULLIF(TRIM(CONCAT_WS(' ',c.firstName,c.lastName)),''),NULLIF(c.displayName,''),NULLIF(c.organisationName,''),'Unnamed contact'),CASE WHEN c.organisationName IS NOT NULL AND c.organisationName<>'' THEN CONCAT(' - ',c.organisationName) ELSE '' END) AS contactLabel FROM tbl_contacts c LEFT JOIN tbl_contact_categories cc ON cc.contactCategoryId=c.contactCategoryId AND cc.tenantId=c.tenantId WHERE c.tenantId=:tenantId AND c.isActive=1 ORDER BY contactName,c.organisationName",
+    "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+  }}, "output": true, "outputType": "array", "meta": [
+    {"name": "id", "type": "number"}, {"name": "contactName", "type": "text"}, {"name": "organisationName", "type": "text"},
+    {"name": "categoryName", "type": "text"}, {"name": "contactLabel", "type": "text"}
+  ]}}}

@@ -10,6 +10,126 @@
   },
   "schema": {
     "tables": {
+      "tbl_plan_prices": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "planId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_plans",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "priceKey": {
+            "db": {
+              "type": "string",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "billingInterval": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "trial",
+                "monthly",
+                "annual",
+                "manual"
+              ],
+              "maxLength": 7,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "currency": {
+            "db": {
+              "type": "string",
+              "default": "'GBP'",
+              "maxLength": 3,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "amount": {
+            "db": {
+              "type": "decimal",
+              "default": "0.00",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "trialDays": {
+            "db": {
+              "type": "integer",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "stripePriceId": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 180,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "status": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "active",
+                "inactive",
+                "archived"
+              ],
+              "default": "'active'",
+              "maxLength": 8,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "parent": "tbl_plans",
+        "refs": {
+          "tbl_tenant_subscription_items": "planPriceId",
+          "tbl_tenant_subscriptions": "planPriceId"
+        }
+      },
       "tbl_plan_features": {
         "db": {
           "engine": "InnoDB",
@@ -80,6 +200,141 @@
           }
         },
         "parent": "tbl_plans"
+      },
+      "tbl_activity_log": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "userId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_users",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "workflowId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_workflows",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "taskId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_tasks",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "entityType": {
+            "db": {
+              "type": "string",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "entityId": {
+            "db": {
+              "type": "integer",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "actionType": {
+            "db": {
+              "type": "string",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "summary": {
+            "db": {
+              "type": "string",
+              "maxLength": 255,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "beforeJson": {
+            "db": {
+              "type": "json",
+              "default": "",
+              "maxLength": 4294967295,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "afterJson": {
+            "db": {
+              "type": "json",
+              "default": "",
+              "maxLength": 4294967295,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "ipAddress": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 45,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        }
       },
       "tbl_task_reminders": {
         "db": {
@@ -184,136 +439,6 @@
         },
         "parent": "tbl_tasks"
       },
-      "tbl_billing_payments": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "billingInvoiceId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_billing_invoices",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "provider": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "manual",
-                "stripe"
-              ],
-              "default": "'manual'",
-              "maxLength": 6,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "providerPaymentId": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 180,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "paymentStatus": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "pending",
-                "succeeded",
-                "failed",
-                "refunded",
-                "cancelled"
-              ],
-              "default": "'pending'",
-              "maxLength": 9,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "currency": {
-            "db": {
-              "type": "string",
-              "default": "'GBP'",
-              "maxLength": 3,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "amount": {
-            "db": {
-              "type": "decimal",
-              "default": "0.00",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "paymentDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "failureMessage": {
-            "db": {
-              "type": "text",
-              "default": "",
-              "maxLength": 65535,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        }
-      },
       "tbl_plans": {
         "db": {
           "engine": "InnoDB",
@@ -402,8 +527,8 @@
           }
         },
         "sub": {
-          "tbl_plan_features": "planId",
-          "tbl_plan_prices": "planId"
+          "tbl_plan_prices": "planId",
+          "tbl_plan_features": "planId"
         },
         "refs": {
           "tbl_tenant_subscriptions": "planId"
@@ -487,164 +612,6 @@
           }
         },
         "parent": "tbl_tasks"
-      },
-      "tbl_billing_invoices": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "tenantSubscriptionId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_tenant_subscriptions",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "provider": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "manual",
-                "stripe"
-              ],
-              "default": "'manual'",
-              "maxLength": 6,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "providerInvoiceId": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 180,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "invoiceNumber": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 80,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "invoiceStatus": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "draft",
-                "open",
-                "paid",
-                "void",
-                "uncollectible",
-                "cancelled"
-              ],
-              "default": "'draft'",
-              "maxLength": 13,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "currency": {
-            "db": {
-              "type": "string",
-              "default": "'GBP'",
-              "maxLength": 3,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "subtotalAmount": {
-            "db": {
-              "type": "decimal",
-              "default": "0.00",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "taxAmount": {
-            "db": {
-              "type": "decimal",
-              "default": "0.00",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "totalAmount": {
-            "db": {
-              "type": "decimal",
-              "default": "0.00",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "dueDate": {
-            "db": {
-              "type": "date",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "paidDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "refs": {
-          "tbl_billing_payments": "billingInvoiceId"
-        }
       },
       "tbl_permissions": {
         "db": {
@@ -944,18 +911,18 @@
             }
           }
         },
+        "refs": {
+          "tbl_activity_log": "taskId",
+          "tbl_task_dependencies": "dependsOnTaskId",
+          "tbl_notifications": "taskId",
+          "tbl_documents": "taskId"
+        },
         "sub": {
           "tbl_task_reminders": "taskId",
           "tbl_task_dependencies": "taskId"
-        },
-        "refs": {
-          "tbl_task_dependencies": "dependsOnTaskId",
-          "tbl_notifications": "taskId",
-          "tbl_activity_log": "taskId",
-          "tbl_documents": "taskId"
         }
       },
-      "tbl_billing_customers": {
+      "tbl_billing_payments": {
         "db": {
           "engine": "InnoDB",
           "schema": "task_tracker",
@@ -982,6 +949,19 @@
               "onDelete": "CASCADE"
             }
           },
+          "billingInvoiceId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_billing_invoices",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
           "provider": {
             "db": {
               "type": "enum",
@@ -995,7 +975,7 @@
               "nullable": false
             }
           },
-          "providerCustomerId": {
+          "providerPaymentId": {
             "db": {
               "type": "string",
               "default": "",
@@ -1004,29 +984,52 @@
               "nullable": true
             }
           },
-          "billingEmail": {
+          "paymentStatus": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "pending",
+                "succeeded",
+                "failed",
+                "refunded",
+                "cancelled"
+              ],
+              "default": "'pending'",
+              "maxLength": 9,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "currency": {
             "db": {
               "type": "string",
+              "default": "'GBP'",
+              "maxLength": 3,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "amount": {
+            "db": {
+              "type": "decimal",
+              "default": "0.00",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "paymentDate": {
+            "db": {
+              "type": "datetime",
               "default": "",
-              "maxLength": 255,
               "primary": false,
               "nullable": true
             }
           },
-          "billingName": {
+          "failureMessage": {
             "db": {
-              "type": "string",
+              "type": "text",
               "default": "",
-              "maxLength": 180,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "billingAddressJson": {
-            "db": {
-              "type": "json",
-              "default": "",
-              "maxLength": 4294967295,
+              "maxLength": 65535,
               "primary": false,
               "nullable": true
             }
@@ -1047,9 +1050,6 @@
               "nullable": false
             }
           }
-        },
-        "refs": {
-          "tbl_tenant_subscriptions": "billingCustomerId"
         }
       },
       "tbl_notifications": {
@@ -1255,7 +1255,7 @@
         },
         "parent": "tbl_roles"
       },
-      "tbl_activity_log": {
+      "tbl_billing_invoices": {
         "db": {
           "engine": "InnoDB",
           "schema": "task_tracker",
@@ -1282,100 +1282,112 @@
               "onDelete": "CASCADE"
             }
           },
-          "userId": {
+          "tenantSubscriptionId": {
             "db": {
               "type": "reference",
               "default": "",
               "primary": false,
               "nullable": true,
               "references": "id",
-              "inTable": "tbl_users",
+              "inTable": "tbl_tenant_subscriptions",
               "referenceType": "integer",
               "onUpdate": "RESTRICT",
               "onDelete": "SET NULL"
             }
           },
-          "workflowId": {
+          "provider": {
             "db": {
-              "type": "reference",
-              "default": "",
+              "type": "enum",
+              "enumValues": [
+                "manual",
+                "stripe"
+              ],
+              "default": "'manual'",
+              "maxLength": 6,
               "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_workflows",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
+              "nullable": false
             }
           },
-          "taskId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_tasks",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "entityType": {
+          "providerInvoiceId": {
             "db": {
               "type": "string",
+              "default": "",
+              "maxLength": 180,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "invoiceNumber": {
+            "db": {
+              "type": "string",
+              "default": "",
               "maxLength": 80,
               "primary": false,
+              "nullable": true
+            }
+          },
+          "invoiceStatus": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "draft",
+                "open",
+                "paid",
+                "void",
+                "uncollectible",
+                "cancelled"
+              ],
+              "default": "'draft'",
+              "maxLength": 13,
+              "primary": false,
               "nullable": false
             }
           },
-          "entityId": {
+          "currency": {
             "db": {
-              "type": "integer",
+              "type": "string",
+              "default": "'GBP'",
+              "maxLength": 3,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "subtotalAmount": {
+            "db": {
+              "type": "decimal",
+              "default": "0.00",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "taxAmount": {
+            "db": {
+              "type": "decimal",
+              "default": "0.00",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "totalAmount": {
+            "db": {
+              "type": "decimal",
+              "default": "0.00",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "dueDate": {
+            "db": {
+              "type": "date",
               "default": "",
               "primary": false,
               "nullable": true
             }
           },
-          "actionType": {
+          "paidDate": {
             "db": {
-              "type": "string",
-              "maxLength": 80,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "summary": {
-            "db": {
-              "type": "string",
-              "maxLength": 255,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "beforeJson": {
-            "db": {
-              "type": "json",
+              "type": "datetime",
               "default": "",
-              "maxLength": 4294967295,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "afterJson": {
-            "db": {
-              "type": "json",
-              "default": "",
-              "maxLength": 4294967295,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "ipAddress": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 45,
               "primary": false,
               "nullable": true
             }
@@ -1387,7 +1399,18 @@
               "primary": false,
               "nullable": false
             }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
           }
+        },
+        "refs": {
+          "tbl_billing_payments": "billingInvoiceId"
         }
       },
       "tbl_documents": {
@@ -1651,127 +1674,7 @@
           "tbl_role_permissions": "roleId"
         }
       },
-      "tbl_plan_prices": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "planId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_plans",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "priceKey": {
-            "db": {
-              "type": "string",
-              "maxLength": 80,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "billingInterval": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "trial",
-                "monthly",
-                "annual",
-                "manual"
-              ],
-              "maxLength": 7,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "currency": {
-            "db": {
-              "type": "string",
-              "default": "'GBP'",
-              "maxLength": 3,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "amount": {
-            "db": {
-              "type": "decimal",
-              "default": "0.00",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "trialDays": {
-            "db": {
-              "type": "integer",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "stripePriceId": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 180,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "status": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "active",
-                "inactive",
-                "archived"
-              ],
-              "default": "'active'",
-              "maxLength": 8,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "parent": "tbl_plans",
-        "refs": {
-          "tbl_tenant_subscription_items": "planPriceId",
-          "tbl_tenant_subscriptions": "planPriceId"
-        }
-      },
-      "tbl_contacts": {
+      "tbl_billing_customers": {
         "db": {
           "engine": "InnoDB",
           "schema": "task_tracker",
@@ -1796,708 +1699,6 @@
               "referenceType": "integer",
               "onUpdate": "RESTRICT",
               "onDelete": "CASCADE"
-            }
-          },
-          "contactType": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 80,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "organisationName": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 180,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "firstName": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 100,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "lastName": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 100,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "displayName": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 180,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "email": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 255,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "phone": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 60,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "addressLine1": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 180,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "addressLine2": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 180,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "city": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 120,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "region": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 120,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "postcode": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 30,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "country": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 80,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "notes": {
-            "db": {
-              "type": "text",
-              "default": "",
-              "maxLength": 65535,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "isActive": {
-            "db": {
-              "type": "boolean",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "refs": {
-          "tbl_workflow_contacts": "contactId"
-        }
-      },
-      "tbl_template_stages": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "templateId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "stageName": {
-            "db": {
-              "type": "string",
-              "maxLength": 140,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "description": {
-            "db": {
-              "type": "text",
-              "default": "",
-              "maxLength": 65535,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "sortOrder": {
-            "db": {
-              "type": "integer",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "status": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "active",
-                "inactive",
-                "archived"
-              ],
-              "default": "'active'",
-              "maxLength": 8,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "colour": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 20,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "requiresAllTasksComplete": {
-            "db": {
-              "type": "boolean",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "refs": {
-          "tbl_template_custom_fields": "templateStageId",
-          "tbl_workflow_stages": "sourceTemplateStageId",
-          "tbl_template_tasks": "templateStageId"
-        }
-      },
-      "tbl_tenant_subscription_items": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "tenantSubscriptionId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenant_subscriptions",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "planPriceId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_plan_prices",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "providerSubscriptionItemId": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 180,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "quantity": {
-            "db": {
-              "type": "integer",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "status": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "active",
-                "inactive",
-                "cancelled"
-              ],
-              "default": "'active'",
-              "maxLength": 9,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "parent": "tbl_tenants"
-      },
-      "tbl_workflows": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "templateId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_workflow_templates",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "templateVersionNumber": {
-            "db": {
-              "type": "integer",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "workflowName": {
-            "db": {
-              "type": "string",
-              "maxLength": 200,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "referenceCode": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 80,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "status": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "draft",
-                "active",
-                "not_started",
-                "in_progress",
-                "waiting",
-                "complete",
-                "skipped",
-                "cancelled",
-                "overdue",
-                "archived"
-              ],
-              "default": "'draft'",
-              "maxLength": 11,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "currentStageId": {
-            "db": {
-              "type": "integer",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "ownerUserId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_users",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "ownerTeamId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_teams",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "startDate": {
-            "db": {
-              "type": "date",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "targetDate": {
-            "db": {
-              "type": "date",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "completedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "createdByUserId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_users",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "refs": {
-          "tbl_task_dependencies": "workflowId",
-          "tbl_tasks": "workflowId",
-          "tbl_notifications": "workflowId",
-          "tbl_activity_log": "workflowId",
-          "tbl_documents": "workflowId"
-        },
-        "sub": {
-          "tbl_workflow_stages": "workflowId",
-          "tbl_workflow_field_values": "workflowId",
-          "tbl_workflow_contacts": "workflowId"
-        }
-      },
-      "tbl_template_custom_field_options": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "templateCustomFieldId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "optionLabel": {
-            "db": {
-              "type": "string",
-              "maxLength": 160,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "optionValue": {
-            "db": {
-              "type": "string",
-              "maxLength": 160,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "sortOrder": {
-            "db": {
-              "type": "integer",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "isActive": {
-            "db": {
-              "type": "boolean",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "parent": "tbl_template_custom_fields"
-      },
-      "tbl_tenant_subscriptions": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "billingCustomerId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_billing_customers",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "planId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_plans",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "RESTRICT"
-            }
-          },
-          "planPriceId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_plan_prices",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
             }
           },
           "provider": {
@@ -2513,782 +1714,13 @@
               "nullable": false
             }
           },
-          "providerSubscriptionId": {
+          "providerCustomerId": {
             "db": {
               "type": "string",
               "default": "",
               "maxLength": 180,
               "primary": false,
               "nullable": true
-            }
-          },
-          "subscriptionStatus": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "trialing",
-                "active",
-                "past_due",
-                "suspended",
-                "cancelled"
-              ],
-              "default": "'trialing'",
-              "maxLength": 9,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "trialStartDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "trialEndDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "currentPeriodStartDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "currentPeriodEndDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "cancelledDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "refs": {
-          "tbl_billing_invoices": "tenantSubscriptionId",
-          "tbl_tenant_subscription_items": "tenantSubscriptionId"
-        },
-        "parent": "tbl_tenants"
-      },
-      "tbl_user_tenant_roles": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "userId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "roleId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "isPrimary": {
-            "db": {
-              "type": "boolean",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "isActive": {
-            "db": {
-              "type": "boolean",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "parent": "tbl_users",
-        "refs": {
-          "tbl_team_members": "tenantId"
-        }
-      },
-      "tbl_template_custom_fields": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "templateId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "templateStageId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_template_stages",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "templateTaskId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_template_tasks",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "fieldKey": {
-            "db": {
-              "type": "string",
-              "maxLength": 120,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "fieldLabel": {
-            "db": {
-              "type": "string",
-              "maxLength": 160,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "fieldType": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "text",
-                "long_text",
-                "date",
-                "number",
-                "money",
-                "yes_no",
-                "dropdown",
-                "email",
-                "phone",
-                "file",
-                "url",
-                "json"
-              ],
-              "maxLength": 9,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "helpText": {
-            "db": {
-              "type": "text",
-              "default": "",
-              "maxLength": 65535,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "placeholderText": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 255,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "sortOrder": {
-            "db": {
-              "type": "integer",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "isRequired": {
-            "db": {
-              "type": "boolean",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "isSensitive": {
-            "db": {
-              "type": "boolean",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "isEncrypted": {
-            "db": {
-              "type": "boolean",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "validationJson": {
-            "db": {
-              "type": "json",
-              "default": "",
-              "maxLength": 4294967295,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "defaultValueJson": {
-            "db": {
-              "type": "json",
-              "default": "",
-              "maxLength": 4294967295,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "status": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "active",
-                "inactive",
-                "archived"
-              ],
-              "default": "'active'",
-              "maxLength": 8,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "sub": {
-          "tbl_template_custom_field_options": "templateCustomFieldId"
-        },
-        "refs": {
-          "tbl_workflow_field_values": "templateCustomFieldId"
-        }
-      },
-      "tbl_tenant_keys": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "keyProvider": {
-            "db": {
-              "type": "string",
-              "maxLength": 80,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "keyReference": {
-            "db": {
-              "type": "string",
-              "maxLength": 255,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "keyVersion": {
-            "db": {
-              "type": "integer",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "algorithm": {
-            "db": {
-              "type": "string",
-              "default": "'aes-256-gcm'",
-              "maxLength": 80,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "status": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "active",
-                "rotating",
-                "retired",
-                "disabled"
-              ],
-              "default": "'active'",
-              "maxLength": 8,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "activatedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "retiredDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "parent": "tbl_tenants"
-      },
-      "tbl_template_automation_rules": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "templateId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_workflow_templates",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "ruleName": {
-            "db": {
-              "type": "string",
-              "maxLength": 160,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "triggerType": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "workflow_created",
-                "stage_started",
-                "stage_completed",
-                "task_created",
-                "task_completed",
-                "field_changed",
-                "due_date_approaching",
-                "due_date_overdue"
-              ],
-              "maxLength": 20,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "conditionsJson": {
-            "db": {
-              "type": "json",
-              "default": "",
-              "maxLength": 4294967295,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "actionsJson": {
-            "db": {
-              "type": "json",
-              "maxLength": 4294967295,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "status": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "active",
-                "inactive",
-                "draft",
-                "archived"
-              ],
-              "default": "'draft'",
-              "maxLength": 8,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        }
-      },
-      "tbl_workflow_templates": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "templateName": {
-            "db": {
-              "type": "string",
-              "maxLength": 160,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "templateKey": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 120,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "description": {
-            "db": {
-              "type": "text",
-              "default": "",
-              "maxLength": 65535,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "versionNumber": {
-            "db": {
-              "type": "integer",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "status": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "draft",
-                "published",
-                "archived",
-                "inactive"
-              ],
-              "default": "'draft'",
-              "maxLength": 9,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "isDefault": {
-            "db": {
-              "type": "boolean",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdByUserId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_users",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "refs": {
-          "tbl_template_stages": "templateId",
-          "tbl_workflows": "templateId",
-          "tbl_template_custom_fields": "templateId",
-          "tbl_template_automation_rules": "templateId",
-          "tbl_template_task_dependencies": "templateId",
-          "tbl_template_tasks": "templateId"
-        }
-      },
-      "tbl_tenants": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantName": {
-            "db": {
-              "type": "string",
-              "maxLength": 160,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "tenantSlug": {
-            "db": {
-              "type": "string",
-              "maxLength": 120,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "status": {
-            "db": {
-              "type": "integer",
-              "enumValues": [
-                "trialing",
-                "active",
-                "past_due",
-                "suspended",
-                "cancelled"
-              ],
-              "default": "'trialing'",
-              "maxLength": 9,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "timezone": {
-            "db": {
-              "type": "string",
-              "default": "'Europe/London'",
-              "maxLength": 80,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "locale": {
-            "db": {
-              "type": "string",
-              "default": "'en-GB'",
-              "maxLength": 20,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "defaultCurrency": {
-            "db": {
-              "type": "string",
-              "default": "'GBP'",
-              "maxLength": 3,
-              "primary": false,
-              "nullable": false
             }
           },
           "billingEmail": {
@@ -3300,328 +1732,20 @@
               "nullable": true
             }
           },
-          "isActive": {
-            "db": {
-              "type": "boolean",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "modifiedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "refs": {
-          "tbl_task_reminders": "tenantId",
-          "tbl_billing_payments": "tenantId",
-          "tbl_task_dependencies": "tenantId",
-          "tbl_billing_invoices": "tenantId",
-          "tbl_tasks": "tenantId",
-          "tbl_billing_customers": "tenantId",
-          "tbl_notifications": "tenantId",
-          "tbl_activity_log": "tenantId",
-          "tbl_documents": "tenantId",
-          "tbl_contacts": "tenantId",
-          "tbl_template_stages": "tenantId",
-          "tbl_workflows": "tenantId",
-          "tbl_template_custom_field_options": "tenantId",
-          "tbl_user_tenant_roles": "tenantId",
-          "tbl_template_custom_fields": "tenantId",
-          "tbl_template_automation_rules": "tenantId",
-          "tbl_workflow_templates": "tenantId",
-          "tbl_usage_events": "tenantId",
-          "tbl_workflow_stages": "tenantId",
-          "tbl_template_task_dependencies": "tenantId",
-          "tbl_workflow_field_values": "tenantId",
-          "tbl_template_tasks": "tenantId",
-          "tbl_teams": "tenantId",
-          "tbl_workflow_contacts": "tenantId",
-          "tbl_contact_categories": "tenantId"
-        },
-        "sub": {
-          "tbl_tenant_subscription_items": "tenantId",
-          "tbl_tenant_subscriptions": "tenantId",
-          "tbl_tenant_keys": "tenantId",
-          "tbl_tenant_usage_snapshot": "tenantId",
-          "tbl_tenant_terminology": "tenantId"
-        }
-      },
-      "tbl_usage_events": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "usageKey": {
-            "db": {
-              "type": "string",
-              "maxLength": 120,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "quantity": {
-            "db": {
-              "type": "integer",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "relatedEntityType": {
+          "billingName": {
             "db": {
               "type": "string",
               "default": "",
-              "maxLength": 80,
+              "maxLength": 180,
               "primary": false,
               "nullable": true
             }
           },
-          "relatedEntityId": {
+          "billingAddressJson": {
             "db": {
-              "type": "integer",
+              "type": "json",
               "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "occurredDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        }
-      },
-      "tbl_team_roles": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": false,
-              "references": "tenantId",
-              "inTable": "tbl_teams",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "teamId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_teams",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "roleDesc": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 100,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "isActive": {
-            "db": {
-              "type": "boolean",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "status": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 50,
-              "primary": false,
-              "nullable": true
-            }
-          }
-        },
-        "parent": "tbl_teams",
-        "refs": {
-          "tbl_team_members": "teamId"
-        }
-      },
-      "tbl_workflow_stages": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "workflowId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "sourceTemplateStageId": {
-            "db": {
-              "type": "reference",
-              "default": "",
-              "primary": false,
-              "nullable": true,
-              "references": "id",
-              "inTable": "tbl_template_stages",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "SET NULL"
-            }
-          },
-          "stageName": {
-            "db": {
-              "type": "string",
-              "maxLength": 140,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "description": {
-            "db": {
-              "type": "text",
-              "default": "",
-              "maxLength": 65535,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "sortOrder": {
-            "db": {
-              "type": "integer",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "status": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "not_started",
-                "in_progress",
-                "waiting",
-                "complete",
-                "skipped",
-                "cancelled",
-                "overdue"
-              ],
-              "default": "'not_started'",
-              "maxLength": 11,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "colour": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 20,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "startedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "completedDate": {
-            "db": {
-              "type": "datetime",
-              "default": "",
+              "maxLength": 4294967295,
               "primary": false,
               "nullable": true
             }
@@ -3644,184 +1768,8 @@
           }
         },
         "refs": {
-          "tbl_tasks": "workflowStageId"
-        },
-        "parent": "tbl_workflows"
-      },
-      "tbl_template_task_dependencies": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_tenants",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "templateId": {
-            "db": {
-              "type": "reference",
-              "primary": false,
-              "nullable": false,
-              "references": "id",
-              "inTable": "tbl_workflow_templates",
-              "referenceType": "integer",
-              "onUpdate": "RESTRICT",
-              "onDelete": "CASCADE"
-            }
-          },
-          "templateTaskId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "dependsOnTemplateTaskId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "dependencyType": {
-            "db": {
-              "type": "enum",
-              "enumValues": [
-                "finish_to_start",
-                "start_to_start",
-                "finish_to_finish",
-                "blocking"
-              ],
-              "default": "'finish_to_start'",
-              "maxLength": 16,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "parent": "tbl_template_tasks"
-      },
-      "tbl_tenant_usage_snapshot": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_unicode_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "id": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "snapshotDate": {
-            "db": {
-              "type": "date",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "editorUsers": {
-            "db": {
-              "type": "integer",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "viewerUsers": {
-            "db": {
-              "type": "integer",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "activeWorkflows": {
-            "db": {
-              "type": "integer",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "templates": {
-            "db": {
-              "type": "integer",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "documentsUploaded": {
-            "db": {
-              "type": "integer",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "storageBytes": {
-            "db": {
-              "type": "bigInteger",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "automationRuns": {
-            "db": {
-              "type": "integer",
-              "default": "0",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdDate": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
-        },
-        "parent": "tbl_tenants"
+          "tbl_tenant_subscriptions": "billingCustomerId"
+        }
       },
       "tbl_team_members": {
         "db": {
@@ -3910,7 +1858,8 @@
               "nullable": false
             }
           }
-        }
+        },
+        "parent": "tbl_teams"
       },
       "tbl_workflow_field_values": {
         "db": {
@@ -4384,6 +2333,7 @@
           "tbl_team_roles": "teamId"
         },
         "sub": {
+          "tbl_team_members": "teamId",
           "tbl_team_roles": "tenantId"
         }
       },
@@ -4471,6 +2421,1883 @@
           }
         },
         "parent": "tbl_workflows"
+      },
+      "tbl_template_stages": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "templateId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "stageName": {
+            "db": {
+              "type": "string",
+              "maxLength": 140,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "description": {
+            "db": {
+              "type": "text",
+              "default": "",
+              "maxLength": 65535,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "sortOrder": {
+            "db": {
+              "type": "integer",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "status": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "active",
+                "inactive",
+                "archived"
+              ],
+              "default": "'active'",
+              "maxLength": 8,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "colour": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 20,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "requiresAllTasksComplete": {
+            "db": {
+              "type": "boolean",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_template_tasks": "templateStageId",
+          "tbl_template_custom_fields": "templateStageId",
+          "tbl_workflow_stages": "sourceTemplateStageId"
+        }
+      },
+      "tbl_tenant_subscription_items": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "tenantSubscriptionId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenant_subscriptions",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "planPriceId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_plan_prices",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "providerSubscriptionItemId": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 180,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "quantity": {
+            "db": {
+              "type": "integer",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "status": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "active",
+                "inactive",
+                "cancelled"
+              ],
+              "default": "'active'",
+              "maxLength": 9,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "parent": "tbl_tenants"
+      },
+      "tbl_workflows": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "templateId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_workflow_templates",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "templateVersionNumber": {
+            "db": {
+              "type": "integer",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "workflowName": {
+            "db": {
+              "type": "string",
+              "maxLength": 200,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "referenceCode": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "status": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "draft",
+                "active",
+                "not_started",
+                "in_progress",
+                "waiting",
+                "complete",
+                "skipped",
+                "cancelled",
+                "overdue",
+                "archived"
+              ],
+              "default": "'draft'",
+              "maxLength": 11,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "currentStageId": {
+            "db": {
+              "type": "integer",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "ownerUserId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_users",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "ownerTeamId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_teams",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "startDate": {
+            "db": {
+              "type": "date",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "targetDate": {
+            "db": {
+              "type": "date",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "completedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "createdByUserId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_users",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_activity_log": "workflowId",
+          "tbl_task_dependencies": "workflowId",
+          "tbl_tasks": "workflowId",
+          "tbl_notifications": "workflowId",
+          "tbl_documents": "workflowId"
+        },
+        "sub": {
+          "tbl_workflow_field_values": "workflowId",
+          "tbl_workflow_contacts": "workflowId",
+          "tbl_workflow_stages": "workflowId",
+          "tbl_workflow_risk_status": "workflowId",
+          "tbl_workflow_risk_history": "workflowId"
+        }
+      },
+      "tbl_template_custom_field_options": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "templateCustomFieldId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "optionLabel": {
+            "db": {
+              "type": "string",
+              "maxLength": 160,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "optionValue": {
+            "db": {
+              "type": "string",
+              "maxLength": 160,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "sortOrder": {
+            "db": {
+              "type": "integer",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "isActive": {
+            "db": {
+              "type": "boolean",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "parent": "tbl_template_custom_fields"
+      },
+      "tbl_workflow_templates": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "templateName": {
+            "db": {
+              "type": "string",
+              "maxLength": 160,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "templateKey": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 120,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "description": {
+            "db": {
+              "type": "text",
+              "default": "",
+              "maxLength": 65535,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "versionNumber": {
+            "db": {
+              "type": "integer",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "status": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "draft",
+                "published",
+                "archived",
+                "inactive"
+              ],
+              "default": "'draft'",
+              "maxLength": 9,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "isDefault": {
+            "db": {
+              "type": "boolean",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdByUserId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_users",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_template_tasks": "templateId",
+          "tbl_template_stages": "templateId",
+          "tbl_workflows": "templateId",
+          "tbl_template_custom_fields": "templateId",
+          "tbl_template_automation_rules": "templateId",
+          "tbl_template_task_dependencies": "templateId",
+          "tbl_board_views": "templateId"
+        }
+      },
+      "tbl_tenant_subscriptions": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "billingCustomerId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_billing_customers",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "planId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_plans",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "RESTRICT"
+            }
+          },
+          "planPriceId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_plan_prices",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "provider": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "manual",
+                "stripe"
+              ],
+              "default": "'manual'",
+              "maxLength": 6,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "providerSubscriptionId": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 180,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "subscriptionStatus": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "trialing",
+                "active",
+                "past_due",
+                "suspended",
+                "cancelled"
+              ],
+              "default": "'trialing'",
+              "maxLength": 9,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "trialStartDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "trialEndDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "currentPeriodStartDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "currentPeriodEndDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "cancelledDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_billing_invoices": "tenantSubscriptionId",
+          "tbl_tenant_subscription_items": "tenantSubscriptionId"
+        },
+        "parent": "tbl_tenants"
+      },
+      "tbl_user_tenant_roles": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "userId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "roleId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "isPrimary": {
+            "db": {
+              "type": "boolean",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "isActive": {
+            "db": {
+              "type": "boolean",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_team_members": "tenantUserId"
+        },
+        "parent": "tbl_users"
+      },
+      "tbl_template_custom_fields": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "templateId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "templateStageId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_template_stages",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "templateTaskId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_template_tasks",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "fieldKey": {
+            "db": {
+              "type": "string",
+              "maxLength": 120,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "fieldLabel": {
+            "db": {
+              "type": "string",
+              "maxLength": 160,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "fieldType": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "text",
+                "long_text",
+                "date",
+                "number",
+                "money",
+                "yes_no",
+                "dropdown",
+                "email",
+                "phone",
+                "file",
+                "url",
+                "json"
+              ],
+              "maxLength": 9,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "helpText": {
+            "db": {
+              "type": "text",
+              "default": "",
+              "maxLength": 65535,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "placeholderText": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 255,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "sortOrder": {
+            "db": {
+              "type": "integer",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "isRequired": {
+            "db": {
+              "type": "boolean",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "isSensitive": {
+            "db": {
+              "type": "boolean",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "isEncrypted": {
+            "db": {
+              "type": "boolean",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "validationJson": {
+            "db": {
+              "type": "json",
+              "default": "",
+              "maxLength": 4294967295,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "defaultValueJson": {
+            "db": {
+              "type": "json",
+              "default": "",
+              "maxLength": 4294967295,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "status": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "active",
+                "inactive",
+                "archived"
+              ],
+              "default": "'active'",
+              "maxLength": 8,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_workflow_field_values": "templateCustomFieldId"
+        },
+        "sub": {
+          "tbl_template_custom_field_options": "templateCustomFieldId"
+        }
+      },
+      "tbl_workflow_stages": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "workflowId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "sourceTemplateStageId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_template_stages",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "SET NULL"
+            }
+          },
+          "stageName": {
+            "db": {
+              "type": "string",
+              "maxLength": 140,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "description": {
+            "db": {
+              "type": "text",
+              "default": "",
+              "maxLength": 65535,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "sortOrder": {
+            "db": {
+              "type": "integer",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "status": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "not_started",
+                "in_progress",
+                "waiting",
+                "complete",
+                "skipped",
+                "cancelled",
+                "overdue"
+              ],
+              "default": "'not_started'",
+              "maxLength": 11,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "colour": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 20,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "startedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "completedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_tasks": "workflowStageId"
+        },
+        "parent": "tbl_workflows"
+      },
+      "tbl_tenant_keys": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "keyProvider": {
+            "db": {
+              "type": "string",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "keyReference": {
+            "db": {
+              "type": "string",
+              "maxLength": 255,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "keyVersion": {
+            "db": {
+              "type": "integer",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "algorithm": {
+            "db": {
+              "type": "string",
+              "default": "'aes-256-gcm'",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "status": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "active",
+                "rotating",
+                "retired",
+                "disabled"
+              ],
+              "default": "'active'",
+              "maxLength": 8,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "activatedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "retiredDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "parent": "tbl_tenants"
+      },
+      "tbl_template_automation_rules": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "templateId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_workflow_templates",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "ruleName": {
+            "db": {
+              "type": "string",
+              "maxLength": 160,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "triggerType": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "workflow_created",
+                "stage_started",
+                "stage_completed",
+                "task_created",
+                "task_completed",
+                "field_changed",
+                "due_date_approaching",
+                "due_date_overdue"
+              ],
+              "maxLength": 20,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "conditionsJson": {
+            "db": {
+              "type": "json",
+              "default": "",
+              "maxLength": 4294967295,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "actionsJson": {
+            "db": {
+              "type": "json",
+              "maxLength": 4294967295,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "status": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "active",
+                "inactive",
+                "draft",
+                "archived"
+              ],
+              "default": "'draft'",
+              "maxLength": 8,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        }
+      },
+      "tbl_tenants": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantName": {
+            "db": {
+              "type": "string",
+              "maxLength": 160,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "tenantSlug": {
+            "db": {
+              "type": "string",
+              "maxLength": 120,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "status": {
+            "db": {
+              "type": "integer",
+              "enumValues": [
+                "trialing",
+                "active",
+                "past_due",
+                "suspended",
+                "cancelled"
+              ],
+              "default": "'trialing'",
+              "maxLength": 9,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "timezone": {
+            "db": {
+              "type": "string",
+              "default": "'Europe/London'",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "locale": {
+            "db": {
+              "type": "string",
+              "default": "'en-GB'",
+              "maxLength": 20,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "defaultCurrency": {
+            "db": {
+              "type": "string",
+              "default": "'GBP'",
+              "maxLength": 3,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "billingEmail": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 255,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "isActive": {
+            "db": {
+              "type": "boolean",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_activity_log": "tenantId",
+          "tbl_task_reminders": "tenantId",
+          "tbl_task_dependencies": "tenantId",
+          "tbl_tasks": "tenantId",
+          "tbl_billing_payments": "tenantId",
+          "tbl_notifications": "tenantId",
+          "tbl_billing_invoices": "tenantId",
+          "tbl_documents": "tenantId",
+          "tbl_billing_customers": "tenantId",
+          "tbl_workflow_field_values": "tenantId",
+          "tbl_template_tasks": "tenantId",
+          "tbl_teams": "tenantId",
+          "tbl_workflow_contacts": "tenantId",
+          "tbl_template_stages": "tenantId",
+          "tbl_workflows": "tenantId",
+          "tbl_template_custom_field_options": "tenantId",
+          "tbl_workflow_templates": "tenantId",
+          "tbl_user_tenant_roles": "tenantId",
+          "tbl_template_custom_fields": "tenantId",
+          "tbl_workflow_stages": "tenantId",
+          "tbl_template_automation_rules": "tenantId",
+          "tbl_usage_events": "tenantId",
+          "tbl_template_task_dependencies": "tenantId",
+          "tbl_board_views": "tenantId",
+          "tbl_workflow_risk_status": "tenantId",
+          "tbl_workflow_risk_history": "tenantId",
+          "tbl_contacts": "tenantId",
+          "tbl_contact_categories": "tenantId",
+          "tbl_activity_types": "tenantId"
+        },
+        "sub": {
+          "tbl_tenant_subscription_items": "tenantId",
+          "tbl_tenant_subscriptions": "tenantId",
+          "tbl_tenant_keys": "tenantId",
+          "tbl_tenant_usage_snapshot": "tenantId",
+          "tbl_tenant_terminology": "tenantId"
+        }
+      },
+      "tbl_usage_events": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "usageKey": {
+            "db": {
+              "type": "string",
+              "maxLength": 120,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "quantity": {
+            "db": {
+              "type": "integer",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "relatedEntityType": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "relatedEntityId": {
+            "db": {
+              "type": "integer",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "occurredDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        }
+      },
+      "tbl_team_roles": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": false,
+              "references": "tenantId",
+              "inTable": "tbl_teams",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "teamId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_teams",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "roleDesc": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 100,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "isActive": {
+            "db": {
+              "type": "boolean",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "status": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 50,
+              "primary": false,
+              "nullable": true
+            }
+          }
+        },
+        "refs": {
+          "tbl_team_members": "tenantId"
+        },
+        "parent": "tbl_teams"
+      },
+      "tbl_template_task_dependencies": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "templateId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_workflow_templates",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "templateTaskId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "dependsOnTemplateTaskId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "dependencyType": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "finish_to_start",
+                "start_to_start",
+                "finish_to_finish",
+                "blocking"
+              ],
+              "default": "'finish_to_start'",
+              "maxLength": 16,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "parent": "tbl_template_tasks"
+      },
+      "tbl_tenant_usage_snapshot": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "snapshotDate": {
+            "db": {
+              "type": "date",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "editorUsers": {
+            "db": {
+              "type": "integer",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "viewerUsers": {
+            "db": {
+              "type": "integer",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "activeWorkflows": {
+            "db": {
+              "type": "integer",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "templates": {
+            "db": {
+              "type": "integer",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "documentsUploaded": {
+            "db": {
+              "type": "integer",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "storageBytes": {
+            "db": {
+              "type": "bigInteger",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "automationRuns": {
+            "db": {
+              "type": "integer",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "parent": "tbl_tenants"
       },
       "tbl_users": {
         "db": {
@@ -4573,80 +4400,18 @@
           }
         },
         "refs": {
+          "tbl_activity_log": "userId",
           "tbl_tasks": "assignedToUserId",
           "tbl_notifications": "userId",
-          "tbl_activity_log": "userId",
           "tbl_documents": "uploadedByUserId",
           "tbl_workflows": "ownerUserId",
-          "tbl_workflow_templates": "createdByUserId"
+          "tbl_workflow_templates": "createdByUserId",
+          "tbl_board_views": "userId",
+          "tbl_workflow_risk_status": "modifiedBy",
+          "tbl_workflow_risk_history": "changedBy"
         },
         "sub": {
           "tbl_user_tenant_roles": "userId"
-        }
-      },
-      "tbl_contact_categories": {
-        "db": {
-          "engine": "InnoDB",
-          "schema": "task_tracker",
-          "collation": "utf8mb4_uca1400_ai_ci",
-          "system_versioned": false
-        },
-        "columns": {
-          "contactCategoryId": {
-            "db": {
-              "type": "increments",
-              "primary": true,
-              "nullable": false
-            }
-          },
-          "tenantId": {
-            "db": {
-              "type": "integer",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "categoryName": {
-            "db": {
-              "type": "string",
-              "maxLength": 100,
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "categoryDesc": {
-            "db": {
-              "type": "string",
-              "default": "",
-              "maxLength": 255,
-              "primary": false,
-              "nullable": true
-            }
-          },
-          "active": {
-            "db": {
-              "type": "boolean",
-              "default": "1",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "createdAt": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          },
-          "updatedAt": {
-            "db": {
-              "type": "datetime",
-              "default": "current_timestamp()",
-              "primary": false,
-              "nullable": false
-            }
-          }
         }
       },
       "tbl_tenant_terminology": {
@@ -4713,6 +4478,768 @@
           }
         },
         "parent": "tbl_tenants"
+      },
+      "tbl_board_views": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "RESTRICT"
+            }
+          },
+          "templateId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_workflow_templates",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "RESTRICT"
+            }
+          },
+          "userId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_users",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "RESTRICT"
+            }
+          },
+          "viewName": {
+            "db": {
+              "type": "string",
+              "maxLength": 120,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "viewType": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "template",
+                "tenant",
+                "personal"
+              ],
+              "default": "'personal'",
+              "maxLength": 8,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "isDefault": {
+            "db": {
+              "type": "boolean",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "filtersJson": {
+            "db": {
+              "type": "json",
+              "default": "",
+              "maxLength": 4294967295,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "sortsJson": {
+            "db": {
+              "type": "json",
+              "default": "",
+              "maxLength": 4294967295,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "sub": {
+          "tbl_board_view_columns": "boardViewId"
+        }
+      },
+      "tbl_workflow_risk_status": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "workflowId": {
+            "db": {
+              "type": "integer",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "RESTRICT"
+            }
+          },
+          "calculatedRisk": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "green",
+                "amber",
+                "red",
+                "grey"
+              ],
+              "default": "'grey'",
+              "maxLength": 5,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "manualRiskOverride": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "amber",
+                "red"
+              ],
+              "default": "",
+              "maxLength": 5,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "riskReason": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 500,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "calculatedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "modifiedBy": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_users",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "RESTRICT"
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "parent": "tbl_workflows"
+      },
+      "tbl_workflow_risk_history": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "bigIncrements",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "RESTRICT"
+            }
+          },
+          "workflowId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_workflows",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "previousRisk": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "green",
+                "amber",
+                "red",
+                "grey"
+              ],
+              "default": "",
+              "maxLength": 5,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "newRisk": {
+            "db": {
+              "type": "enum",
+              "enumValues": [
+                "green",
+                "amber",
+                "red",
+                "grey"
+              ],
+              "maxLength": 5,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "reason": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 500,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "changedBy": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "id",
+              "inTable": "tbl_users",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "RESTRICT"
+            }
+          },
+          "changedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "parent": "tbl_workflows"
+      },
+      "tbl_board_view_columns": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "boardViewId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "fieldKey": {
+            "db": {
+              "type": "string",
+              "maxLength": 100,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "columnLabel": {
+            "db": {
+              "type": "string",
+              "maxLength": 120,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "isVisible": {
+            "db": {
+              "type": "boolean",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "sortOrder": {
+            "db": {
+              "type": "integer",
+              "default": "0",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "width": {
+            "db": {
+              "type": "integer",
+              "default": "",
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "parent": "tbl_board_views"
+      },
+      "tbl_contacts": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "reference",
+              "primary": false,
+              "nullable": false,
+              "references": "id",
+              "inTable": "tbl_tenants",
+              "referenceType": "integer",
+              "onUpdate": "RESTRICT",
+              "onDelete": "CASCADE"
+            }
+          },
+          "contactCategoryId": {
+            "db": {
+              "type": "reference",
+              "default": "",
+              "primary": false,
+              "nullable": true,
+              "references": "contactCategoryId",
+              "inTable": "tbl_contact_categories",
+              "referenceType": "integer",
+              "onUpdate": "CASCADE",
+              "onDelete": "RESTRICT"
+            }
+          },
+          "contactType": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "organisationName": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 180,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "firstName": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 100,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "lastName": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 100,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "displayName": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 180,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "email": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 255,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "phone": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 60,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "addressLine1": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 180,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "addressLine2": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 180,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "city": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 120,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "region": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 120,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "postcode": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 30,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "country": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 80,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "notes": {
+            "db": {
+              "type": "text",
+              "default": "",
+              "maxLength": 65535,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "isActive": {
+            "db": {
+              "type": "boolean",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_workflow_contacts": "contactId"
+        }
+      },
+      "tbl_contact_categories": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_uca1400_ai_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "contactCategoryId": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "categoryName": {
+            "db": {
+              "type": "string",
+              "maxLength": 100,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "categoryDesc": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 255,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "active": {
+            "db": {
+              "type": "boolean",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdAt": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "updatedAt": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        },
+        "refs": {
+          "tbl_contacts": "contactCategoryId"
+        }
+      },
+      "tbl_activity_types": {
+        "db": {
+          "engine": "InnoDB",
+          "schema": "task_tracker",
+          "collation": "utf8mb4_unicode_ci",
+          "system_versioned": false
+        },
+        "columns": {
+          "id": {
+            "db": {
+              "type": "increments",
+              "primary": true,
+              "nullable": false
+            }
+          },
+          "tenantId": {
+            "db": {
+              "type": "integer",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "activityKey": {
+            "db": {
+              "type": "string",
+              "maxLength": 100,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "activityName": {
+            "db": {
+              "type": "string",
+              "maxLength": 150,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "activityCategory": {
+            "db": {
+              "type": "string",
+              "maxLength": 50,
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "description": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 500,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "icon": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 100,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "colour": {
+            "db": {
+              "type": "string",
+              "default": "",
+              "maxLength": 30,
+              "primary": false,
+              "nullable": true
+            }
+          },
+          "isActive": {
+            "db": {
+              "type": "boolean",
+              "default": "1",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "createdDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          },
+          "modifiedDate": {
+            "db": {
+              "type": "datetime",
+              "default": "current_timestamp()",
+              "primary": false,
+              "nullable": false
+            }
+          }
+        }
       }
     },
     "views": {},

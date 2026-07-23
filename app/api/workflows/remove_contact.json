@@ -1,0 +1,11 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [{"type": "number", "name": "id"}, {"type": "number", "name": "workflowId"}]},
+  "exec": {"steps": [
+    {"name": "removeContact", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+      "query": "DELETE wc FROM tbl_workflow_contacts wc INNER JOIN tbl_workflows w ON w.id=wc.workflowId AND w.tenantId=wc.tenantId WHERE wc.id=:id AND wc.workflowId=:workflowId AND wc.tenantId=:tenantId",
+      "params": [{"name": ":id", "value": "{{$_POST.id}}"}, {"name": ":workflowId", "value": "{{$_POST.workflowId}}"}, {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+    }}, "output": true},
+    {"module": "core", "action": "redirect", "options": {"url": "/workflows/view?id={{$_POST.workflowId}}&section=contacts", "status": 302}}
+  ]}
+}

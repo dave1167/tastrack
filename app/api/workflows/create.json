@@ -20,14 +20,14 @@
         {"table":"tbl_workflows","column":"templateVersionNumber","type":"number","value":"{{getTemplate[0].versionNumber}}"},
         {"table":"tbl_workflows","column":"workflowName","type":"text","value":"{{$_POST.workflowName}}"},
         {"table":"tbl_workflows","column":"referenceCode","type":"text","value":"{{$_POST.referenceCode}}"},
-        {"table":"tbl_workflows","column":"status","type":"text","value":"{{$_POST.status}}"},
+        {"table":"tbl_workflows","column":"status","type":"text","value":"not_started"},
         {"table":"tbl_workflows","column":"ownerUserId","type":"number","value":"{{$_SESSION.USER_ID}}"},
         {"table":"tbl_workflows","column":"ownerTeamId","type":"number","value":"{{$_POST.ownerTeamId}}"},
         {"table":"tbl_workflows","column":"startDate","type":"date","value":"{{$_POST.startDate}}"},
         {"table":"tbl_workflows","column":"targetDate","type":"date","value":"{{$_POST.targetDate}}"},
         {"table":"tbl_workflows","column":"createdByUserId","type":"number","value":"{{$_SESSION.USER_ID}}"}
       ],"table":"tbl_workflows","returning":"id","query":"insert into `tbl_workflows` (`tenantId`,`templateId`,`templateVersionNumber`,`workflowName`,`referenceCode`,`status`,`ownerUserId`,`ownerTeamId`,`startDate`,`targetDate`,`createdByUserId`) values (?,?,?,?,?,?,?,?,?,?,?)","params":[
-        {"name":":P1","type":"expression","value":"{{$_SESSION.TENANT_ID}}"},{"name":":P2","type":"expression","value":"{{getTemplate[0].id}}"},{"name":":P3","type":"expression","value":"{{getTemplate[0].versionNumber}}"},{"name":":P4","type":"expression","value":"{{$_POST.workflowName}}"},{"name":":P5","type":"expression","value":"{{$_POST.referenceCode}}"},{"name":":P6","type":"expression","value":"{{$_POST.status}}"},{"name":":P7","type":"expression","value":"{{$_SESSION.USER_ID}}"},{"name":":P8","type":"expression","value":"{{$_POST.ownerTeamId}}"},{"name":":P9","type":"expression","value":"{{$_POST.startDate}}"},{"name":":P10","type":"expression","value":"{{$_POST.targetDate}}"},{"name":":P11","type":"expression","value":"{{$_SESSION.USER_ID}}"}
+        {"name":":P1","type":"expression","value":"{{$_SESSION.TENANT_ID}}"},{"name":":P2","type":"expression","value":"{{getTemplate[0].id}}"},{"name":":P3","type":"expression","value":"{{getTemplate[0].versionNumber}}"},{"name":":P4","type":"expression","value":"{{$_POST.workflowName}}"},{"name":":P5","type":"expression","value":"{{$_POST.referenceCode}}"},{"name":":P6","type":"text","value":"not_started"},{"name":":P7","type":"expression","value":"{{$_SESSION.USER_ID}}"},{"name":":P8","type":"expression","value":"{{$_POST.ownerTeamId}}"},{"name":":P9","type":"expression","value":"{{$_POST.startDate}}"},{"name":":P10","type":"expression","value":"{{$_POST.targetDate}}"},{"name":":P11","type":"expression","value":"{{$_SESSION.USER_ID}}"}
       ]}},"meta":[{"name":"identity","type":"text"},{"name":"affected","type":"number"}],"output":true
     },
     {
@@ -50,6 +50,7 @@
       "name":"setCurrentStage","module":"dbupdater","action":"custom",
       "options":{"connection":"db","sql":{"query":"UPDATE tbl_workflows w SET w.currentStageId=(SELECT ws.id FROM tbl_workflow_stages ws WHERE ws.workflowId=w.id AND ws.tenantId=w.tenantId ORDER BY ws.sortOrder LIMIT 1) WHERE w.id=:workflowId AND w.tenantId=:tenantId","params":[{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
     },
+    {"name":"logWorkflowCreated","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"INSERT INTO tbl_activity_log (tenantId,userId,workflowId,entityType,entityId,actionType,summary,afterJson,createdDate) SELECT :tenantId,:userId,:workflowId,'workflow',:entityId,'workflow.created',CONCAT(:displayName,' created ',:workflowName),JSON_OBJECT('workflowName',:workflowName2,'referenceCode',:referenceCode,'status','not_started','ownerTeamId',:ownerTeamId),CURRENT_TIMESTAMP FROM tbl_activity_types at WHERE at.tenantId=:tenantId2 AND at.activityKey='workflow.created' AND at.isActive=1 LIMIT 1","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":userId","value":"{{$_SESSION.USER_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":entityId","value":"{{insertWorkflow.identity}}"},{"name":":displayName","value":"{{$_SESSION.DISPLAY_NAME.default('A user')}}"},{"name":":workflowName","value":"{{$_POST.workflowName}}"},{"name":":workflowName2","value":"{{$_POST.workflowName}}"},{"name":":referenceCode","value":"{{$_POST.referenceCode.default('')}}"},{"name":":ownerTeamId","value":"{{$_POST.ownerTeamId}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true},
     {"module":"core","action":"redirect","options":{"url":"/workflows/view?id={{insertWorkflow.identity}}","status":302}}
   ]}
 }

@@ -1,0 +1,47 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "exec": {"steps": [
+    {
+      "name": "columns", "module": "dbupdater", "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT c.fieldKey,c.columnLabel,c.sortOrder,c.width FROM tbl_board_view_columns c WHERE c.isVisible=1 AND c.boardViewId=(SELECT v.id FROM tbl_board_views v WHERE v.tenantId=:tenantId AND v.templateId IS NULL AND v.isDefault=1 AND (v.userId=:userId OR v.userId IS NULL) ORDER BY CASE WHEN v.userId=:userId2 THEN 0 ELSE 1 END,CASE v.viewType WHEN 'personal' THEN 0 WHEN 'tenant' THEN 1 ELSE 2 END LIMIT 1) ORDER BY c.sortOrder,c.id",
+        "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}, {"name": ":userId2", "value": "{{$_SESSION.USER_ID}}"}]
+      }}, "output": true, "outputType": "array"
+    },
+    {
+      "name": "rows", "module": "dbupdater", "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT w.id,w.workflowName,w.referenceCode,wt.templateName,DATE_FORMAT(w.targetDate,'%d %b %Y') targetDate,COALESCE(u.displayName,team.teamName,'Unassigned') ownerName,CONCAT((SELECT COUNT(*) FROM tbl_tasks done WHERE done.workflowId=w.id AND done.tenantId=w.tenantId AND done.status='complete'),'/',(SELECT COUNT(*) FROM tbl_tasks allTasks WHERE allTasks.workflowId=w.id AND allTasks.tenantId=w.tenantId),' tasks') progress,REPLACE(w.status,'_',' ') status,CASE WHEN rs.manualRiskOverride='red' THEN 'red' WHEN EXISTS(SELECT 1 FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.status='waiting') THEN 'red' WHEN EXISTS(SELECT 1 FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.priority IN ('urgent','critical','high') AND x.status NOT IN ('complete','skipped','cancelled') AND x.dueDate<CURRENT_TIMESTAMP) THEN 'red' WHEN rs.manualRiskOverride='amber' THEN 'amber' WHEN EXISTS(SELECT 1 FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.status NOT IN ('complete','skipped','cancelled') AND x.dueDate<CURRENT_TIMESTAMP) THEN 'amber' WHEN EXISTS(SELECT 1 FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.priority IN ('urgent','critical','high') AND x.status NOT IN ('complete','skipped','cancelled') AND x.dueDate BETWEEN CURRENT_TIMESTAMP AND DATE_ADD(CURRENT_TIMESTAMP,INTERVAL 7 DAY)) THEN 'amber' WHEN NOT EXISTS(SELECT 1 FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId) OR w.targetDate IS NULL OR w.status IN ('draft','not_started') THEN 'grey' ELSE 'green' END riskLevel,CASE WHEN rs.manualRiskOverride IS NOT NULL THEN COALESCE(rs.riskReason,'Manual risk override') WHEN EXISTS(SELECT 1 FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.status='waiting') THEN CONCAT('Blocked: ',(SELECT x.taskName FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.status='waiting' ORDER BY x.dueDate,x.id LIMIT 1)) WHEN EXISTS(SELECT 1 FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.priority IN ('urgent','critical','high') AND x.status NOT IN ('complete','skipped','cancelled') AND x.dueDate<CURRENT_TIMESTAMP) THEN CONCAT('Critical overdue: ',(SELECT x.taskName FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.priority IN ('urgent','critical','high') AND x.status NOT IN ('complete','skipped','cancelled') AND x.dueDate<CURRENT_TIMESTAMP ORDER BY x.dueDate LIMIT 1)) WHEN EXISTS(SELECT 1 FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.status NOT IN ('complete','skipped','cancelled') AND x.dueDate<CURRENT_TIMESTAMP) THEN 'Task overdue' WHEN EXISTS(SELECT 1 FROM tbl_tasks x WHERE x.workflowId=w.id AND x.tenantId=w.tenantId AND x.priority IN ('urgent','critical','high') AND x.status NOT IN ('complete','skipped','cancelled') AND x.dueDate BETWEEN CURRENT_TIMESTAMP AND DATE_ADD(CURRENT_TIMESTAMP,INTERVAL 7 DAY)) THEN 'Critical task due within 7 days' WHEN w.targetDate IS NULL THEN 'No target date' WHEN w.status IN ('draft','not_started') THEN 'Workflow not started' ELSE 'No overdue or blocked tasks' END riskReason FROM tbl_workflows w LEFT JOIN tbl_workflow_templates wt ON wt.id=w.templateId AND wt.tenantId=w.tenantId LEFT JOIN tbl_users u ON u.id=w.ownerUserId LEFT JOIN tbl_teams team ON team.id=w.ownerTeamId AND team.tenantId=w.tenantId LEFT JOIN tbl_workflow_risk_status rs ON rs.workflowId=w.id AND rs.tenantId=w.tenantId WHERE w.tenantId=:tenantId ORDER BY w.modifiedDate DESC,w.id DESC",
+        "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+      }}, "output": true, "outputType": "array"
+    },
+    {
+      "name": "phaseCells", "module": "dbupdater", "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT w.id workflowId,'currentPhase' fieldKey,COALESCE(currentStage.stageName,(SELECT fallback.stageName FROM tbl_workflow_stages fallback WHERE fallback.workflowId=w.id AND fallback.tenantId=w.tenantId AND fallback.status<>'complete' ORDER BY fallback.sortOrder,fallback.id LIMIT 1),'Complete') displayValue FROM tbl_workflows w LEFT JOIN tbl_workflow_stages currentStage ON currentStage.id=w.currentStageId AND currentStage.workflowId=w.id AND currentStage.tenantId=w.tenantId WHERE w.tenantId=:tenantId",
+        "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+      }}, "output": true, "outputType": "array"
+    },
+    {
+      "name": "fieldCells", "module": "dbupdater", "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT v.workflowId,CONCAT('field:',v.fieldKey) fieldKey,COALESCE(v.valueText,v.valueLongText,DATE_FORMAT(v.valueDate,'%d %b %Y'),CAST(v.valueNumber AS CHAR),CAST(v.valueMoney AS CHAR),CASE WHEN v.valueBoolean=1 THEN 'Yes' WHEN v.valueBoolean=0 THEN 'No' END,'') displayValue FROM tbl_workflow_field_values v INNER JOIN tbl_workflows w ON w.id=v.workflowId AND w.tenantId=v.tenantId WHERE v.tenantId=:tenantId",
+        "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+      }}, "output": true, "outputType": "array"
+    },
+    {
+      "name": "taskCells", "module": "dbupdater", "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT t.workflowId,CONCAT('task:',t.taskName) fieldKey,REPLACE(t.status,'_',' ') displayValue FROM tbl_tasks t INNER JOIN tbl_workflows w ON w.id=t.workflowId AND w.tenantId=t.tenantId WHERE t.tenantId=:tenantId",
+        "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+      }}, "output": true, "outputType": "array"
+    },
+    {
+      "name": "stageCells", "module": "dbupdater", "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT ws.workflowId,CONCAT('stage:',ws.stageName) fieldKey,CONCAT(SUM(CASE WHEN t.status='complete' THEN 1 ELSE 0 END),'/',COUNT(t.id),' complete') displayValue FROM tbl_workflow_stages ws INNER JOIN tbl_workflows w ON w.id=ws.workflowId AND w.tenantId=ws.tenantId LEFT JOIN tbl_tasks t ON t.workflowStageId=ws.id AND t.tenantId=ws.tenantId WHERE ws.tenantId=:tenantId GROUP BY ws.id",
+        "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+      }}, "output": true, "outputType": "array"
+    }
+  ]}
+}

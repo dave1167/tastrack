@@ -2,6 +2,9 @@
 <dmx-serverconnect id="scWorkflow" url="/api/workflows/get" dmx-param:id="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scStages" url="/api/workflows/stages" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scTasks" url="/api/workflows/tasks" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scWorkflowContacts" url="/api/workflows/contacts" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scContactOptions" url="/api/workflows/contact_options"></dmx-serverconnect>
+<dmx-serverconnect id="scTaskAssignees" url="/api/tasks/assignee_options"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -11,15 +14,81 @@
         </div>
     </div>
 
-    <div class="col-12"><div class="row g-3">
+    <div class="col-12">
+        <nav aria-label="Event sections">
+            <div class="nav nav-tabs flex-nowrap overflow-auto" id="eventSectionTabs" role="tablist">
+                <a class="nav-link text-nowrap" id="eventInfoTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=info'" dmx-class:active="!query.section || query.section == 'info'" dmx-bind:aria-selected="(!query.section || query.section == 'info').toString()" aria-controls="eventInfoSummary eventInfoWorkflow"><i class="fas fa-calendar-alt me-2"></i>Event Info</a>
+                <a class="nav-link text-nowrap" id="eventContactsTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=contacts'" dmx-class:active="query.section == 'contacts'" dmx-bind:aria-selected="(query.section == 'contacts').toString()" aria-controls="eventContactsSection"><i class="fas fa-address-book me-2"></i>Contacts <span class="badge rounded-pill bg-secondary ms-1" dmx-text="scWorkflowContacts.data.query.count()">0</span></a>
+                <a class="nav-link text-nowrap" id="eventDocumentsTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=documents'" dmx-class:active="query.section == 'documents'" dmx-bind:aria-selected="(query.section == 'documents').toString()" aria-controls="eventDocumentsSection"><i class="fas fa-file-alt me-2"></i>Documents</a>
+            </div>
+        </nav>
+    </div>
+
+    <div class="col-12" id="eventInfoSummary" role="tabpanel" aria-labelledby="eventInfoTab" dmx-show="!query.section || query.section == 'info'"><div class="row g-3">
         <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Status</div><div class="fw-semibold text-capitalize" dmx-text="scWorkflow.data.query[0].status.replace('_',' ')"></div></div></div>
         <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Owner team</div><div class="fw-semibold" dmx-text="scWorkflow.data.query[0].teamName"></div></div></div>
         <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Start date</div><div class="fw-semibold" dmx-text="scWorkflow.data.query[0].startDate.formatDate('dd MMM yyyy')"></div></div></div>
         <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Target date</div><div class="fw-semibold" dmx-text="scWorkflow.data.query[0].targetDate.formatDate('dd MMM yyyy')"></div></div></div>
     </div></div>
 
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-3"><div><h2 class="h4 mb-1" dmx-text="scTerminology.data.query[0].stagePlural + ' and ' + scTerminology.data.query[0].taskPlural.lowercase()">Stages and tasks</h2><p class="text-muted small mb-0">Each section shows its next due item. Expand it to manage everything in that section.</p></div><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + ' ' + scTerminology.data.query[0].stagePlural.lowercase()"></span></div>
+    <div class="col-12" id="eventContactsSection" role="tabpanel" aria-labelledby="eventContactsTab" dmx-show="query.section == 'contacts'">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 py-3">
+                <div><h2 class="h4 mb-1">Contacts</h2><p class="text-muted small mb-0" dmx-text="'People and organisations connected to this ' + scTerminology.data.query[0].workflowSingular.lowercase() + '.'">People and organisations connected to this workflow.</p></div>
+                <span class="badge rounded-pill bg-primary" dmx-text="scWorkflowContacts.data.query.count() + (scWorkflowContacts.data.query.count() == 1 ? ' contact' : ' contacts')"></span>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/api/workflows/add_contact" class="row g-3 align-items-end"><%- _csrfInput() %>
+                    <input type="hidden" name="workflowId" dmx-bind:value="query.id">
+                    <div class="col-12 col-lg-4"><label class="form-label" for="workflowContactId">Contact</label><select class="form-select" id="workflowContactId" name="contactId" required dmx-bind:options="scContactOptions.data.query" optiontext="contactLabel" optionvalue="id"><option value="">Select contact</option></select></div>
+                    <div class="col-12 col-md-6 col-lg-3"><label class="form-label" for="relationshipType">Relationship</label><input class="form-control" id="relationshipType" name="relationshipType" list="contactRelationships" placeholder="e.g. Venue contact" required><datalist id="contactRelationships"><option value="Primary contact"></option><option value="Venue contact"></option><option value="Producer"></option><option value="Supplier"></option><option value="Finance contact"></option><option value="Technical contact"></option></datalist></div>
+                    <div class="col-12 col-md-6 col-lg-3"><label class="form-label" for="contactNotes">Notes</label><input class="form-control" id="contactNotes" name="notes" placeholder="Optional context"></div>
+                    <div class="col-6 col-lg-1"><div class="form-check mb-2"><input class="form-check-input" id="isPrimaryContact" name="isPrimary" type="checkbox" value="1"><label class="form-check-label" for="isPrimaryContact">Primary</label></div></div>
+                    <div class="col-6 col-lg-1 d-grid"><button class="btn btn-primary" type="submit" title="Add contact"><i class="fas fa-plus"></i><span class="visually-hidden">Add contact</span></button></div>
+                </form>
+                <div class="d-flex justify-content-end mt-2"><a class="small" href="/contacts/create">Create a new contact</a></div>
+
+                <div class="table-responsive mt-4" dmx-show="scWorkflowContacts.data.query.count() > 0"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Contact</th><th>Relationship</th><th>Category</th><th>Contact details</th><th>Notes</th><th></th></tr></thead><tbody is="dmx-repeat" dmx-bind:repeat="scWorkflowContacts.data.query"><tr><td><div class="fw-semibold" dmx-text="$value.contactName"></div><div class="small text-muted" dmx-text="$value.organisationName"></div><span class="badge bg-primary mt-1" dmx-show="$value.isPrimary == 1">Primary</span></td><td dmx-text="$value.relationshipType"></td><td dmx-text="$value.categoryName || 'Uncategorised'"></td><td><div dmx-show="$value.email"><i class="fas fa-envelope text-muted me-1"></i><a dmx-bind:href="'mailto:' + $value.email" dmx-text="$value.email"></a></div><div dmx-show="$value.phone"><i class="fas fa-phone text-muted me-1"></i><a dmx-bind:href="'tel:' + $value.phone" dmx-text="$value.phone"></a></div></td><td dmx-text="$value.notes"></td><td class="text-end"><form method="post" action="/api/workflows/remove_contact"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><button class="btn btn-sm btn-outline-danger" type="submit" title="Remove from this workflow"><i class="fas fa-unlink"></i><span class="visually-hidden">Remove contact</span></button></form></td></tr></tbody></table></div>
+                <div class="text-center text-muted py-4" dmx-show="!scWorkflowContacts.state.executing && scWorkflowContacts.data.query.count() == 0">No contacts have been linked yet.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12" id="eventDocumentsSection" role="tabpanel" aria-labelledby="eventDocumentsTab" dmx-show="query.section == 'documents'">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h2 class="h4 mb-1">Documents</h2>
+                <p class="text-muted small mb-0">Contracts, technical riders, sales reports, invoices and settlement files for this event.</p>
+            </div>
+            <div class="card-body text-center py-5">
+                <i class="fas fa-folder-open fa-2x text-muted mb-3"></i>
+                <h3 class="h6">No documents have been added yet</h3>
+                <p class="text-muted small mb-0">Document upload and storage will appear here when the document workflow is connected.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12" id="eventInfoWorkflow" role="tabpanel" aria-labelledby="eventInfoTab" dmx-show="!query.section || query.section == 'info'">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3"><div><h2 class="h4 mb-1" dmx-text="scTerminology.data.query[0].stagePlural + ' and ' + scTerminology.data.query[0].taskPlural.lowercase()">Stages and tasks</h2><p class="text-muted small mb-0">Each section shows its next due item. Expand it to manage everything in that section.</p></div><div class="d-flex gap-2 align-items-center"><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + ' ' + scTerminology.data.query[0].stagePlural.lowercase()"></span><button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addOneOffTask" aria-expanded="false" aria-controls="addOneOffTask"><i class="fas fa-plus me-1"></i><span dmx-text="'Add ' + scTerminology.data.query[0].taskSingular.lowercase()">Add task</span></button></div></div>
+
+        <div class="collapse mb-4" id="addOneOffTask">
+            <div class="card border-primary shadow-sm">
+                <div class="card-header bg-white"><h3 class="h5 mb-1" dmx-text="'Add a one-off ' + scTerminology.data.query[0].taskSingular.lowercase()">Add a one-off task</h3><p class="small text-muted mb-0" dmx-text="'This only affects this ' + scTerminology.data.query[0].workflowSingular.lowercase() + '; the template will not be changed.'">This only affects this event; the template will not be changed.</p></div>
+                <div class="card-body">
+                    <form method="post" action="/api/workflows/create_task" class="row g-3"><%- _csrfInput() %>
+                        <input type="hidden" name="workflowId" dmx-bind:value="query.id">
+                        <div class="col-12 col-lg-6"><label class="form-label" for="oneOffTaskName" dmx-text="scTerminology.data.query[0].taskSingular + ' name'">Task name</label><input class="form-control" id="oneOffTaskName" name="taskName" required maxlength="255"></div>
+                        <div class="col-12 col-lg-6"><label class="form-label" for="oneOffStage" dmx-text="scTerminology.data.query[0].stageSingular">Stage</label><select class="form-select" id="oneOffStage" name="workflowStageId" required dmx-bind:options="scStages.data.query" optiontext="stageName" optionvalue="id"><option value="">Select stage</option></select></div>
+                        <div class="col-12"><label class="form-label" for="oneOffDescription">Description</label><textarea class="form-control" id="oneOffDescription" name="description" rows="2"></textarea></div>
+                        <div class="col-12 col-md-4"><label class="form-label" for="oneOffAssignment">Allocate to</label><select class="form-select" id="oneOffAssignment" name="assignment" dmx-bind:options="scTaskAssignees.data.query" optiontext="assignmentLabel" optionvalue="assignmentKey"><option value="unassigned:">Unallocated</option></select></div>
+                        <div class="col-6 col-md-3"><label class="form-label" for="oneOffDueDate">Due date</label><input class="form-control" id="oneOffDueDate" name="dueDate" type="date"></div>
+                        <div class="col-6 col-md-3"><label class="form-label" for="oneOffPriority">Priority</label><select class="form-select" id="oneOffPriority" name="priority"><option value="low">Low</option><option value="normal" selected>Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+                        <div class="col-12 col-md-2 d-flex align-items-end"><div class="form-check mb-2"><input class="form-check-input" id="oneOffRequired" name="isRequired" type="checkbox" value="1"><label class="form-check-label" for="oneOffRequired">Required</label></div></div>
+                        <div class="col-12 d-flex gap-2"><button class="btn btn-primary" type="submit"><i class="fas fa-plus me-2"></i><span dmx-text="'Add ' + scTerminology.data.query[0].taskSingular.lowercase()">Add task</span></button><button class="btn btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#addOneOffTask">Cancel</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
 
         <div is="dmx-repeat" id="repWorkflowStages" dmx-bind:repeat="scStages.data.query">
             <div class="card border-0 shadow-sm mb-3">
@@ -36,7 +105,16 @@
                 <div class="collapse" dmx-bind:id="'workflowStageTasks' + $value.id">
                     <div class="border-top">
                         <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th dmx-text="scTerminology.data.query[0].taskSingular">Task</th><th>Assigned to</th><th>Due</th><th>Priority</th><th>Status</th><th></th></tr></thead>
-                            <tbody is="dmx-repeat" dmx-bind:repeat="scTasks.data.query.where('workflowStageId',$value.id)"><tr><td><div class="fw-semibold" dmx-text="$value.taskName"></div><div class="small text-muted" dmx-text="$value.description"></div></td><td dmx-text="$value.assignedUserName || $value.assignedTeamName || $value.assignedRoleName || 'Unassigned'"></td><td dmx-text="$value.dueDate.formatDate('dd MMM yyyy')"></td><td><span class="badge bg-light text-dark border text-capitalize" dmx-text="$value.priority"></span></td><td><form class="d-flex gap-2" method="post" action="/api/workflows/update_task_status"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><select class="form-select form-select-sm" name="status" dmx-bind:value="$value.status"><option value="not_started">Not started</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="complete">Complete</option><option value="skipped">Skipped</option><option value="cancelled">Cancelled</option></select><button class="btn btn-sm btn-outline-primary" type="submit">Save</button></form></td><td><a class="btn btn-sm btn-outline-secondary" dmx-bind:href="'/tasks/edit?id=' + $value.id"><i class="fas fa-pen"></i></a></td></tr></tbody>
+                            <tbody is="dmx-repeat" dmx-bind:repeat="scTasks.data.query.where('workflowStageId',$value.id)">
+                                <tr>
+                                    <td><div class="fw-semibold" dmx-text="$value.taskName"></div><div class="small text-muted" dmx-text="$value.description"></div><div class="small text-danger mt-1" dmx-show="$value.startBlockerCount > 0"><i class="fas fa-lock me-1"></i><span dmx-text="'Blocked by: ' + $value.blockerNames"></span></div><div class="small text-warning mt-1" dmx-show="$value.startBlockerCount == 0 && $value.finishBlockerCount > 0"><i class="fas fa-link me-1"></i><span dmx-text="'Completion depends on: ' + $value.blockerNames"></span></div></td>
+                                    <td dmx-text="$value.assignedUserName || $value.assignedTeamName || $value.assignedRoleName || 'Unassigned'"></td>
+                                    <td dmx-text="$value.dueDate.formatDate('dd MMM yyyy')"></td>
+                                    <td><span class="badge bg-light text-dark border text-capitalize" dmx-text="$value.priority"></span></td>
+                                    <td><form class="d-flex gap-2" method="post" action="/api/workflows/update_task_status"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><select class="form-select form-select-sm" name="status" dmx-bind:value="$value.status"><option value="not_started">Not started</option><option value="in_progress" dmx-bind:disabled="$value.startBlockerCount > 0">In progress</option><option value="waiting" dmx-bind:disabled="$value.startBlockerCount > 0">Waiting</option><option value="complete" dmx-bind:disabled="$value.startBlockerCount > 0 || $value.finishBlockerCount > 0">Complete</option><option value="skipped">Skipped</option><option value="cancelled">Cancelled</option></select><button class="btn btn-sm btn-outline-primary" type="submit">Save</button></form></td>
+                                    <td><a class="btn btn-sm btn-outline-secondary" dmx-bind:href="'/tasks/edit?id=' + $value.id"><i class="fas fa-pen"></i></a></td>
+                                </tr>
+                            </tbody>
                         </table></div>
                     </div>
                 </div>
@@ -45,4 +123,31 @@
         <div class="text-center text-muted py-5" dmx-show="!scStages.state.executing && scStages.data.query.count() == 0" dmx-text="'No ' + scTerminology.data.query[0].stagePlural.lowercase() + ' exist for this ' + scTerminology.data.query[0].workflowSingular.lowercase() + '.'">No stages exist for this workflow.</div>
     </div>
 </div>
+<style>
+#eventInfoSummary .p-3 {
+    padding: .65rem 1rem !important;
+}
+
+#eventInfoWorkflow .card {
+    margin-bottom: .5rem !important;
+}
+
+#eventInfoWorkflow .card-body {
+    padding: .65rem 1rem;
+}
+
+#eventInfoWorkflow .row.g-3 {
+    --bs-gutter-y: .4rem;
+}
+
+#eventInfoWorkflow .table > :not(caption) > * > * {
+    padding-top: .4rem;
+    padding-bottom: .4rem;
+}
+
+#eventInfoWorkflow .form-select-sm,
+#eventInfoWorkflow .btn-sm {
+    min-height: 1.9rem;
+}
+</style>
 <meta name="ac:route" content="/workflows/view">

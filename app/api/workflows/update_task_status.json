@@ -1,1 +1,113 @@
-{"settings":{"options":{"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"id"},{"type":"number","name":"workflowId"},{"type":"text","name":"status"}]},"exec":{"steps":[{"name":"updateTask","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_tasks SET status=:status,startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(startedDate,CURRENT_TIMESTAMP) ELSE startedDate END,completedDate=CASE WHEN :status3='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND workflowId=:workflowId AND tenantId=:tenantId","params":[{"name":":status","value":"{{$_POST.status}}"},{"name":":status2","value":"{{$_POST.status}}"},{"name":":status3","value":"{{$_POST.status}}"},{"name":":status4","value":"{{$_POST.status}}"},{"name":":userId","value":"{{$_SESSION.USER_ID}}"},{"name":":id","value":"{{$_POST.id}}"},{"name":":workflowId","value":"{{$_POST.workflowId}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true},{"name":"recalculateStage","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_workflow_stages ws SET ws.status=(SELECT CASE WHEN COUNT(t.id)=0 THEN 'not_started' WHEN SUM(CASE WHEN t.isRequired=1 THEN 1 ELSE 0 END)>0 AND SUM(CASE WHEN t.isRequired=1 AND t.status NOT IN ('complete','skipped') THEN 1 ELSE 0 END)=0 THEN 'complete' WHEN SUM(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') AND t.dueDate<CURRENT_TIMESTAMP THEN 1 ELSE 0 END)>0 THEN 'overdue' WHEN SUM(CASE WHEN t.status IN ('in_progress','complete') THEN 1 ELSE 0 END)>0 THEN 'in_progress' WHEN SUM(CASE WHEN t.status='waiting' THEN 1 ELSE 0 END)>0 THEN 'waiting' ELSE 'not_started' END FROM tbl_tasks t WHERE t.workflowStageId=ws.id AND t.tenantId=ws.tenantId),ws.modifiedDate=CURRENT_TIMESTAMP WHERE ws.id=(SELECT x.workflowStageId FROM tbl_tasks x WHERE x.id=:taskId AND x.tenantId=:tenantId) AND ws.tenantId=:tenantId2","params":[{"name":":taskId","value":"{{$_POST.id}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true},{"module":"core","action":"redirect","options":{"url":"/workflows/view?id={{$_POST.workflowId}}","status":302}}]}}
+{
+  "settings": { "options": { "method": "post" } },
+  "meta": {
+    "$_POST": [
+      { "type": "number", "name": "id" },
+      { "type": "number", "name": "workflowId" },
+      { "type": "text", "name": "status" }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "dependencyCheck",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT CAST(COUNT(*) AS UNSIGNED) AS blockerCount,GROUP_CONCAT(DISTINCT p.taskName ORDER BY p.id SEPARATOR ', ') AS blockerNames FROM tbl_tasks t INNER JOIN tbl_task_dependencies d ON d.taskId=t.id AND d.workflowId=t.workflowId AND d.tenantId=t.tenantId INNER JOIN tbl_tasks p ON p.id=d.dependsOnTaskId AND p.workflowId=t.workflowId AND p.tenantId=t.tenantId WHERE t.id=:taskId AND t.workflowId=:workflowId AND t.tenantId=:tenantId AND :requestedStatus NOT IN ('not_started','skipped','cancelled') AND ((d.dependencyType IN ('finish_to_start','blocking') AND p.status NOT IN ('complete','skipped','cancelled')) OR (d.dependencyType='start_to_start' AND p.status='not_started') OR (d.dependencyType='finish_to_finish' AND :requestedStatus2='complete' AND p.status NOT IN ('complete','skipped','cancelled')))",
+            "params": [
+              {"name": ":taskId", "value": "{{$_POST.id}}"},
+              {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+              {"name": ":requestedStatus", "value": "{{$_POST.status}}"},
+              {"name": ":requestedStatus2", "value": "{{$_POST.status}}"}
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array",
+        "meta": [{"name": "blockerCount", "type": "number"}, {"name": "blockerNames", "type": "text"}]
+      },
+      {
+        "name": "rejectBlockedTransition",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{dependencyCheck[0].blockerCount > 0}}",
+          "then": {"steps": {
+            "name": "dependencyError",
+            "module": "core",
+            "action": "error",
+            "options": {"message": "This task cannot change to the requested status until these prerequisite tasks are resolved: {{dependencyCheck[0].blockerNames}}"}
+          }}
+        },
+        "outputType": "boolean"
+      },
+      {
+        "name": "updateTask",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_tasks SET status=:status,startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(startedDate,CURRENT_TIMESTAMP) ELSE startedDate END,completedDate=CASE WHEN :status3='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND workflowId=:workflowId AND tenantId=:tenantId",
+            "params": [
+              { "name": ":status", "value": "{{$_POST.status}}" },
+              { "name": ":status2", "value": "{{$_POST.status}}" },
+              { "name": ":status3", "value": "{{$_POST.status}}" },
+              { "name": ":status4", "value": "{{$_POST.status}}" },
+              { "name": ":userId", "value": "{{$_SESSION.USER_ID}}" },
+              { "name": ":id", "value": "{{$_POST.id}}" },
+              { "name": ":workflowId", "value": "{{$_POST.workflowId}}" },
+              { "name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}" }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "recalculateStage",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_workflow_stages ws SET ws.status=(SELECT CASE WHEN COUNT(t.id)=0 THEN 'not_started' WHEN SUM(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') THEN 1 ELSE 0 END)=0 THEN 'complete' WHEN SUM(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') AND t.dueDate<CURRENT_TIMESTAMP THEN 1 ELSE 0 END)>0 THEN 'overdue' WHEN SUM(CASE WHEN t.status='external_hold' THEN 1 ELSE 0 END)>0 THEN 'external_hold' WHEN SUM(CASE WHEN t.status='internal_hold' THEN 1 ELSE 0 END)>0 THEN 'internal_hold' WHEN SUM(CASE WHEN t.status IN ('in_progress','complete') THEN 1 ELSE 0 END)>0 THEN 'in_progress' ELSE 'not_started' END FROM tbl_tasks t WHERE t.workflowStageId=ws.id AND t.tenantId=ws.tenantId),ws.startedDate=CASE WHEN (SELECT COUNT(*) FROM tbl_tasks t WHERE t.workflowStageId=ws.id AND t.tenantId=ws.tenantId AND t.status IN ('in_progress','complete','internal_hold','external_hold'))>0 THEN COALESCE(ws.startedDate,CURRENT_TIMESTAMP) ELSE ws.startedDate END,ws.completedDate=CASE WHEN (SELECT COUNT(*) FROM tbl_tasks t WHERE t.workflowStageId=ws.id AND t.tenantId=ws.tenantId AND t.status NOT IN ('complete','skipped','cancelled'))=0 THEN COALESCE(ws.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,ws.modifiedDate=CURRENT_TIMESTAMP WHERE ws.id=(SELECT x.workflowStageId FROM tbl_tasks x WHERE x.id=:taskId AND x.tenantId=:tenantId) AND ws.tenantId=:tenantId2",
+            "params": [
+              { "name": ":taskId", "value": "{{$_POST.id}}" },
+              { "name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}" },
+              { "name": ":tenantId2", "value": "{{$_SESSION.TENANT_ID}}" }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "recalculateWorkflow",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_workflows w SET w.status=(SELECT CASE WHEN COUNT(t.id)=0 THEN 'not_started' WHEN SUM(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') THEN 1 ELSE 0 END)=0 THEN 'complete' WHEN SUM(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') AND t.dueDate<CURRENT_TIMESTAMP THEN 1 ELSE 0 END)>0 THEN 'overdue' WHEN SUM(CASE WHEN t.status='external_hold' THEN 1 ELSE 0 END)>0 THEN 'external_hold' WHEN SUM(CASE WHEN t.status='internal_hold' THEN 1 ELSE 0 END)>0 THEN 'internal_hold' WHEN SUM(CASE WHEN t.status IN ('in_progress','complete') THEN 1 ELSE 0 END)>0 THEN 'in_progress' ELSE 'not_started' END FROM tbl_tasks t WHERE t.workflowId=w.id AND t.tenantId=w.tenantId),w.completedDate=CASE WHEN (SELECT COUNT(*) FROM tbl_tasks t WHERE t.workflowId=w.id AND t.tenantId=w.tenantId AND t.status NOT IN ('complete','skipped','cancelled'))=0 THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.currentStageId=(SELECT ws.id FROM tbl_workflow_stages ws WHERE ws.workflowId=w.id AND ws.tenantId=w.tenantId AND ws.status<>'complete' ORDER BY ws.sortOrder,ws.id LIMIT 1),w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:workflowId AND w.tenantId=:tenantId",
+            "params": [
+              { "name": ":workflowId", "value": "{{$_POST.workflowId}}" },
+              { "name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}" }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/workflows/view?id={{$_POST.workflowId}}",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

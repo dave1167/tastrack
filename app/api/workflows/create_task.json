@@ -1,0 +1,119 @@
+{
+  "settings": {
+    "options": {
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {"type": "number", "name": "workflowId"},
+      {"type": "number", "name": "workflowStageId"},
+      {"type": "text", "name": "taskName", "options": {"rules": {"core:required": {"param": ""}}}},
+      {"type": "text", "name": "description"},
+      {"type": "text", "name": "priority"},
+      {"type": "number", "name": "isRequired"},
+      {"type": "text", "name": "assignment"},
+      {"type": "text", "name": "dueDate"}
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "insertTask",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,sourceTemplateTaskId,taskName,description,status,priority,isRequired,assignedToUserId,assignedToTeamId,assignedToRoleId,dueDate,createdByUserId) SELECT w.tenantId,w.id,ws.id,NULL,:taskName,:description,'not_started',:priority,:isRequired,NULL,CASE WHEN SUBSTRING_INDEX(:assignment1,':',1)='team' THEN tm.id ELSE NULL END,NULL,NULLIF(:dueDate,''),:createdBy FROM tbl_workflows w INNER JOIN tbl_workflow_stages ws ON ws.workflowId=w.id AND ws.tenantId=w.tenantId LEFT JOIN tbl_teams tm ON tm.id=CAST(NULLIF(SUBSTRING_INDEX(:assignment2,':',-1),'') AS UNSIGNED) AND tm.tenantId=w.tenantId AND tm.isActive=1 WHERE w.id=:workflowId AND ws.id=:stageId AND w.tenantId=:tenantId",
+            "params": [
+              {"name": ":taskName", "value": "{{$_POST.taskName}}"},
+              {"name": ":description", "value": "{{$_POST.description.default('')}}"},
+              {"name": ":priority", "value": "{{$_POST.priority.default('normal')}}"},
+              {"name": ":isRequired", "value": "{{$_POST.isRequired.default(0)}}"},
+              {"name": ":assignment1", "value": "{{$_POST.assignment.default('unassigned:')}}"},
+              {"name": ":assignment2", "value": "{{$_POST.assignment.default('unassigned:')}}"},
+              {"name": ":dueDate", "value": "{{$_POST.dueDate.default('')}}"},
+              {"name": ":createdBy", "value": "{{$_SESSION.USER_ID}}"},
+              {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+              {"name": ":stageId", "value": "{{$_POST.workflowStageId}}"},
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "reopenStage",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_workflow_stages SET status=CASE WHEN status='complete' THEN 'in_progress' ELSE status END,completedDate=NULL,modifiedDate=CURRENT_TIMESTAMP WHERE id=:stageId AND workflowId=:workflowId AND tenantId=:tenantId AND :taskId>0",
+            "params": [
+              {"name": ":stageId", "value": "{{$_POST.workflowStageId}}"},
+              {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+              {"name": ":taskId", "value": "{{insertTask.insertId.default(0)}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "reopenWorkflow",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_workflows SET status=CASE WHEN status='complete' THEN 'in_progress' ELSE status END,completedDate=NULL,modifiedDate=CURRENT_TIMESTAMP WHERE id=:workflowId AND tenantId=:tenantId AND :taskId>0",
+            "params": [
+              {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+              {"name": ":taskId", "value": "{{insertTask.insertId.default(0)}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "logTaskCreated",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_activity_log (tenantId,userId,workflowId,taskId,entityType,entityId,actionType,summary,afterJson,createdDate) SELECT :tenantId,:userId,:workflowId,:taskId,'task',:entityId,'task.created',CONCAT(:actor,' created one-off task ',:taskName),JSON_OBJECT('taskName',:taskName2,'stageId',:stageId,'priority',:priority,'teamId',NULLIF(SUBSTRING_INDEX(:assignment,':',-1),''),'dueDate',:dueDate),CURRENT_TIMESTAMP FROM tbl_activity_types at WHERE at.tenantId=:tenantId2 AND at.activityKey='task.created' AND at.isActive=1 AND :taskId2>0 LIMIT 1",
+            "params": [
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+              {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"},
+              {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+              {"name": ":taskId", "value": "{{insertTask.insertId.default(0)}}"},
+              {"name": ":entityId", "value": "{{insertTask.insertId.default(0)}}"},
+              {"name": ":actor", "value": "{{$_SESSION.DISPLAY_NAME.default('A user')}}"},
+              {"name": ":taskName", "value": "{{$_POST.taskName}}"},
+              {"name": ":taskName2", "value": "{{$_POST.taskName}}"},
+              {"name": ":stageId", "value": "{{$_POST.workflowStageId}}"},
+              {"name": ":priority", "value": "{{$_POST.priority.default('normal')}}"},
+              {"name": ":assignment", "value": "{{$_POST.assignment.default('unassigned:')}}"},
+              {"name": ":dueDate", "value": "{{$_POST.dueDate.default('')}}"},
+              {"name": ":tenantId2", "value": "{{$_SESSION.TENANT_ID}}"},
+              {"name": ":taskId2", "value": "{{insertTask.insertId.default(0)}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/workflows/view?id={{$_POST.workflowId}}",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

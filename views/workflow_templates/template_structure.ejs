@@ -1,0 +1,95 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="template_structure" appConnect="local" -->
+<div class="row g-4">
+    <div class="col-12"><div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3"><div><div class="text-uppercase text-muted small fw-semibold">Template blueprint</div><h1 class="mb-1" id="structureTitle">Template Structure</h1><p class="text-muted mb-0" id="structureDescription">How phases, tasks and dependencies fit together.</p></div><div class="d-flex gap-2"><a class="btn btn-outline-secondary" href="/workflow_templates">Templates</a><a class="btn btn-primary" id="editStructureLink" href="#"><i class="fas fa-stream me-2"></i>Edit structure</a></div></div></div>
+    <div class="col-12"><div class="row g-3" id="structureSummary"><div class="col-sm-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Phases</div><div class="h3 mb-0" id="phaseCount">—</div></div></div></div><div class="col-sm-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Tasks</div><div class="h3 mb-0" id="taskCount">—</div></div></div></div><div class="col-sm-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Dependencies</div><div class="h3 mb-0" id="dependencyCount">—</div></div></div></div></div></div>
+    <div class="col-12"><div class="card border-0 shadow-sm"><div class="card-header bg-white py-3"><h2 class="h5 mb-1">Phase and task hierarchy</h2><p class="small text-muted mb-0">This is the reusable template. Live workflows receive their own copy of these phases and tasks.</p></div><div class="card-body"><div id="templateTree"><div class="text-center text-muted py-5"><i class="fas fa-spinner fa-spin me-2"></i>Loading template structure…</div></div><div class="alert alert-danger d-none" id="structureError"></div></div></div></div>
+</div>
+<div id="csrfSource" class="d-none"><%- _csrfInput() %></div>
+
+<style>
+.template-tree { position:relative; margin-left:.75rem; }
+.template-tree::before { content:""; position:absolute; top:1.4rem; bottom:1.4rem; left:1rem; width:2px; background:#d9e2e1; }
+.template-phase { position:relative; padding-left:3rem; margin-bottom:1.25rem; }
+.template-phase-marker { position:absolute; left:.35rem; top:.85rem; width:1.35rem; height:1.35rem; border-radius:50%; border:4px solid #fff; box-shadow:0 0 0 2px currentColor; }
+.template-task-list { border-left:2px solid #e9ecef; margin-left:.35rem; padding-left:1rem; }
+.template-task { position:relative; padding:.55rem .7rem; margin-bottom:.45rem; background:#f8f9fa; border:1px solid #e9ecef; border-radius:.4rem; }
+.template-task::before { content:""; position:absolute; left:-1.1rem; top:1rem; width:1rem; height:2px; background:#e9ecef; }
+.dependency-note { color:#6f42c1; }
+.task-meta { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.5rem; }
+.task-meta-item { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .45rem; border:1px solid #dee2e6; border-radius:999px; background:#fff; color:#495057; font-size:.72rem; }
+.inline-editor { margin-top:1rem; padding:1rem; border:1px solid #dbe3e2; border-radius:.5rem; background:#fff; }
+.field-help { margin-left:.35rem; padding:0; border:0; background:transparent; color:#6c757d; line-height:1; }
+.field-help:hover, .field-help:focus { color:#0d6efd; }
+</style>
+<script>
+(function(){
+    const escapeHtml=value=>String(value==null?'':value).replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    const templateId=new URLSearchParams(window.location.search).get('id');
+    const priorityIcon=value=>({urgent:'fa-fire text-danger',high:'fa-arrow-up text-danger',normal:'fa-minus text-secondary',low:'fa-arrow-down text-muted'}[value]||'fa-minus text-secondary');
+    let teams=[];
+    const ownerLabel=value=>value==='team'?'Assigned team':'Unallocated';
+    const dependencyLabel=value=>({finish_to_start:'must finish first',start_to_start:'must start first',finish_to_finish:'must finish before completion',blocking:'blocks this task'}[value]||String(value||'dependency').replaceAll('_',' '));
+    const dueLabel=task=>{if(!task.dueOffsetType)return 'No automatic due date';const anchor={workflow_creation_date:'workflow created',workflow_start_date:'workflow start',event_target_date:'target date'}[task.dueOffsetType]||String(task.dueOffsetType).replaceAll('_',' ');const days=Number(task.dueOffsetDays||0);if(!days)return 'Due on '+anchor;return 'Due '+days+' day'+(days===1?'':'s')+' '+(task.dueRelation==='before'?'before ':'after ')+anchor;};
+    const option=(value,current,label)=>'<option value="'+escapeHtml(value)+'"'+(String(value)===String(current)?' selected':'')+'>'+escapeHtml(label)+'</option>';
+    const fieldLabel=(label,help)=>'<label class="form-label">'+escapeHtml(label)+'<button class="field-help" type="button" data-bs-toggle="tooltip" data-bs-placement="top" title="'+escapeHtml(help)+'" aria-label="Help: '+escapeHtml(label)+'"><i class="fas fa-question-circle" aria-hidden="true"></i></button></label>';
+    const stageEditor=stage=>'<form class="inline-editor d-none js-inline-editor" action="/api/workflow_templates/update_stage" method="post"><input type="hidden" name="id" value="'+stage.id+'"><input type="hidden" name="templateId" value="'+templateId+'"><div class="row g-3"><div class="col-md-2">'+fieldLabel('Order','Controls where this phase appears in the template. Lower numbers appear first.')+'<input class="form-control" name="sortOrder" type="number" min="1" value="'+escapeHtml(stage.sortOrder)+'"></div><div class="col-md-6">'+fieldLabel('Phase name','The name shown for this phase in workflows created from the template.')+'<input class="form-control" name="stageName" required value="'+escapeHtml(stage.stageName)+'"></div><div class="col-md-4">'+fieldLabel('Status','Active phases are available for use; inactive phases are retained but disabled; archived phases are hidden.')+'<select class="form-select" name="status">'+option('active',stage.status,'Active')+option('inactive',stage.status,'Inactive')+option('archived',stage.status,'Archived')+'</select></div><div class="col-12">'+fieldLabel('Description','Briefly explain the purpose or outcome of this phase.')+'<textarea class="form-control" name="description" rows="2">'+escapeHtml(stage.description||'')+'</textarea></div><div class="col-md-4">'+fieldLabel('Colour','The colour used to identify this phase in the template structure.')+'<input class="form-control form-control-color" name="colour" type="color" value="'+escapeHtml(stage.colour||'#6c757d')+'"></div><div class="col-md-5">'+fieldLabel('Require all tasks complete','Choose Yes to prevent the phase being completed until every task in it is complete.')+'<select class="form-select" name="requiresAllTasksComplete">'+option('0',Number(stage.requiresAllTasksComplete),'No')+option('1',Number(stage.requiresAllTasksComplete),'Yes')+'</select></div><div class="col-md-3 d-flex align-items-end justify-content-md-end gap-2"><button class="btn btn-sm btn-light js-cancel-edit" type="button">Cancel</button><button class="btn btn-sm btn-primary" type="submit">Save phase</button></div></div><div class="small text-danger mt-2 d-none js-save-error"></div></form>';
+    const taskEditor=task=>'<form class="inline-editor d-none js-inline-editor" action="/api/workflow_templates/update_task" method="post"><input type="hidden" name="id" value="'+task.id+'"><input type="hidden" name="templateId" value="'+templateId+'"><input type="hidden" name="templateStageId" value="'+task.templateStageId+'"><div class="row g-3"><div class="col-md-2">'+fieldLabel('Order','Controls where this task appears within its phase. Lower numbers appear first.')+'<input class="form-control" name="sortOrder" type="number" min="1" value="'+escapeHtml(task.sortOrder)+'"></div><div class="col-md-7">'+fieldLabel('Task name','The name shown for this task in workflows created from the template.')+'<input class="form-control" name="taskName" required value="'+escapeHtml(task.taskName)+'"></div><div class="col-md-3">'+fieldLabel('Status','Active tasks are available for use; inactive tasks are retained but disabled; archived tasks are hidden.')+'<select class="form-select" name="status">'+option('active',task.status,'Active')+option('inactive',task.status,'Inactive')+option('archived',task.status,'Archived')+'</select></div><div class="col-12">'+fieldLabel('Description','Explain what must be done or what outcome is expected for this task.')+'<textarea class="form-control" name="description" rows="2">'+escapeHtml(task.description||'')+'</textarea></div><div class="col-md-3">'+fieldLabel('Priority','Sets the default importance of this task in new workflows.')+'<select class="form-select" name="priority">'+option('low',task.priority,'Low')+option('normal',task.priority,'Normal')+option('high',task.priority,'High')+option('urgent',task.priority,'Urgent')+'</select></div><div class="col-md-3">'+fieldLabel('Required','Choose Yes when this task must be completed as part of the workflow.')+'<select class="form-select" name="isRequired">'+option('1',Number(task.isRequired),'Yes')+option('0',Number(task.isRequired),'No')+'</select></div><div class="col-md-3">'+fieldLabel('Due from','Select the date used as the starting point for calculating the task due date.')+'<select class="form-select" name="dueOffsetType">'+option('',task.dueOffsetType||'','None')+option('workflow_creation_date',task.dueOffsetType,'Creation')+option('workflow_start_date',task.dueOffsetType,'Workflow start')+option('event_target_date',task.dueOffsetType,'Target date')+option('stage_start_date',task.dueOffsetType,'Phase start')+'</select></div><div class="col-md-3">'+fieldLabel('Days','The number of days before or after the selected starting date.')+'<input class="form-control" name="dueOffsetDays" type="number" value="'+escapeHtml(task.dueOffsetDays||0)+'"></div><div class="col-md-4">'+fieldLabel('Due relation','Choose whether the due date falls before, after, or on the selected starting date.')+'<select class="form-select" name="dueRelation">'+option('after',task.dueRelation||'after','After')+option('before',task.dueRelation,'Before')+option('same_day',task.dueRelation,'Same day')+'</select></div><div class="col-md-4">'+fieldLabel('Default owner','Sets who receives this task by default when a workflow is created.')+'<select class="form-select" name="defaultOwnerType">'+option('unassigned',task.defaultOwnerType||'unassigned','Unassigned')+option('workflow_owner',task.defaultOwnerType,'Workflow owner')+'</select></div><div class="col-md-4 d-flex align-items-end justify-content-md-end gap-2"><button class="btn btn-sm btn-light js-cancel-edit" type="button">Cancel</button><button class="btn btn-sm btn-primary" type="submit">Save task</button></div></div><div class="small text-danger mt-2 d-none js-save-error"></div></form>';
+    async function load(){
+        try{
+            if(!templateId) throw new Error('No template was selected.');
+            document.getElementById('editStructureLink').href='/workflow_templates/template_stages?id='+encodeURIComponent(templateId);
+            const response=await fetch('/api/workflow_templates/structure?templateid='+encodeURIComponent(templateId));
+            if(!response.ok) throw new Error('The template structure could not be loaded.');
+            const data=await response.json(); const template=(data.template||[])[0];
+            if(!template) throw new Error('Template not found or unavailable for this organisation.');
+            const stages=data.stages||[],tasks=data.tasks||[],dependencies=data.dependencies||[]; teams=data.teams||[];
+            document.getElementById('structureTitle').textContent=template.templateName;
+            document.getElementById('structureDescription').textContent=template.description||'How phases, tasks and dependencies fit together.';
+            document.getElementById('phaseCount').textContent=stages.length; document.getElementById('taskCount').textContent=tasks.length; document.getElementById('dependencyCount').textContent=dependencies.length;
+            document.getElementById('templateTree').innerHTML='<div class="template-tree">'+stages.map((stage,index)=>{
+                const stageTasks=tasks.filter(task=>Number(task.templateStageId)===Number(stage.id));
+                return '<section class="template-phase"><span class="template-phase-marker" style="color:'+escapeHtml(stage.colour||'#6c757d')+';background:'+escapeHtml(stage.colour||'#6c757d')+'"></span><div class="card border-0 bg-light"><div class="card-body"><div class="d-flex justify-content-between align-items-start gap-3 mb-3"><div><div class="small text-muted text-uppercase fw-semibold">Phase '+(index+1)+'</div><h3 class="h5 mb-1">'+escapeHtml(stage.stageName)+'</h3><p class="small text-muted mb-0">'+escapeHtml(stage.description||'No phase description')+'</p></div><span class="badge bg-white text-dark border">'+stageTasks.length+' '+(stageTasks.length===1?'task':'tasks')+'</span></div><div class="template-task-list">'+(stageTasks.length?stageTasks.map(task=>{
+                    const blockers=dependencies.filter(dep=>Number(dep.templateTaskId)===Number(task.id));
+                    const unlocks=dependencies.filter(dep=>Number(dep.dependsOnTemplateTaskId)===Number(task.id)).map(dep=>tasks.find(candidate=>Number(candidate.id)===Number(dep.templateTaskId))).filter(Boolean);
+                    const blockerText=blockers.map(item=>escapeHtml(item.dependsOnTaskName)+' <span class="text-muted">('+escapeHtml(dependencyLabel(item.dependencyType))+')</span>').join(', ');
+                    return '<div class="template-task"><div><span class="fw-semibold">'+escapeHtml(task.taskName)+'</span><div class="small text-muted mt-1">'+escapeHtml(task.description||'No task description')+'</div><div class="task-meta"><span class="task-meta-item"><i class="fas '+(task.isRequired?'fa-asterisk text-danger':'fa-circle text-muted')+'"></i>'+(task.isRequired?'Required':'Optional')+'</span><span class="task-meta-item"><i class="fas '+priorityIcon(task.priority)+'"></i>'+escapeHtml(task.priority)+' priority</span><span class="task-meta-item"><i class="fas fa-user-circle"></i>'+escapeHtml(ownerLabel(task.defaultOwnerType))+'</span><span class="task-meta-item"><i class="fas fa-calendar-alt"></i>'+escapeHtml(dueLabel(task))+'</span></div></div>'+(blockers.length?'<div class="small dependency-note mt-2"><i class="fas fa-lock me-1"></i><strong>Depends on:</strong> '+blockerText+'</div>':'')+(unlocks.length?'<div class="small text-success mt-1"><i class="fas fa-unlock me-1"></i><strong>Unlocks:</strong> '+unlocks.map(item=>escapeHtml(item.taskName)).join(', ')+'</div>':'')+'</div>';
+                }).join(''):'<div class="small text-muted py-2">No tasks configured in this phase.</div>')+'</div></div></div></section>';
+            }).join('')+'</div>';
+            document.querySelectorAll('.template-phase').forEach((phase,index)=>{
+                const heading=phase.querySelector('.card-body > .d-flex');
+                heading.insertAdjacentHTML('beforeend','<button class="btn btn-sm btn-outline-primary js-toggle-editor" type="button"><i class="fas fa-pen me-1"></i>Edit phase</button>');
+                heading.insertAdjacentHTML('afterend',stageEditor(stages[index]));
+                const stageTasks=tasks.filter(task=>Number(task.templateStageId)===Number(stages[index].id));
+                phase.querySelectorAll('.template-task').forEach((taskElement,taskIndex)=>{
+                    taskElement.insertAdjacentHTML('afterbegin','<button class="btn btn-sm btn-outline-secondary float-end ms-2 js-toggle-editor" type="button"><i class="fas fa-pen me-1"></i>Edit</button>');
+                    taskElement.insertAdjacentHTML('beforeend',taskEditor(stageTasks[taskIndex]));
+                    const task=stageTasks[taskIndex],ownerSelect=taskElement.querySelector('[name="defaultOwnerType"]');
+                    ownerSelect.name='defaultOwnerId';
+                    ownerSelect.innerHTML=option('',task.defaultOwnerId||'','Unallocated')+teams.map(team=>option(team.id,task.defaultOwnerId,team.teamName)).join('');
+                    ownerSelect.closest('.col-md-4').querySelector('.form-label').firstChild.textContent='Default team';
+                    const ownerMeta=taskElement.querySelectorAll('.task-meta-item')[2];
+                    ownerMeta.innerHTML='<i class="fas fa-users"></i>'+escapeHtml(task.defaultTeamName||'Unallocated');
+                });
+            });
+        }catch(error){document.getElementById('templateTree').innerHTML='';const alert=document.getElementById('structureError');alert.textContent=error.message;alert.classList.remove('d-none');}
+    }
+    document.addEventListener('click',event=>{
+        const toggle=event.target.closest('.js-toggle-editor');
+        if(toggle){const container=toggle.closest('.template-task, .template-phase');const editor=container.querySelector('.js-inline-editor');editor.classList.toggle('d-none');if(!editor.classList.contains('d-none'))editor.querySelector('input:not([type="hidden"]), textarea, select')?.focus();}
+        const cancel=event.target.closest('.js-cancel-edit');
+        if(cancel)cancel.closest('.js-inline-editor').classList.add('d-none');
+    });
+    if(window.bootstrap?.Tooltip) new bootstrap.Tooltip(document.body,{selector:'[data-bs-toggle="tooltip"]',trigger:'hover focus',container:'body'});
+    document.addEventListener('submit',async event=>{
+        const form=event.target.closest('.js-inline-editor');if(!form)return;event.preventDefault();
+        const button=form.querySelector('[type="submit"]'),error=form.querySelector('.js-save-error'),original=button.textContent;
+        button.disabled=true;button.innerHTML='<i class="fas fa-spinner fa-spin me-1"></i>Saving';error.classList.add('d-none');
+        try{
+            const data=new FormData(form),csrf=document.querySelector('#csrfSource input');if(csrf)data.append(csrf.name,csrf.value);
+            const response=await fetch(form.action,{method:'POST',body:data});if(!response.ok)throw new Error('The changes could not be saved.');await load();
+        }catch(saveError){error.textContent=saveError.message;error.classList.remove('d-none');button.disabled=false;button.textContent=original;}
+    });
+    document.addEventListener('DOMContentLoaded',load);
+})();
+</script>
+<meta name="ac:route" content="/workflow_templates/template_structure">

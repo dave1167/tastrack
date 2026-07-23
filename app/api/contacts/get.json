@@ -1,1 +1,14 @@
-{"settings":{"options":{"nocsrf":true,"method":"get"}},"meta":{"$_GET":[{"type":"number","name":"id"}]},"exec":{"steps":{"name":"query","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"SELECT id, contactType, organisationName, firstName, lastName, displayName, COALESCE(NULLIF(TRIM(CONCAT_WS(' ', firstName, lastName)), ''), NULLIF(displayName, ''), NULLIF(organisationName, ''), 'Unnamed contact') AS contactName, email, phone, addressLine1, addressLine2, city, region, postcode, country, notes, isActive FROM tbl_contacts WHERE id = :id AND tenantId = :tenantId LIMIT 1","params":[{"name":":id","value":"{{$_GET.id}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true,"outputType":"array","meta":[{"name":"id","type":"number"},{"name":"contactType","type":"text"},{"name":"organisationName","type":"text"},{"name":"firstName","type":"text"},{"name":"lastName","type":"text"},{"name":"displayName","type":"text"},{"name":"contactName","type":"text"},{"name":"email","type":"text"},{"name":"phone","type":"text"},{"name":"addressLine1","type":"text"},{"name":"addressLine2","type":"text"},{"name":"city","type":"text"},{"name":"region","type":"text"},{"name":"postcode","type":"text"},{"name":"country","type":"text"},{"name":"notes","type":"text"},{"name":"isActive","type":"number"}]}}}
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "id"}]},
+  "exec": {"steps": {"name": "query", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+    "query": "SELECT c.id,c.contactCategoryId,COALESCE(cc.categoryName,c.contactType) AS contactType,c.organisationName,c.firstName,c.lastName,c.displayName,COALESCE(NULLIF(TRIM(CONCAT_WS(' ',c.firstName,c.lastName)),''),NULLIF(c.displayName,''),NULLIF(c.organisationName,''),'Unnamed contact') AS contactName,c.email,c.phone,c.addressLine1,c.addressLine2,c.city,c.region,c.postcode,c.country,c.notes,c.isActive FROM tbl_contacts c LEFT JOIN tbl_contact_categories cc ON cc.contactCategoryId=c.contactCategoryId AND cc.tenantId=c.tenantId WHERE c.id=:id AND c.tenantId=:tenantId LIMIT 1",
+    "params": [{"name": ":id", "value": "{{$_GET.id}}"}, {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+  }}, "output": true, "outputType": "array", "meta": [
+    {"name": "id", "type": "number"}, {"name": "contactCategoryId", "type": "number"}, {"name": "contactType", "type": "text"},
+    {"name": "organisationName", "type": "text"}, {"name": "firstName", "type": "text"}, {"name": "lastName", "type": "text"},
+    {"name": "displayName", "type": "text"}, {"name": "contactName", "type": "text"}, {"name": "email", "type": "text"},
+    {"name": "phone", "type": "text"}, {"name": "addressLine1", "type": "text"}, {"name": "addressLine2", "type": "text"},
+    {"name": "city", "type": "text"}, {"name": "region", "type": "text"}, {"name": "postcode", "type": "text"},
+    {"name": "country", "type": "text"}, {"name": "notes", "type": "text"}, {"name": "isActive", "type": "number"}
+  ]}}}

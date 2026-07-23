@@ -1,0 +1,37 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "text", "name": "fieldKey"}, {"type": "text", "name": "columnLabel"},
+    {"type": "number", "name": "isVisible"}, {"type": "number", "name": "sortOrder"},
+    {"type": "number", "name": "width"}
+  ]},
+  "exec": {"steps": [
+    {"name": "personalView", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+      "query": "SELECT id FROM tbl_board_views WHERE tenantId=:tenantId AND userId=:userId AND templateId IS NULL AND isDefault=1 ORDER BY id DESC LIMIT 1",
+      "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}]
+    }}, "output": true, "outputType": "array"},
+    {"name": "createPersonalView", "module": "core", "action": "condition", "options": {"if": "{{personalView.count() == 0}}", "then": {"steps": {
+      "name": "insertView", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+        "query": "INSERT INTO tbl_board_views (tenantId,templateId,userId,viewName,viewType,isDefault) VALUES (:tenantId,NULL,:userId,'My board','personal',1)",
+        "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}]
+      }}, "output": true}
+    }}, "outputType": "boolean"},
+    {"name": "resolvedView", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+      "query": "SELECT id FROM tbl_board_views WHERE tenantId=:tenantId AND userId=:userId AND templateId IS NULL AND isDefault=1 ORDER BY id DESC LIMIT 1",
+      "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}]
+    }}, "output": true, "outputType": "array"},
+    {"name": "inheritTenantColumns", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+      "query": "INSERT IGNORE INTO tbl_board_view_columns (boardViewId,fieldKey,columnLabel,isVisible,sortOrder,width) SELECT :personalView,c.fieldKey,c.columnLabel,c.isVisible,c.sortOrder,c.width FROM tbl_board_view_columns c INNER JOIN tbl_board_views source ON source.id=c.boardViewId WHERE source.tenantId=:tenantId AND source.userId IS NULL AND source.templateId IS NULL AND source.isDefault=1",
+      "params": [{"name": ":personalView", "value": "{{resolvedView[0].id}}"}, {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+    }}, "output": true},
+    {"name": "saveColumn", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+      "query": "INSERT INTO tbl_board_view_columns (boardViewId,fieldKey,columnLabel,isVisible,sortOrder,width) SELECT v.id,:fieldKey,:columnLabel,:isVisible,:sortOrder,NULLIF(:width,0) FROM tbl_board_views v WHERE v.id=:viewId AND v.tenantId=:tenantId AND v.userId=:userId ON DUPLICATE KEY UPDATE columnLabel=VALUES(columnLabel),isVisible=VALUES(isVisible),sortOrder=VALUES(sortOrder),width=VALUES(width),modifiedDate=CURRENT_TIMESTAMP",
+      "params": [
+        {"name": ":fieldKey", "value": "{{$_POST.fieldKey}}"}, {"name": ":columnLabel", "value": "{{$_POST.columnLabel}}"},
+        {"name": ":isVisible", "value": "{{$_POST.isVisible.default(0)}}"}, {"name": ":sortOrder", "value": "{{$_POST.sortOrder.default(0)}}"},
+        {"name": ":width", "value": "{{$_POST.width.default(0)}}"}, {"name": ":viewId", "value": "{{resolvedView[0].id}}"},
+        {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}
+      ]
+    }}, "output": true}
+  ]}
+}

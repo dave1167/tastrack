@@ -211,6 +211,13 @@
       "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
+      "path": "/workflow_templates/template_structure",
+      "page": "workflow_templates/template_structure",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
       "path": "/workflow_templates/template_tasks",
       "page": "workflow_templates/template_tasks",
       "layout": "main_shell",

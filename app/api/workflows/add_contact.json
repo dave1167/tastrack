@@ -1,0 +1,26 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "number", "name": "workflowId"}, {"type": "number", "name": "contactId"},
+    {"type": "text", "name": "relationshipType", "options": {"rules": {"core:required": {"param": ""}}}},
+    {"type": "number", "name": "isPrimary"}, {"type": "text", "name": "notes"}
+  ]},
+  "exec": {"steps": [
+    {"name": "linkContact", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+      "query": "INSERT INTO tbl_workflow_contacts (tenantId,workflowId,contactId,relationshipType,isPrimary,notes) SELECT :tenantId,w.id,c.id,:relationshipType,:isPrimary,:notes FROM tbl_workflows w INNER JOIN tbl_contacts c ON c.id=:contactId AND c.tenantId=w.tenantId AND c.isActive=1 WHERE w.id=:workflowId AND w.tenantId=:workflowTenantId ON DUPLICATE KEY UPDATE isPrimary=VALUES(isPrimary),notes=VALUES(notes),modifiedDate=CURRENT_TIMESTAMP",
+      "params": [
+        {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}, {"name": ":relationshipType", "value": "{{$_POST.relationshipType}}"},
+        {"name": ":isPrimary", "value": "{{$_POST.isPrimary.default(0)}}"}, {"name": ":notes", "value": "{{$_POST.notes.default('')}}"},
+        {"name": ":contactId", "value": "{{$_POST.contactId}}"}, {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+        {"name": ":workflowTenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+      ]}}, "output": true},
+    {"name": "normalisePrimaryContact", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+      "query": "UPDATE tbl_workflow_contacts SET isPrimary=CASE WHEN contactId=:contactId AND relationshipType=:relationshipType THEN 1 ELSE 0 END,modifiedDate=CURRENT_TIMESTAMP WHERE workflowId=:workflowId AND tenantId=:tenantId AND :makePrimary=1",
+      "params": [
+        {"name": ":contactId", "value": "{{$_POST.contactId}}"}, {"name": ":relationshipType", "value": "{{$_POST.relationshipType}}"},
+        {"name": ":workflowId", "value": "{{$_POST.workflowId}}"}, {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+        {"name": ":makePrimary", "value": "{{$_POST.isPrimary.default(0)}}"}
+      ]}}, "output": true},
+    {"module": "core", "action": "redirect", "options": {"url": "/workflows/view?id={{$_POST.workflowId}}&section=contacts", "status": 302}}
+  ]}
+}

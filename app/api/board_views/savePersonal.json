@@ -1,0 +1,64 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "text", "name": "viewName"},
+    {"type": "number", "name": "showTemplate"},
+    {"type": "number", "name": "showTargetDate"},
+    {"type": "number", "name": "showOwner"},
+    {"type": "number", "name": "showProgress"},
+    {"type": "number", "name": "showStatus"},
+    {"type": "number", "name": "showRisk"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "clearDefault",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "UPDATE tbl_board_views SET isDefault=0 WHERE tenantId=:tenantId AND userId=:userId AND templateId IS NULL",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}
+        ]
+      }}
+    },
+    {
+      "name": "createView",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "INSERT INTO tbl_board_views (tenantId,templateId,userId,viewName,viewType,isDefault) VALUES (:tenantId,NULL,:userId,:viewName,'personal',1)",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"},
+          {"name": ":viewName", "value": "{{$_POST.viewName.default('My board')}}"}
+        ]
+      }},
+      "output": true
+    },
+    {
+      "name": "columns",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "INSERT INTO tbl_board_view_columns (boardViewId,fieldKey,columnLabel,isVisible,sortOrder,width) VALUES (:viewId,'workflowName','Workflow',1,10,280),(:viewId2,'templateName','Template',:showTemplate,20,180),(:viewId3,'targetDate','Target date',:showTargetDate,30,140),(:viewId4,'ownerName','Owner',:showOwner,40,180),(:viewId5,'progress','Progress',:showProgress,50,150),(:viewId6,'status','Status',:showStatus,60,120),(:viewId7,'risk','Risk',:showRisk,70,220)",
+        "params": [
+          {"name": ":viewId", "value": "{{createView.identity}}"},
+          {"name": ":viewId2", "value": "{{createView.identity}}"},
+          {"name": ":showTemplate", "value": "{{$_POST.showTemplate.default(0)}}"},
+          {"name": ":viewId3", "value": "{{createView.identity}}"},
+          {"name": ":showTargetDate", "value": "{{$_POST.showTargetDate.default(0)}}"},
+          {"name": ":viewId4", "value": "{{createView.identity}}"},
+          {"name": ":showOwner", "value": "{{$_POST.showOwner.default(0)}}"},
+          {"name": ":viewId5", "value": "{{createView.identity}}"},
+          {"name": ":showProgress", "value": "{{$_POST.showProgress.default(0)}}"},
+          {"name": ":viewId6", "value": "{{createView.identity}}"},
+          {"name": ":showStatus", "value": "{{$_POST.showStatus.default(0)}}"},
+          {"name": ":viewId7", "value": "{{createView.identity}}"},
+          {"name": ":showRisk", "value": "{{$_POST.showRisk.default(0)}}"}
+        ]
+      }}
+    },
+    {"module": "core", "action": "redirect", "options": {"url": "/workflows", "status": 302}}
+  ]}
+}

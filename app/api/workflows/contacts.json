@@ -1,0 +1,12 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "workflowid"}]},
+  "exec": {"steps": {"name": "query", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
+    "query": "SELECT wc.id,wc.workflowId,wc.contactId,wc.relationshipType,wc.isPrimary,wc.notes,c.displayName,c.organisationName,COALESCE(NULLIF(TRIM(CONCAT_WS(' ',c.firstName,c.lastName)),''),NULLIF(c.displayName,''),NULLIF(c.organisationName,''),'Unnamed contact') AS contactName,COALESCE(cc.categoryName,c.contactType) AS categoryName,c.email,c.phone FROM tbl_workflow_contacts wc INNER JOIN tbl_workflows w ON w.id=wc.workflowId AND w.tenantId=wc.tenantId INNER JOIN tbl_contacts c ON c.id=wc.contactId AND c.tenantId=wc.tenantId LEFT JOIN tbl_contact_categories cc ON cc.contactCategoryId=c.contactCategoryId AND cc.tenantId=c.tenantId WHERE wc.workflowId=:workflowId AND wc.tenantId=:tenantId ORDER BY wc.isPrimary DESC,wc.relationshipType,contactName",
+    "params": [{"name": ":workflowId", "value": "{{$_GET.workflowid}}"}, {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
+  }}, "output": true, "outputType": "array", "meta": [
+    {"name": "id", "type": "number"}, {"name": "workflowId", "type": "number"}, {"name": "contactId", "type": "number"},
+    {"name": "relationshipType", "type": "text"}, {"name": "isPrimary", "type": "number"}, {"name": "notes", "type": "text"},
+    {"name": "displayName", "type": "text"}, {"name": "organisationName", "type": "text"}, {"name": "contactName", "type": "text"},
+    {"name": "categoryName", "type": "text"}, {"name": "email", "type": "text"}, {"name": "phone", "type": "text"}
+  ]}}}

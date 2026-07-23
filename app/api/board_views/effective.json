@@ -1,0 +1,39 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "exec": {
+    "steps": [
+      {
+        "name": "view",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT v.id,v.viewName,v.viewType FROM tbl_board_views v WHERE v.tenantId=:tenantId AND v.templateId IS NULL AND v.isDefault=1 AND (v.userId=:userId OR v.userId IS NULL) ORDER BY CASE WHEN v.userId=:userId2 THEN 0 ELSE 1 END,CASE v.viewType WHEN 'personal' THEN 0 WHEN 'tenant' THEN 1 ELSE 2 END LIMIT 1",
+            "params": [
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+              {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"},
+              {"name": ":userId2", "value": "{{$_SESSION.USER_ID}}"}
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "columns",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT c.fieldKey,c.columnLabel,c.isVisible,c.sortOrder,c.width FROM tbl_board_view_columns c WHERE c.boardViewId=:viewId ORDER BY c.sortOrder,c.id",
+            "params": [{"name": ":viewId", "value": "{{view[0].id}}"}]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      }
+    ]
+  }
+}

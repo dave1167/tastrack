@@ -33,8 +33,9 @@
                     Loading user details...
                 </div>
 
-                <div class="alert alert-danger" dmx-if="frmEditUser.lastError.response.message">
-                    <span dmx-text="frmEditUser.lastError.response.message"></span>
+                <div class="alert alert-danger" dmx-show="frmEditUser.lastError">
+                    <strong>Changes could not be saved.</strong>
+                    <span dmx-text="frmEditUser.lastError.response.message.default('Check the highlighted fields and try again.')"></span>
                 </div>
 
                 <form id="frmEditUser" is="dmx-serverconnect-form" method="post" action="/api/users/editUser" dmx-on:success="browser1.goto('/users/all_users')">
@@ -96,29 +97,26 @@
                                 <label for="inp_roleId">User Access</label>
                             </div>
 
-                            <input id="hidRoleId" name="hidRoleId" type="hidden" dmx-bind:value="inp_roleId.value">
                         </div>
 
                         <div class="col-12 col-md-6">
                             <div class="form-floating">
-                                <select id="inp_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-bind:value="scGetUser.data.query[0].teamId" dmx-on:changed="scTeamRoles.load({teamid: value})">
-                                    <option value="">Select team</option>
+                                <select id="inp_teamId" name="teamId" class="form-select" dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-bind:value="scGetUser.data.query[0].teamId" dmx-on:changed="scTeamRoles.load({teamid: value})">
+                                    <option value="">No team</option>
                                 </select>
                                 <label for="inp_teamId">Team</label>
                             </div>
 
-                            <input id="hidTeamId" name="hidTeamId" type="hidden" dmx-bind:value="inp_teamId.value">
                         </div>
 
                         <div class="col-12 col-md-6">
                             <div class="form-floating">
-                                <select id="inp_teamRole" name="teamRole" class="form-select" required dmx-bind:options="scTeamRoles.data.qryTeamRoles" optiontext="roleDesc" optionvalue="id" dmx-bind:value="scGetUser.data.query[0].teamRoleId">
-                                    <option value="">Select Role</option>
+                                <select id="inp_teamRole" name="teamRole" class="form-select" dmx-bind:disabled="!inp_teamId.value" dmx-bind:required="inp_teamId.value" dmx-bind:options="scTeamRoles.data.qryTeamRoles" optiontext="roleDesc" optionvalue="id" dmx-bind:value="scGetUser.data.query[0].teamRoleId">
+                                    <option value="">Select team role</option>
                                 </select>
                                 <label for="inp_teamRole">Team member Role</label>
                             </div>
 
-                            <input id="hidTeamRole" name="hidTeamRole" type="hidden" dmx-bind:value="inp_teamRole.value">
                         </div>
 
                     </div>

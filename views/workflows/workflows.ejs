@@ -1,21 +1,136 @@
-<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="workflows" appConnect="local" components="{dmxStateManagement:{}}" -->
-<dmx-serverconnect id="scWorkflows" url="/api/workflows/list"></dmx-serverconnect>
-
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="workflows" appConnect="local" components="{dmxBootstrap5Modal:{}}" -->
 <div class="row g-4">
     <div class="col-12">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-            <div><h1 class="mb-1" dmx-text="scTerminology.data.query[0].workflowPlural">Workflows</h1><p class="text-muted mb-0">Create and manage live delivery from published templates.</p></div>
-            <a class="btn btn-primary" href="/workflows/create"><i class="fas fa-plus me-2"></i><span dmx-text="'New ' + scTerminology.data.query[0].workflowSingular.lowercase()">New workflow</span></a>
+            <div><h1 class="mb-1" dmx-text="scTerminology.data.query[0].workflowSingular + ' Overview'">Event Overview</h1><p class="text-muted mb-0" dmx-text="'Review ' + scTerminology.data.query[0].workflowPlural.lowercase() + ', fields, ' + scTerminology.data.query[0].taskPlural.lowercase() + ', ' + scTerminology.data.query[0].stagePlural.lowercase() + ' and risks in one place.'">Review events, fields, tasks, phases and risks in one place.</p></div>
+            <div class="d-flex gap-2"><button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#boardColumnsModal"><i class="fas fa-columns me-2"></i>Configure columns</button><a class="btn btn-primary" href="/workflows/create"><i class="fas fa-plus me-2"></i>New workflow</a></div>
         </div>
     </div>
     <div class="col-12">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3"><h2 class="h5 mb-0" dmx-text="'All ' + scTerminology.data.query[0].workflowPlural.lowercase()">All workflows</h2><span class="badge rounded-pill bg-primary" dmx-text="scWorkflows.data.query.count() + ' ' + (scWorkflows.data.query.count() == 1 ? scTerminology.data.query[0].workflowSingular.lowercase() : scTerminology.data.query[0].workflowPlural.lowercase())"></span></div>
-            <div class="card-body">
-                <div class="table-responsive"><table class="table table-striped table-hover align-middle mb-0"><thead><tr><th dmx-text="scTerminology.data.query[0].workflowSingular">Workflow</th><th>Template</th><th>Dates</th><th>Progress</th><th>Status</th><th class="text-end">Actions</th></tr></thead><tbody is="dmx-repeat" dmx-bind:repeat="scWorkflows.data.query"><tr><td><div class="fw-semibold" dmx-text="workflowName"></div><div class="text-muted small" dmx-text="referenceCode"></div></td><td dmx-text="templateName"></td><td><div dmx-text="startDate.formatDate('dd MMM yyyy')"></div><div class="small text-muted" dmx-text="'Target: ' + targetDate.formatDate('dd MMM yyyy')"></div></td><td><div class="small" dmx-text="completedStageCount + '/' + stageCount + ' ' + scTerminology.data.query[0].stagePlural.lowercase()"></div><div class="small text-muted" dmx-text="completedTaskCount + '/' + taskCount + ' ' + scTerminology.data.query[0].taskPlural.lowercase()"></div></td><td><span class="badge bg-primary" dmx-text="status.replace('_',' ')"></span></td><td class="text-end"><div class="d-inline-flex gap-2"><a class="btn btn-sm btn-primary" dmx-bind:href="'/workflows/view?id=' + id">Open</a><a class="btn btn-sm btn-outline-primary" dmx-bind:href="'/workflows/edit?id=' + id">Edit</a></div></td></tr></tbody></table></div>
-                <div class="text-center py-5" dmx-show="!scWorkflows.state.executing && scWorkflows.data.query.count() == 0"><i class="fas fa-route fa-2x text-muted mb-3"></i><h3 class="h6" dmx-text="'No live ' + scTerminology.data.query[0].workflowPlural.lowercase() + ' yet'">No live workflows yet</h3><p class="text-muted small mb-3">Create one from a published template.</p><a class="btn btn-sm btn-primary" href="/workflows/create" dmx-text="'New ' + scTerminology.data.query[0].workflowSingular.lowercase()">New workflow</a></div>
+            <div class="card-header bg-white py-3"><div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"><h2 class="h5 mb-0">My overview</h2><div class="d-flex align-items-center gap-2"><div class="input-group input-group-sm" style="width:min(100%,360px)"><span class="input-group-text"><i class="fas fa-search"></i></span><input class="form-control" id="boardSearch" type="search" placeholder="Search events, venues, tasks…" aria-label="Search event overview"><button class="btn btn-outline-secondary" id="clearBoardSearch" type="button" aria-label="Clear search"><i class="fas fa-times"></i></button></div><span class="badge rounded-pill bg-primary" id="boardRowCount">0</span></div></div></div>
+            <div class="card-body p-0">
+                <div class="workflow-board-scroll" tabindex="0" aria-label="Scrollable event overview"><table class="table table-sm table-striped table-hover align-middle mb-0 workflow-board-compact" id="workflowBoard"><thead></thead><tbody></tbody></table></div>
+                <div class="text-center text-muted py-5" id="boardLoading"><i class="fas fa-spinner fa-spin me-2"></i>Loading board…</div>
+                <div class="text-center text-muted py-5 d-none" id="boardEmpty">No workflows match this board.</div>
+                <div class="alert alert-danger m-3 d-none" id="boardError"></div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="boardColumnsModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><div><h2 class="modal-title fs-5">Configure spreadsheet columns</h2><p class="text-muted small mb-0">Hidden columns still contribute to workflow rules, dependencies and risk.</p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><div class="row g-3 mb-3"><div class="col-md-7"><label class="form-label" for="columnSearch">Find a column</label><input class="form-control" id="columnSearch" placeholder="Venue, contract, marketing, payment…"></div><div class="col-md-5 d-flex align-items-end"><div class="small text-muted">Change the label, order or width as required. Lower order numbers appear first.</div></div></div><div id="availableColumns"><div class="text-center text-muted py-5"><i class="fas fa-spinner fa-spin me-2"></i>Loading available columns…</div></div></div>
+    <div class="modal-footer"><span class="small text-muted me-auto" id="columnSaveStatus"></span><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" id="saveBoardColumns">Save personal view</button></div>
+</div></div></div>
+
+<form id="csrfSource" class="d-none"><%- _csrfInput() %></form>
+<script>
+(function () {
+    const state = { board: null, available: [], search: '', sortKey: '', sortDirection: 'asc' };
+    const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    const normaliseValue = value => value && value.type === 'Buffer' && Array.isArray(value.data) ? new TextDecoder().decode(new Uint8Array(value.data)) : value;
+    const statusClass = value => ({complete:'success',green:'success',amber:'warning',red:'danger',grey:'secondary',in_progress:'primary',waiting:'warning',overdue:'danger',not_started:'secondary',skipped:'secondary',cancelled:'dark'}[String(value).replaceAll(' ','_')] || 'secondary');
+    const riskMeta = value => ({
+        green: {icon:'fa-check-circle', colour:'#198754', label:'Green'},
+        amber: {icon:'fa-exclamation-triangle', colour:'#b76e00', label:'Amber'},
+        red: {icon:'fa-exclamation-circle', colour:'#dc3545', label:'Red'},
+        grey: {icon:'fa-minus-circle', colour:'#6c757d', label:'Grey'}
+    }[String(value || 'grey').toLowerCase()] || {icon:'fa-minus-circle', colour:'#6c757d', label:'Grey'});
+
+    function cellMap(data) {
+        const map = new Map();
+        [...(data.phaseCells || []), ...(data.fieldCells || []), ...(data.taskCells || []), ...(data.stageCells || [])].forEach(cell => map.set(cell.workflowId + '|' + cell.fieldKey, normaliseValue(cell.displayValue)));
+        return map;
+    }
+
+    function boardValue(row, column, cells) {
+        if (column.fieldKey === 'risk') return row.riskLevel || 'grey';
+        return normaliseValue(Object.prototype.hasOwnProperty.call(row, column.fieldKey) ? row[column.fieldKey] : cells.get(row.id + '|' + column.fieldKey)) || '';
+    }
+
+    function renderBoard(data) {
+        const table = document.getElementById('workflowBoard');
+        const columns = data.columns || [];
+        let rows = [...(data.rows || [])];
+        const cells = cellMap(data);
+        const search = state.search.trim().toLowerCase();
+        if (search) rows = rows.filter(row => columns.some(column => String(boardValue(row,column,cells)).toLowerCase().includes(search)) || String(row.referenceCode || '').toLowerCase().includes(search) || String(row.riskReason || '').toLowerCase().includes(search));
+        if (state.sortKey) {
+            const column = columns.find(item => item.fieldKey === state.sortKey);
+            const riskOrder = {grey:0,green:1,amber:2,red:3};
+            rows.sort((a,b) => {
+                let left = boardValue(a,column,cells), right = boardValue(b,column,cells);
+                if (state.sortKey === 'risk') { left = riskOrder[left] ?? -1; right = riskOrder[right] ?? -1; }
+                else { left = String(left).toLowerCase(); right = String(right).toLowerCase(); }
+                const result = left < right ? -1 : left > right ? 1 : 0;
+                return state.sortDirection === 'asc' ? result : -result;
+            });
+        }
+        table.querySelector('thead').innerHTML = '<tr>' + columns.map(column => { const active = state.sortKey === column.fieldKey; const icon = !active ? 'fa-sort text-muted' : state.sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'; const compactWidth = Math.max(85,Math.round(Number(column.width || 140)*0.75)); return '<th style="min-width:' + compactWidth + 'px"><button class="btn btn-link btn-sm p-0 text-decoration-none text-dark fw-semibold board-sort" type="button" data-field-key="' + escapeHtml(column.fieldKey) + '">' + escapeHtml(column.columnLabel) + ' <i class="fas ' + icon + ' ms-1"></i></button></th>'; }).join('') + '</tr>';
+        table.querySelector('tbody').innerHTML = rows.map(row => '<tr class="board-row" data-href="/workflows/view?id=' + row.id + '">' + columns.map(column => {
+            let value = boardValue(row,column,cells);
+            if (column.fieldKey === 'workflowName') return '<td><a class="fw-semibold text-decoration-none" href="/workflows/view?id=' + row.id + '">' + escapeHtml(value) + '</a><div class="small text-muted">' + escapeHtml(row.referenceCode) + '</div></td>';
+            if (column.fieldKey === 'risk') { const risk = riskMeta(row.riskLevel); return '<td><div class="d-flex align-items-start gap-2"><i class="fas ' + risk.icon + ' mt-1" style="color:' + risk.colour + '" aria-hidden="true"></i><div><div class="fw-semibold" style="color:' + risk.colour + '">' + risk.label + '</div><div class="small text-muted">' + escapeHtml(row.riskReason) + '</div></div></div></td>'; }
+            if (column.fieldKey === 'status' || column.fieldKey.startsWith('task:')) return '<td><span class="badge bg-' + statusClass(value) + ' text-capitalize">' + escapeHtml(value || '—') + '</span></td>';
+            return '<td>' + escapeHtml(value || '—') + '</td>';
+        }).join('') + '</tr>').join('');
+        document.getElementById('boardRowCount').textContent = rows.length;
+        document.getElementById('boardLoading').classList.add('d-none');
+        document.getElementById('boardEmpty').classList.toggle('d-none', rows.length !== 0);
+        table.classList.toggle('d-none', rows.length === 0);
+    }
+
+    function renderAvailable(columns) {
+        const groups = new Map();
+        columns.forEach(column => { if (!groups.has(column.groupLabel)) groups.set(column.groupLabel, []); groups.get(column.groupLabel).push(column); });
+        document.getElementById('availableColumns').innerHTML = [...groups].map(([group, items]) => '<section class="column-group mb-4"><h3 class="h6 text-uppercase text-muted">' + escapeHtml(group) + '</h3><div class="border rounded overflow-hidden">' + items.map(column => '<div class="board-column-row row g-2 align-items-center p-2 border-bottom" data-search="' + escapeHtml((column.columnLabel + ' ' + column.fieldKey).toLowerCase()) + '" data-field-key="' + escapeHtml(column.fieldKey) + '" data-initial="' + [column.isVisible,column.columnLabel,column.sortOrder,column.width].join('|') + '"><div class="col-auto"><input class="form-check-input column-visible" type="checkbox" ' + (Number(column.isVisible) ? 'checked' : '') + ' aria-label="Show ' + escapeHtml(column.columnLabel) + '"></div><div class="col-md-4"><input class="form-control form-control-sm column-label" value="' + escapeHtml(column.columnLabel) + '" aria-label="Column label"></div><div class="col"><div class="small text-muted text-truncate">' + escapeHtml(column.fieldKey) + '</div></div><div class="col-3 col-md-1"><input class="form-control form-control-sm column-order" type="number" value="' + Number(column.sortOrder || 0) + '" title="Order"></div><div class="col-4 col-md-2"><div class="input-group input-group-sm"><input class="form-control column-width" type="number" min="80" max="600" value="' + Number(column.width || 160) + '"><span class="input-group-text">px</span></div></div></div>').join('') + '</div></section>').join('');
+    }
+
+    async function load() {
+        try {
+            const [boardResponse, availableResponse] = await Promise.all([fetch('/api/board_views/board'), fetch('/api/board_views/available')]);
+            if (!boardResponse.ok || !availableResponse.ok) throw new Error('The board APIs could not be loaded. Confirm the board-view database migration has been run.');
+            state.board = await boardResponse.json();
+            const availableData = await availableResponse.json();
+            state.available = [...(availableData.columns || []), ...(availableData.additionalColumns || [])];
+            renderBoard(state.board);
+            renderAvailable(state.available);
+        } catch (error) {
+            document.getElementById('boardLoading').classList.add('d-none');
+            const alert = document.getElementById('boardError'); alert.textContent = error.message; alert.classList.remove('d-none');
+        }
+    }
+
+    document.getElementById('columnSearch').addEventListener('input', event => {
+        const search = event.target.value.toLowerCase();
+        document.querySelectorAll('.board-column-row').forEach(row => row.classList.toggle('d-none', !row.dataset.search.includes(search)));
+    });
+    document.getElementById('boardSearch').addEventListener('input', event => { state.search = event.target.value; if (state.board) renderBoard(state.board); });
+    document.getElementById('clearBoardSearch').addEventListener('click', () => { const input = document.getElementById('boardSearch'); input.value=''; state.search=''; if (state.board) renderBoard(state.board); input.focus(); });
+    document.querySelector('#workflowBoard thead').addEventListener('click', event => { const button = event.target.closest('.board-sort'); if (!button) return; const key=button.dataset.fieldKey; if (state.sortKey===key) state.sortDirection=state.sortDirection==='asc'?'desc':'asc'; else { state.sortKey=key; state.sortDirection='asc'; } if (state.board) renderBoard(state.board); });
+    document.getElementById('saveBoardColumns').addEventListener('click', async event => {
+        const button = event.currentTarget; button.disabled = true;
+        const status = document.getElementById('columnSaveStatus'); status.textContent = 'Saving…';
+        const csrfInput = document.querySelector('#csrfSource input');
+        const rows = [...document.querySelectorAll('.board-column-row')];
+        try {
+            for (const row of rows) {
+                const form = new FormData();
+                if (csrfInput) form.append(csrfInput.name, csrfInput.value);
+                form.append('fieldKey', row.dataset.fieldKey);
+                form.append('columnLabel', row.querySelector('.column-label').value);
+                form.append('isVisible', row.querySelector('.column-visible').checked ? '1' : '0');
+                form.append('sortOrder', row.querySelector('.column-order').value || '0');
+                form.append('width', row.querySelector('.column-width').value || '160');
+                const response = await fetch('/api/board_views/setColumn', {method:'POST', body:form});
+                if (!response.ok) throw new Error('A column could not be saved.');
+            }
+            status.textContent = 'Saved'; window.location.reload();
+        } catch (error) { status.textContent = error.message; button.disabled = false; }
+    });
+    document.addEventListener('DOMContentLoaded', load);
+})();
+</script>
 <meta name="ac:route" content="/workflows">

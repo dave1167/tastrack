@@ -417,6 +417,71 @@
   padding: 1.25rem;
 }
 
+/* Configurable workflow board: keep wide spreadsheet views horizontally usable. */
+.workflow-board-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: scroll;
+  overflow-y: visible;
+  scrollbar-gutter: stable;
+  padding-bottom: 0.35rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.workflow-board-scroll #workflowBoard {
+  width: max-content;
+  min-width: 100%;
+}
+
+.workflow-board-compact {
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.workflow-board-compact > :not(caption) > * > * {
+  padding: 0.38rem 0.48rem;
+}
+
+.workflow-board-compact thead th {
+  white-space: nowrap;
+  font-size: 0.76rem;
+  background: #f8f9fa;
+}
+
+.workflow-board-compact .board-sort {
+  font-size: 0.76rem;
+  line-height: 1;
+}
+
+.workflow-board-compact .badge {
+  font-size: 0.68rem;
+  padding: 0.25em 0.45em;
+}
+
+.workflow-board-compact .small {
+  font-size: 0.7rem;
+  line-height: 1.15;
+}
+
+.workflow-board-scroll::-webkit-scrollbar {
+  height: 14px;
+}
+
+.workflow-board-scroll::-webkit-scrollbar-track {
+  background: #e9ecef;
+  border-radius: 999px;
+}
+
+.workflow-board-scroll::-webkit-scrollbar-thumb {
+  background: #6c757d;
+  border: 3px solid #e9ecef;
+  border-radius: 999px;
+}
+
+.workflow-board-scroll::-webkit-scrollbar-thumb:hover {
+  background: #495057;
+}
+
 @media (min-width: 992px) {
   .shell-sidebar {
     position: fixed;

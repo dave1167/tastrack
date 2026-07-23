@@ -1,1 +1,386 @@
-{"settings":{"options":{"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"id"},{"type":"text","name":"taskName"},{"type":"text","name":"description"},{"type":"text","name":"status"},{"type":"text","name":"priority"},{"type":"number","name":"isRequired"},{"type":"text","name":"assignment"},{"type":"text","name":"dueDate"}]},"exec":{"steps":[{"name":"updateTask","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_tasks SET taskName=:taskName,description=:description,status=:status,priority=:priority,isRequired=:isRequired,assignedToUserId=CASE WHEN SUBSTRING_INDEX(:assignment1,':',1)='user' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment2,':',-1),'') AS UNSIGNED) ELSE NULL END,assignedToTeamId=CASE WHEN SUBSTRING_INDEX(:assignment3,':',1)='team' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment4,':',-1),'') AS UNSIGNED) ELSE NULL END,assignedToRoleId=CASE WHEN SUBSTRING_INDEX(:assignment5,':',1)='role' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment6,':',-1),'') AS UNSIGNED) ELSE NULL END,dueDate=NULLIF(:dueDate,''),startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(startedDate,CURRENT_TIMESTAMP) ELSE startedDate END,completedDate=CASE WHEN :status3='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND tenantId=:tenantId","params":[{"name":":taskName","value":"{{$_POST.taskName}}"},{"name":":description","value":"{{$_POST.description.default('')}}"},{"name":":status","value":"{{$_POST.status}}"},{"name":":priority","value":"{{$_POST.priority}}"},{"name":":isRequired","value":"{{$_POST.isRequired.default(0)}}"},{"name":":assignment1","value":"{{$_POST.assignment.default('unassigned:')}}"},{"name":":assignment2","value":"{{$_POST.assignment.default('unassigned:')}}"},{"name":":assignment3","value":"{{$_POST.assignment.default('unassigned:')}}"},{"name":":assignment4","value":"{{$_POST.assignment.default('unassigned:')}}"},{"name":":assignment5","value":"{{$_POST.assignment.default('unassigned:')}}"},{"name":":assignment6","value":"{{$_POST.assignment.default('unassigned:')}}"},{"name":":dueDate","value":"{{$_POST.dueDate.default('')}}"},{"name":":status2","value":"{{$_POST.status}}"},{"name":":status3","value":"{{$_POST.status}}"},{"name":":status4","value":"{{$_POST.status}}"},{"name":":userId","value":"{{$_SESSION.USER_ID}}"},{"name":":id","value":"{{$_POST.id}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true},{"module":"core","action":"redirect","options":{"url":"/tasks","status":302}}]}}
+{
+  "settings": {
+    "options": {
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "number",
+        "name": "id"
+      },
+      {
+        "type": "text",
+        "name": "taskName"
+      },
+      {
+        "type": "text",
+        "name": "description"
+      },
+      {
+        "type": "text",
+        "name": "status"
+      },
+      {
+        "type": "text",
+        "name": "priority"
+      },
+      {
+        "type": "number",
+        "name": "isRequired"
+      },
+      {
+        "type": "text",
+        "name": "assignment"
+      },
+      {
+        "type": "text",
+        "name": "dueDate"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "taskAuthority",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT CAST(CASE WHEN EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId WHERE utr.tenantId=:tenantId AND utr.userId=:userId AND utr.isActive=1 AND r.roleName='Owner') OR EXISTS(SELECT 1 FROM tbl_tasks t INNER JOIN tbl_user_tenant_roles utr ON utr.tenantId=t.tenantId AND utr.userId=:userId2 AND utr.isActive=1 INNER JOIN tbl_team_members tm ON tm.tenantId=t.tenantId AND tm.tenantUserId=utr.id AND tm.teamId=t.assignedToTeamId AND tm.isActive=1 WHERE t.id=:taskId AND t.tenantId=:tenantId2) OR EXISTS(SELECT 1 FROM tbl_tasks ownTask WHERE ownTask.id=:creatorTaskId AND ownTask.tenantId=:creatorTenantId AND ownTask.sourceTemplateTaskId IS NULL AND ownTask.createdByUserId=:creatorUserId) THEN 1 ELSE 0 END AS UNSIGNED) allowed",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":userId2",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":taskId",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":tenantId2",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":creatorTaskId",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":creatorTenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":creatorUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array",
+        "meta": [
+          {
+            "name": "allowed",
+            "type": "number"
+          }
+        ]
+      },
+      {
+        "name": "rejectUnauthorisedTaskChange",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{taskAuthority[0].allowed != 1}}",
+          "then": {
+            "steps": {
+              "name": "authorityError",
+              "module": "core",
+              "action": "error",
+              "options": {
+                "message": "Only a member of the assigned team or the tenant Owner can change this task. Unallocated tasks can only be assigned by the Owner."
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
+      },
+      {
+        "name": "taskBeforeChange",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT id,workflowId,taskName,status,priority,assignedToTeamId,dueDate FROM tbl_tasks WHERE id=:id AND tenantId=:tenantId LIMIT 1",
+            "params": [
+              {
+                "name": ":id",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "updateTask",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_tasks SET taskName=:taskName,description=:description,status=:status,priority=:priority,isRequired=:isRequired,assignedToUserId=CASE WHEN SUBSTRING_INDEX(:assignment1,':',1)='user' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment2,':',-1),'') AS UNSIGNED) ELSE NULL END,assignedToTeamId=CASE WHEN SUBSTRING_INDEX(:assignment3,':',1)='team' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment4,':',-1),'') AS UNSIGNED) ELSE NULL END,assignedToRoleId=CASE WHEN SUBSTRING_INDEX(:assignment5,':',1)='role' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment6,':',-1),'') AS UNSIGNED) ELSE NULL END,dueDate=NULLIF(:dueDate,''),startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(startedDate,CURRENT_TIMESTAMP) ELSE startedDate END,completedDate=CASE WHEN :status3='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND tenantId=:tenantId",
+            "params": [
+              {
+                "name": ":taskName",
+                "value": "{{$_POST.taskName}}"
+              },
+              {
+                "name": ":description",
+                "value": "{{$_POST.description.default('')}}"
+              },
+              {
+                "name": ":status",
+                "value": "{{$_POST.status}}"
+              },
+              {
+                "name": ":priority",
+                "value": "{{$_POST.priority}}"
+              },
+              {
+                "name": ":isRequired",
+                "value": "{{$_POST.isRequired.default(0)}}"
+              },
+              {
+                "name": ":assignment1",
+                "value": "{{$_POST.assignment.default('unassigned:')}}"
+              },
+              {
+                "name": ":assignment2",
+                "value": "{{$_POST.assignment.default('unassigned:')}}"
+              },
+              {
+                "name": ":assignment3",
+                "value": "{{$_POST.assignment.default('unassigned:')}}"
+              },
+              {
+                "name": ":assignment4",
+                "value": "{{$_POST.assignment.default('unassigned:')}}"
+              },
+              {
+                "name": ":assignment5",
+                "value": "{{$_POST.assignment.default('unassigned:')}}"
+              },
+              {
+                "name": ":assignment6",
+                "value": "{{$_POST.assignment.default('unassigned:')}}"
+              },
+              {
+                "name": ":dueDate",
+                "value": "{{$_POST.dueDate.default('')}}"
+              },
+              {
+                "name": ":status2",
+                "value": "{{$_POST.status}}"
+              },
+              {
+                "name": ":status3",
+                "value": "{{$_POST.status}}"
+              },
+              {
+                "name": ":status4",
+                "value": "{{$_POST.status}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":id",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "logTaskUpdated",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_activity_log (tenantId,userId,workflowId,taskId,entityType,entityId,actionType,summary,beforeJson,afterJson,createdDate) SELECT :tenantId,:userId,:workflowId,:taskId,'task',:entityId,CASE WHEN :oldTeam<>:newTeam THEN 'task.team_changed' WHEN :oldStatus<>:newStatus THEN 'task.status_changed' ELSE 'task.updated' END,CASE WHEN :oldTeam2<>:newTeam2 THEN CONCAT(:actor,' changed the team for ',:taskName) WHEN :oldStatus2<>:newStatus2 THEN CONCAT(:actor,' changed ',:taskName2,' from ',REPLACE(:oldStatus3,'_',' '),' to ',REPLACE(:newStatus3,'_',' ')) ELSE CONCAT(:actor,' updated ',:taskName3) END,JSON_OBJECT('taskName',:oldName,'status',:oldStatus4,'priority',:oldPriority,'teamId',:oldTeam3,'dueDate',:oldDue),JSON_OBJECT('taskName',:newName,'status',:newStatus4,'priority',:newPriority,'teamId',:newTeam3,'dueDate',:newDue),CURRENT_TIMESTAMP FROM tbl_activity_types at WHERE at.tenantId=:tenantId2 AND at.activityKey=CASE WHEN :oldTeam4<>:newTeam4 THEN 'task.team_changed' WHEN :oldStatus5<>:newStatus5 THEN 'task.status_changed' ELSE 'task.updated' END AND at.isActive=1 LIMIT 1",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":workflowId",
+                "value": "{{taskBeforeChange[0].workflowId}}"
+              },
+              {
+                "name": ":taskId",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":entityId",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":oldTeam",
+                "value": "{{taskBeforeChange[0].assignedToTeamId.default(0)}}"
+              },
+              {
+                "name": ":newTeam",
+                "value": "{{$_POST.assignment.split(':')[1].default(0)}}"
+              },
+              {
+                "name": ":oldStatus",
+                "value": "{{taskBeforeChange[0].status}}"
+              },
+              {
+                "name": ":newStatus",
+                "value": "{{$_POST.status}}"
+              },
+              {
+                "name": ":oldTeam2",
+                "value": "{{taskBeforeChange[0].assignedToTeamId.default(0)}}"
+              },
+              {
+                "name": ":newTeam2",
+                "value": "{{$_POST.assignment.split(':')[1].default(0)}}"
+              },
+              {
+                "name": ":actor",
+                "value": "{{$_SESSION.DISPLAY_NAME.default('A user')}}"
+              },
+              {
+                "name": ":taskName",
+                "value": "{{$_POST.taskName}}"
+              },
+              {
+                "name": ":oldStatus2",
+                "value": "{{taskBeforeChange[0].status}}"
+              },
+              {
+                "name": ":newStatus2",
+                "value": "{{$_POST.status}}"
+              },
+              {
+                "name": ":taskName2",
+                "value": "{{$_POST.taskName}}"
+              },
+              {
+                "name": ":oldStatus3",
+                "value": "{{taskBeforeChange[0].status}}"
+              },
+              {
+                "name": ":newStatus3",
+                "value": "{{$_POST.status}}"
+              },
+              {
+                "name": ":taskName3",
+                "value": "{{$_POST.taskName}}"
+              },
+              {
+                "name": ":oldName",
+                "value": "{{taskBeforeChange[0].taskName}}"
+              },
+              {
+                "name": ":oldStatus4",
+                "value": "{{taskBeforeChange[0].status}}"
+              },
+              {
+                "name": ":oldPriority",
+                "value": "{{taskBeforeChange[0].priority}}"
+              },
+              {
+                "name": ":oldTeam3",
+                "value": "{{taskBeforeChange[0].assignedToTeamId}}"
+              },
+              {
+                "name": ":oldDue",
+                "value": "{{taskBeforeChange[0].dueDate}}"
+              },
+              {
+                "name": ":newName",
+                "value": "{{$_POST.taskName}}"
+              },
+              {
+                "name": ":newStatus4",
+                "value": "{{$_POST.status}}"
+              },
+              {
+                "name": ":newPriority",
+                "value": "{{$_POST.priority}}"
+              },
+              {
+                "name": ":newTeam3",
+                "value": "{{$_POST.assignment.split(':')[1]}}"
+              },
+              {
+                "name": ":newDue",
+                "value": "{{$_POST.dueDate.default('')}}"
+              },
+              {
+                "name": ":tenantId2",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":oldTeam4",
+                "value": "{{taskBeforeChange[0].assignedToTeamId.default(0)}}"
+              },
+              {
+                "name": ":newTeam4",
+                "value": "{{$_POST.assignment.split(':')[1].default(0)}}"
+              },
+              {
+                "name": ":oldStatus5",
+                "value": "{{taskBeforeChange[0].status}}"
+              },
+              {
+                "name": ":newStatus5",
+                "value": "{{$_POST.status}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/tasks",
+          "status": 302
+        }
+      }
+    ]
+  }
+}
