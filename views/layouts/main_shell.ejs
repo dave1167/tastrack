@@ -21,6 +21,12 @@
     <script src="/dmxAppConnect/dmxFormatter/dmxFormatter.js" defer></script>
     <script src="/dmxAppConnect/dmxBootstrap5Tooltips/dmxBootstrap5Tooltips.js" defer></script>
     <script src="/dmxAppConnect/dmxBootstrap5Modal/dmxBootstrap5Modal.js" defer></script>
+    <script src="/dmxAppConnect/dmxBootstrap5Alert/dmxBootstrap5Alert.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/index.global.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales-all.global.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.11/index.global.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.11/index.global.min.js" defer></script>
+    <script src="/dmxAppConnect/dmxCalendar/dmxCalendar.js" defer></script>
 </head>
 
 <body is="dmx-app" id="main_shell" class="shell-app">
@@ -86,8 +92,12 @@
                                     <span>Dashboard</span>
                                 </a>
                                 <a class="shell-nav-link" href="/workflows">
-                                    <i class="fas fa-table"></i>
-                                    <span dmx-text="scTerminology.data.query[0].workflowSingular + ' Overview'">Event Overview</span>
+                                    <i class="fas fa-route"></i>
+                                    <span dmx-text="scTerminology.data.query[0].workflowPlural">Workflows</span>
+                                </a>
+                                <a class="shell-nav-link" href="/workflows/calendar">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span dmx-text="scTerminology.data.query[0].workflowSingular + ' Calendar'">Event Calendar</span>
                                 </a>
                                 <a class="shell-nav-link" href="/tasks">
                                     <i class="fas fa-tasks"></i>
@@ -96,10 +106,6 @@
                                 <a class="shell-nav-link" href="/contacts">
                                     <i class="fas fa-address-book"></i>
                                     <span>Contacts</span>
-                                </a>
-                                <a class="shell-nav-link" href="/contacts/categories">
-                                    <i class="fas fa-tags"></i>
-                                    <span>Contact categories</span>
                                 </a>
                                 <a class="shell-nav-link" href="/documents">
                                     <i class="fas fa-folder-open"></i>

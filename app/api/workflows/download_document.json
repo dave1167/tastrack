@@ -1,0 +1,32 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "id"}]},
+  "exec": {"steps": [
+    {
+      "name": "document",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT d.storagePath,d.originalFileName FROM tbl_documents d INNER JOIN tbl_workflows w ON w.id=d.workflowId AND w.tenantId=d.tenantId WHERE d.id=:id AND d.tenantId=:tenantId AND d.status<>'archived' LIMIT 1",
+        "params": [
+          {"name": ":id", "value": "{{$_GET.id}}"},
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+        ]
+      }},
+      "output": false,
+      "outputType": "array"
+    },
+    {
+      "module": "core",
+      "action": "condition",
+      "options": {
+        "if": "{{document.count() > 0}}",
+        "then": {"steps": [
+          {"module": "fs", "action": "download", "options": {"path": "{{document[0].storagePath}}", "filename": "{{document[0].originalFileName}}"}}
+        ]},
+        "else": {"steps": [
+          {"module": "core", "action": "response", "options": {"status": 404, "data": "Document not found.", "contentType": "text/plain"}}
+        ]}
+      }
+    }
+  ]}}

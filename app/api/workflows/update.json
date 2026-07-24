@@ -8,7 +8,12 @@
       { "type": "text", "name": "status" },
       { "type": "number", "name": "ownerTeamId" },
       { "type": "text", "name": "startDate" },
-      { "type": "text", "name": "targetDate" }
+      { "type": "text", "name": "targetDate" },
+      { "type": "text", "name": "showDate" },
+      { "type": "text", "name": "showTime" },
+      { "type": "number", "name": "locationId" },
+      { "type": "number", "name": "spaceId" },
+      { "type": "number", "name": "configurationId" }
     ]
   },
   "exec": {
@@ -21,7 +26,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_workflows SET workflowName=:workflowName,referenceCode=NULLIF(:referenceCode,''),status=:status,ownerTeamId=NULLIF(:ownerTeamId,''),startDate=NULLIF(:startDate,''),targetDate=NULLIF(:targetDate,''),completedDate=CASE WHEN :status2='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND tenantId=:tenantId",
+            "query": "UPDATE tbl_workflows w SET w.workflowName=:workflowName,w.referenceCode=NULLIF(:referenceCode,''),w.status=:status,w.ownerTeamId=NULLIF(:ownerTeamId,''),w.locationId=(SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=w.tenantId LIMIT 1),w.spaceId=(SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=w.tenantId LIMIT 1),w.configurationId=(SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=w.tenantId LIMIT 1),w.startDate=NULLIF(:startDate,''),w.targetDate=NULLIF(:targetDate,''),w.completedDate=CASE WHEN :status2='complete' THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:id AND w.tenantId=:tenantId",
             "params": [
               { "name": ":workflowName", "value": "{{$_POST.workflowName}}" },
               {
@@ -33,6 +38,11 @@
                 "name": ":ownerTeamId",
                 "value": "{{$_POST.ownerTeamId.default('')}}"
               },
+              { "name": ":locationId", "value": "{{$_POST.locationId.default('')}}" },
+              { "name": ":spaceId", "value": "{{$_POST.spaceId.default('')}}" },
+              { "name": ":locationId2", "value": "{{$_POST.locationId.default('')}}" },
+              { "name": ":configurationId", "value": "{{$_POST.configurationId.default('')}}" },
+              { "name": ":spaceId2", "value": "{{$_POST.spaceId.default('')}}" },
               {
                 "name": ":startDate",
                 "value": "{{$_POST.startDate.default('')}}"
@@ -43,6 +53,24 @@
               },
               { "name": ":status2", "value": "{{$_POST.status}}" },
               { "name": ":id", "value": "{{$_POST.id}}" },
+              { "name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}" }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "updateShowDateAndTime",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_workflow_field_values fv INNER JOIN tbl_workflows w ON w.id=fv.workflowId AND w.tenantId=fv.tenantId SET fv.valueDate=CASE WHEN fv.fieldKey='show_date' THEN NULLIF(:showDate,'') ELSE fv.valueDate END,fv.valueText=CASE WHEN fv.fieldKey='show_time' THEN NULLIF(:showTime,'') ELSE fv.valueText END,fv.modifiedDate=CURRENT_TIMESTAMP WHERE fv.workflowId=:workflowId AND fv.tenantId=:tenantId AND fv.fieldKey IN ('show_date','show_time')",
+            "params": [
+              { "name": ":showDate", "value": "{{$_POST.showDate.default('')}}" },
+              { "name": ":showTime", "value": "{{$_POST.showTime.default('')}}" },
+              { "name": ":workflowId", "value": "{{$_POST.id}}" },
               { "name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}" }
             ]
           }

@@ -3,7 +3,7 @@
     <div class="col-12">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
             <div><h1 class="mb-1" dmx-text="scTerminology.data.query[0].workflowSingular + ' Overview'">Event Overview</h1><p class="text-muted mb-0" dmx-text="'Review ' + scTerminology.data.query[0].workflowPlural.lowercase() + ', fields, ' + scTerminology.data.query[0].taskPlural.lowercase() + ', ' + scTerminology.data.query[0].stagePlural.lowercase() + ' and risks in one place.'">Review events, fields, tasks, phases and risks in one place.</p></div>
-            <div class="d-flex gap-2"><button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#boardColumnsModal"><i class="fas fa-columns me-2"></i>Configure columns</button><a class="btn btn-primary" href="/workflows/create"><i class="fas fa-plus me-2"></i>New workflow</a></div>
+            <div class="d-flex flex-wrap gap-2"><a class="btn btn-outline-primary" href="/workflows/calendar"><i class="fas fa-calendar-alt me-2"></i>Calendar</a><button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#boardColumnsModal"><i class="fas fa-columns me-2"></i>Configure columns</button><a class="btn btn-primary" href="/workflows/create"><i class="fas fa-plus me-2"></i><span dmx-text="'New ' + scTerminology.data.query[0].workflowSingular.lowercase()">New event</span></a></div>
         </div>
     </div>
     <div class="col-12">
@@ -14,6 +14,10 @@
                 <div class="text-center text-muted py-5" id="boardLoading"><i class="fas fa-spinner fa-spin me-2"></i>Loading board…</div>
                 <div class="text-center text-muted py-5 d-none" id="boardEmpty">No workflows match this board.</div>
                 <div class="alert alert-danger m-3 d-none" id="boardError"></div>
+            </div>
+            <div class="card-footer bg-white d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2" id="boardPagination">
+                <div class="d-flex align-items-center gap-2"><label class="small text-muted" for="boardPageSize">Rows per page</label><select class="form-select form-select-sm" id="boardPageSize" style="width:auto"><option value="25" selected>25</option><option value="50">50</option><option value="100">100</option></select></div>
+                <div class="d-flex align-items-center gap-2"><button class="btn btn-sm btn-outline-secondary" id="boardPreviousPage" type="button"><i class="fas fa-chevron-left me-1"></i>Previous</button><span class="small text-muted px-2" id="boardPageStatus">Page 1 of 1</span><button class="btn btn-sm btn-outline-secondary" id="boardNextPage" type="button">Next<i class="fas fa-chevron-right ms-1"></i></button></div>
             </div>
         </div>
     </div>
@@ -28,7 +32,7 @@
 <form id="csrfSource" class="d-none"><%- _csrfInput() %></form>
 <script>
 (function () {
-    const state = { board: null, available: [], search: '', sortKey: '', sortDirection: 'asc' };
+    const state = { board: null, available: [], search: '', sortKey: '', sortDirection: 'asc', page: 1, pageSize: 25, totalPages: 1, totalRows: 0, searchTimer: null };
     const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
     const normaliseValue = value => value && value.type === 'Buffer' && Array.isArray(value.data) ? new TextDecoder().decode(new Uint8Array(value.data)) : value;
     const statusClass = value => ({complete:'success',green:'success',amber:'warning',red:'danger',grey:'secondary',in_progress:'primary',waiting:'warning',overdue:'danger',not_started:'secondary',skipped:'secondary',cancelled:'dark'}[String(value).replaceAll(' ','_')] || 'secondary');
@@ -55,8 +59,10 @@
         const columns = data.columns || [];
         let rows = [...(data.rows || [])];
         const cells = cellMap(data);
-        const search = state.search.trim().toLowerCase();
-        if (search) rows = rows.filter(row => columns.some(column => String(boardValue(row,column,cells)).toLowerCase().includes(search)) || String(row.referenceCode || '').toLowerCase().includes(search) || String(row.riskReason || '').toLowerCase().includes(search));
+        const pagination = (data.pagination || [])[0] || {};
+        state.totalRows = Number(pagination.totalRows || 0);
+        state.totalPages = Math.max(1, Number(pagination.totalPages || 1));
+        state.page = Math.min(Math.max(1, Number(pagination.currentPage || state.page)), state.totalPages);
         if (state.sortKey) {
             const column = columns.find(item => item.fieldKey === state.sortKey);
             const riskOrder = {grey:0,green:1,amber:2,red:3};
@@ -76,7 +82,12 @@
             if (column.fieldKey === 'status' || column.fieldKey.startsWith('task:')) return '<td><span class="badge bg-' + statusClass(value) + ' text-capitalize">' + escapeHtml(value || '—') + '</span></td>';
             return '<td>' + escapeHtml(value || '—') + '</td>';
         }).join('') + '</tr>').join('');
-        document.getElementById('boardRowCount').textContent = rows.length;
+        const firstRow = state.totalRows ? ((state.page - 1) * state.pageSize) + 1 : 0;
+        const lastRow = Math.min(state.page * state.pageSize, state.totalRows);
+        document.getElementById('boardRowCount').textContent = firstRow + '–' + lastRow + ' of ' + state.totalRows;
+        document.getElementById('boardPageStatus').textContent = 'Page ' + state.page + ' of ' + state.totalPages;
+        document.getElementById('boardPreviousPage').disabled = state.page <= 1;
+        document.getElementById('boardNextPage').disabled = state.page >= state.totalPages;
         document.getElementById('boardLoading').classList.add('d-none');
         document.getElementById('boardEmpty').classList.toggle('d-none', rows.length !== 0);
         table.classList.toggle('d-none', rows.length === 0);
@@ -88,15 +99,29 @@
         document.getElementById('availableColumns').innerHTML = [...groups].map(([group, items]) => '<section class="column-group mb-4"><h3 class="h6 text-uppercase text-muted">' + escapeHtml(group) + '</h3><div class="border rounded overflow-hidden">' + items.map(column => '<div class="board-column-row row g-2 align-items-center p-2 border-bottom" data-search="' + escapeHtml((column.columnLabel + ' ' + column.fieldKey).toLowerCase()) + '" data-field-key="' + escapeHtml(column.fieldKey) + '" data-initial="' + [column.isVisible,column.columnLabel,column.sortOrder,column.width].join('|') + '"><div class="col-auto"><input class="form-check-input column-visible" type="checkbox" ' + (Number(column.isVisible) ? 'checked' : '') + ' aria-label="Show ' + escapeHtml(column.columnLabel) + '"></div><div class="col-md-4"><input class="form-control form-control-sm column-label" value="' + escapeHtml(column.columnLabel) + '" aria-label="Column label"></div><div class="col"><div class="small text-muted text-truncate">' + escapeHtml(column.fieldKey) + '</div></div><div class="col-3 col-md-1"><input class="form-control form-control-sm column-order" type="number" value="' + Number(column.sortOrder || 0) + '" title="Order"></div><div class="col-4 col-md-2"><div class="input-group input-group-sm"><input class="form-control column-width" type="number" min="80" max="600" value="' + Number(column.width || 160) + '"><span class="input-group-text">px</span></div></div></div>').join('') + '</div></section>').join('');
     }
 
+    async function loadBoard() {
+        document.getElementById('boardLoading').classList.remove('d-none');
+        document.getElementById('boardError').classList.add('d-none');
+        try {
+            const params = new URLSearchParams({page: state.page, pageSize: state.pageSize, search: state.search});
+            const boardResponse = await fetch('/api/board_views/board?' + params.toString());
+            if (!boardResponse.ok) throw new Error('The event overview could not be loaded.');
+            state.board = await boardResponse.json();
+            renderBoard(state.board);
+        } catch (error) {
+            document.getElementById('boardLoading').classList.add('d-none');
+            const alert = document.getElementById('boardError'); alert.textContent = error.message; alert.classList.remove('d-none');
+        }
+    }
+
     async function load() {
         try {
-            const [boardResponse, availableResponse] = await Promise.all([fetch('/api/board_views/board'), fetch('/api/board_views/available')]);
-            if (!boardResponse.ok || !availableResponse.ok) throw new Error('The board APIs could not be loaded. Confirm the board-view database migration has been run.');
-            state.board = await boardResponse.json();
+            const availableResponse = await fetch('/api/board_views/available');
+            if (!availableResponse.ok) throw new Error('The board columns could not be loaded.');
             const availableData = await availableResponse.json();
             state.available = [...(availableData.columns || []), ...(availableData.additionalColumns || [])];
-            renderBoard(state.board);
             renderAvailable(state.available);
+            await loadBoard();
         } catch (error) {
             document.getElementById('boardLoading').classList.add('d-none');
             const alert = document.getElementById('boardError'); alert.textContent = error.message; alert.classList.remove('d-none');
@@ -107,8 +132,16 @@
         const search = event.target.value.toLowerCase();
         document.querySelectorAll('.board-column-row').forEach(row => row.classList.toggle('d-none', !row.dataset.search.includes(search)));
     });
-    document.getElementById('boardSearch').addEventListener('input', event => { state.search = event.target.value; if (state.board) renderBoard(state.board); });
-    document.getElementById('clearBoardSearch').addEventListener('click', () => { const input = document.getElementById('boardSearch'); input.value=''; state.search=''; if (state.board) renderBoard(state.board); input.focus(); });
+    document.getElementById('boardSearch').addEventListener('input', event => {
+        state.search = event.target.value.trim();
+        state.page = 1;
+        clearTimeout(state.searchTimer);
+        state.searchTimer = setTimeout(loadBoard, 300);
+    });
+    document.getElementById('clearBoardSearch').addEventListener('click', () => { const input = document.getElementById('boardSearch'); input.value=''; state.search=''; state.page=1; clearTimeout(state.searchTimer); loadBoard(); input.focus(); });
+    document.getElementById('boardPageSize').addEventListener('change', event => { state.pageSize=Number(event.target.value); state.page=1; loadBoard(); });
+    document.getElementById('boardPreviousPage').addEventListener('click', () => { if (state.page > 1) { state.page--; loadBoard(); } });
+    document.getElementById('boardNextPage').addEventListener('click', () => { if (state.page < state.totalPages) { state.page++; loadBoard(); } });
     document.querySelector('#workflowBoard thead').addEventListener('click', event => { const button = event.target.closest('.board-sort'); if (!button) return; const key=button.dataset.fieldKey; if (state.sortKey===key) state.sortDirection=state.sortDirection==='asc'?'desc':'asc'; else { state.sortKey=key; state.sortDirection='asc'; } if (state.board) renderBoard(state.board); });
     document.getElementById('saveBoardColumns').addEventListener('click', async event => {
         const button = event.currentTarget; button.disabled = true;

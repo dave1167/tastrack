@@ -1,0 +1,88 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "number", "name": "workflowId"},
+    {"type": "text", "name": "documentName", "options": {"rules": {"core:required": {"param": ""}}}},
+    {"type": "text", "name": "documentType"},
+    {"type": "text", "name": "notes"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "verifiedWorkflow",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT id FROM tbl_workflows WHERE id=:workflowId AND tenantId=:tenantId LIMIT 1",
+        "params": [
+          {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "module": "core",
+      "action": "condition",
+      "options": {
+        "if": "{{verifiedWorkflow.count() > 0}}",
+        "then": {"steps": [
+          {
+            "name": "uploadDocument",
+            "module": "upload",
+            "action": "upload",
+            "options": {
+              "fields": "documentFile",
+              "path": "/uploads/documents/{{$_SESSION.TENANT_ID}}/{{verifiedWorkflow[0].id}}",
+              "template": "{name}_{guid}{ext}",
+              "overwrite": false,
+              "createPath": true,
+              "throwErrors": true,
+              "replaceSpace": true,
+              "asciiOnly": true,
+              "replaceDiacritics": true
+            },
+            "output": true
+          },
+          {
+            "module": "core",
+            "action": "condition",
+            "options": {
+              "if": "{{uploadDocument && uploadDocument.size <= 10485760 && (uploadDocument.type == 'application/pdf' || uploadDocument.type == 'application/msword' || uploadDocument.type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || uploadDocument.type == 'application/vnd.ms-excel' || uploadDocument.type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || uploadDocument.type == 'image/jpeg' || uploadDocument.type == 'image/png')}}",
+              "then": {"steps": [
+                {
+                  "name": "insertDocument",
+                  "module": "dbupdater",
+                  "action": "custom",
+                  "options": {"connection": "db", "sql": {
+                    "query": "INSERT INTO tbl_documents (tenantId,workflowId,uploadedByUserId,documentName,documentType,status,storageProvider,storagePath,originalFileName,mimeType,fileSizeBytes,versionNumber,notes) SELECT w.tenantId,w.id,:userId,:documentName,NULLIF(:documentType,''),'received','local',:storagePath,:originalFileName,:mimeType,:fileSize,1,NULLIF(:notes,'') FROM tbl_workflows w WHERE w.id=:workflowId AND w.tenantId=:tenantId",
+                    "params": [
+                      {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"},
+                      {"name": ":documentName", "value": "{{$_POST.documentName}}"},
+                      {"name": ":documentType", "value": "{{$_POST.documentType.default('')}}"},
+                      {"name": ":storagePath", "value": "{{uploadDocument.path}}"},
+                      {"name": ":originalFileName", "value": "{{uploadDocument.name}}"},
+                      {"name": ":mimeType", "value": "{{uploadDocument.type}}"},
+                      {"name": ":fileSize", "value": "{{uploadDocument.size}}"},
+                      {"name": ":notes", "value": "{{$_POST.notes.default('')}}"},
+                      {"name": ":workflowId", "value": "{{verifiedWorkflow[0].id}}"},
+                      {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+                    ]
+                  }},
+                  "output": true
+                }
+              ]},
+              "else": {"steps": [
+                {"module": "fs", "action": "remove", "options": {"path": "{{uploadDocument.path}}"}},
+                {"module": "core", "action": "error", "options": {"message": "Choose a PDF, Word, Excel, JPG or PNG file no larger than 10 MB."}}
+              ]}
+            }
+          }
+        ]},
+        "else": {"steps": [
+          {"module": "core", "action": "error", "options": {"message": "The selected event is not available."}}
+        ]}
+      }
+    },
+    {"module": "core", "action": "redirect", "options": {"url": "/workflows/view?id={{$_POST.workflowId}}&section=documents", "status": 302}}
+  ]}}

@@ -1,0 +1,93 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="workflow_calendar" appConnect="local" components="{dmxStateManagement:{},dmxCalendar:{}}" -->
+<dmx-serverconnect id="scCalendarEvents" url="/api/calendar/events"
+    dmx-param:datefrom="calendar1.activeStart"
+    dmx-param:dateto="calendar1.activeEnd"
+    dmx-param:workflowid="calendarWorkflow.value || 0"
+    dmx-param:locationid="calendarLocation.value || 0"
+    dmx-param:teamid="calendarTeam.value || 0"
+    dmx-param:status="calendarStatus.value"
+    dmx-param:search="calendarSearch.value"></dmx-serverconnect>
+<dmx-serverconnect id="scCalendarWorkflows" url="/api/workflows/list"></dmx-serverconnect>
+<dmx-serverconnect id="scCalendarLocations" url="/api/locations/options"></dmx-serverconnect>
+<dmx-serverconnect id="scCalendarTeams" url="/api/teams/list_all_teams"></dmx-serverconnect>
+
+<link rel="stylesheet" href="/css/event-calendar.css">
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3">
+            <div>
+                <h1 class="mb-1" dmx-text="scTerminology.data.query[0].workflowSingular + ' Calendar'">Event Calendar</h1>
+                <p class="text-muted mb-0" dmx-text="'See every important date across your ' + scTerminology.data.query[0].workflowPlural.lowercase() + '.'">See every important date across your events.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-primary" href="/workflows"><i class="fas fa-table me-2"></i><span dmx-text="scTerminology.data.query[0].workflowSingular + ' Overview'">Event Overview</span></a>
+                <a class="btn btn-primary" href="/workflows/create"><i class="fas fa-plus me-2"></i><span dmx-text="'New ' + scTerminology.data.query[0].workflowSingular.lowercase()">New event</span></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-6 col-xl-3"><label class="form-label" for="calendarSearch">Search</label><input class="form-control" id="calendarSearch" type="search" placeholder="Name, reference, location or team"></div>
+                    <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="calendarWorkflow" dmx-text="scTerminology.data.query[0].workflowSingular">Event</label><select class="form-select" id="calendarWorkflow" dmx-bind:options="scCalendarWorkflows.data.query" optiontext="workflowName" optionvalue="id"><option value="">All events</option></select></div>
+                    <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="calendarLocation" dmx-text="scTerminology.data.query[0].locationSingular">Location</label><select class="form-select" id="calendarLocation" dmx-bind:options="scCalendarLocations.data.query" optiontext="locationLabel" optionvalue="id"><option value="">All locations</option></select></div>
+                    <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="calendarTeam">Team</label><select class="form-select" id="calendarTeam" dmx-bind:options="scCalendarTeams.data.query" optiontext="teamName" optionvalue="id"><option value="">All teams</option></select></div>
+                    <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="calendarStatus">Status</label><select class="form-select" id="calendarStatus"><option value="">All statuses</option><option value="draft">Draft</option><option value="not_started">Not started</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="complete">Complete</option><option value="cancelled">Cancelled</option></select></div>
+                    <div class="col-6 col-xl-1 d-grid"><button class="btn btn-primary" id="calendarApplyFilters" type="button" dmx-on:click="scCalendarEvents.load()">Apply</button></div>
+                    <div class="col-6 col-xl-1 d-grid"><button class="btn btn-outline-secondary" id="calendarClearFilters" type="button">Clear</button></div>
+                </div>
+                <div class="d-flex flex-wrap gap-3 mt-3" id="calendarDateTypes">
+                    <div class="form-check"><input class="form-check-input" id="dateTypeShow" type="checkbox" value="show_date" checked><label class="form-check-label" for="dateTypeShow"><span class="calendar-key key-show"></span>Show dates</label></div>
+                    <div class="form-check"><input class="form-check-input" id="dateTypeStart" type="checkbox" value="start_date" checked><label class="form-check-label" for="dateTypeStart"><span class="calendar-key key-start"></span>Start dates</label></div>
+                    <div class="form-check"><input class="form-check-input" id="dateTypeTarget" type="checkbox" value="target_date" checked><label class="form-check-label" for="dateTypeTarget"><span class="calendar-key key-target"></span>Target dates</label></div>
+                    <div class="form-check"><input class="form-check-input" id="dateTypeTask" type="checkbox" value="task_due" checked><label class="form-check-label" for="dateTypeTask"><span class="calendar-key key-task"></span><span dmx-text="scTerminology.data.query[0].taskSingular + ' deadlines'">Task deadlines</span></label></div>
+                    <div class="form-check"><input class="form-check-input" id="dateTypeCustom" type="checkbox" value="custom_date" checked><label class="form-check-label" for="dateTypeCustom"><span class="calendar-key key-custom"></span>Other dates</label></div>
+                    <div class="form-check"><input class="form-check-input" id="dateTypeComplete" type="checkbox" value="completion"><label class="form-check-label" for="dateTypeComplete"><span class="calendar-key key-complete"></span>Completed dates</label></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="alert alert-danger" dmx-show="scCalendarEvents.lastError.message" dmx-text="scCalendarEvents.lastError.message"></div>
+                <dmx-calendar id="calendar1" locale="en-gb" theme="bootstrap5" views="dayGridMonth,dayGridWeek,dayGridDay" view="dayGridMonth" event-limit now-indicator
+                    bs-tooltip bs-tooltip-html="true" bs-tooltip-placement="'top'"
+                    bs-tooltip-title="'<strong>' + event.title + '</strong>' + (event.extendedProps.eventLabel ? '<br><span>Date type: ' + event.extendedProps.eventLabel + '</span>' : '') + (event.extendedProps.referenceCode ? '<br><span>Reference: ' + event.extendedProps.referenceCode + '</span>' : '') + (event.extendedProps.status ? '<br><span>Status: ' + event.extendedProps.status.replace('_',' ') + '</span>' : '') + (event.extendedProps.locationName ? '<br><span>Location: ' + event.extendedProps.locationName + '</span>' : '') + (event.extendedProps.teamName ? '<br><span>Team: ' + event.extendedProps.teamName + '</span>' : '') + (event.extendedProps.detail ? '<br><span>Details: ' + event.extendedProps.detail + '</span>' : '')"
+                    dmx-on:eventclick="browser1.goto($event.event.extendedProps.taskId ? '/tasks/edit?id=' + $event.event.extendedProps.taskId : '/workflows/view?id=' + $event.event.extendedProps.workflowId)">
+                    <dmx-calendar-source id="showDates" color="#7c3aed" text-color="#ffffff"
+                        dmx-bind:events="dateTypeShow.checked ? scCalendarEvents.data.query.where('eventType','show_date') : []"
+                        event-id="id" event-title="workflowName + (detail ? ' — ' + detail : '')" event-start="eventDate" event-all-day="true"
+                        event-url="'/workflows/view?id=' + workflowId"></dmx-calendar-source>
+                    <dmx-calendar-source id="startDates" color="#0d6efd" text-color="#ffffff"
+                        dmx-bind:events="dateTypeStart.checked ? scCalendarEvents.data.query.where('eventType','start_date') : []"
+                        event-id="id" event-title="eventLabel + ': ' + workflowName" event-start="eventDate" event-all-day="true"
+                        event-url="'/workflows/view?id=' + workflowId"></dmx-calendar-source>
+                    <dmx-calendar-source id="targetDates" color="#dc3545" text-color="#ffffff"
+                        dmx-bind:events="dateTypeTarget.checked ? scCalendarEvents.data.query.where('eventType','target_date') : []"
+                        event-id="id" event-title="eventLabel + ': ' + workflowName" event-start="eventDate" event-all-day="true"
+                        event-url="'/workflows/view?id=' + workflowId"></dmx-calendar-source>
+                    <dmx-calendar-source id="taskDates" color="#fd7e14" text-color="#1e2b37"
+                        dmx-bind:events="dateTypeTask.checked ? scCalendarEvents.data.query.where('eventType','task_due') : []"
+                        event-id="id" event-title="eventLabel + ' — ' + workflowName" event-start="eventDate" event-all-day="false"
+                        event-url="'/tasks/edit?id=' + taskId"></dmx-calendar-source>
+                    <dmx-calendar-source id="customDates" color="#0f766e" text-color="#ffffff"
+                        dmx-bind:events="dateTypeCustom.checked ? scCalendarEvents.data.query.where('eventType','custom_date') : []"
+                        event-id="id" event-title="eventLabel + ': ' + workflowName" event-start="eventDate" event-all-day="true"
+                        event-url="'/workflows/view?id=' + workflowId"></dmx-calendar-source>
+                    <dmx-calendar-source id="completionDates" color="#198754" text-color="#ffffff"
+                        dmx-bind:events="dateTypeComplete.checked ? scCalendarEvents.data.query.where('eventType','completion') : []"
+                        event-id="id" event-title="eventLabel + ': ' + workflowName" event-start="eventDate" event-all-day="true"
+                        event-url="'/workflows/view?id=' + workflowId"></dmx-calendar-source>
+                </dmx-calendar>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/event-calendar.js"></script>
+<meta name="ac:route" content="/workflows/calendar">

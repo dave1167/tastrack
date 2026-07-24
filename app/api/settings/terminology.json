@@ -9,7 +9,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT COALESCE(MAX(CASE WHEN termKey='workflow' THEN singularLabel END),'Workflow') AS workflowSingular,COALESCE(MAX(CASE WHEN termKey='workflow' THEN pluralLabel END),'Workflows') AS workflowPlural,COALESCE(MAX(CASE WHEN termKey='stage' THEN singularLabel END),'Stage') AS stageSingular,COALESCE(MAX(CASE WHEN termKey='stage' THEN pluralLabel END),'Stages') AS stagePlural,COALESCE(MAX(CASE WHEN termKey='task' THEN singularLabel END),'Task') AS taskSingular,COALESCE(MAX(CASE WHEN termKey='task' THEN pluralLabel END),'Tasks') AS taskPlural FROM tbl_tenant_terminology WHERE tenantId=:tenantId",
+            "query": "SELECT COALESCE(MAX(CASE WHEN termKey='workflow' THEN singularLabel END),'Workflow') AS workflowSingular,COALESCE(MAX(CASE WHEN termKey='workflow' THEN pluralLabel END),'Workflows') AS workflowPlural,COALESCE(MAX(CASE WHEN termKey='stage' THEN singularLabel END),'Stage') AS stageSingular,COALESCE(MAX(CASE WHEN termKey='stage' THEN pluralLabel END),'Stages') AS stagePlural,COALESCE(MAX(CASE WHEN termKey='task' THEN singularLabel END),'Task') AS taskSingular,COALESCE(MAX(CASE WHEN termKey='task' THEN pluralLabel END),'Tasks') AS taskPlural,COALESCE(MAX(CASE WHEN termKey='location' THEN singularLabel END),'Location') AS locationSingular,COALESCE(MAX(CASE WHEN termKey='location' THEN pluralLabel END),'Locations') AS locationPlural,COALESCE(MAX(CASE WHEN termKey='space' THEN singularLabel END),'Space') AS spaceSingular,COALESCE(MAX(CASE WHEN termKey='space' THEN pluralLabel END),'Spaces') AS spacePlural,COALESCE(MAX(CASE WHEN termKey='configuration' THEN singularLabel END),'Configuration') AS configurationSingular,COALESCE(MAX(CASE WHEN termKey='configuration' THEN pluralLabel END),'Configurations') AS configurationPlural FROM tbl_tenant_terminology WHERE tenantId=:tenantId",
             "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
           },
           "output": true,
@@ -20,7 +20,13 @@
             {"name": "stageSingular", "type": "text"},
             {"name": "stagePlural", "type": "text"},
             {"name": "taskSingular", "type": "text"},
-            {"name": "taskPlural", "type": "text"}
+            {"name": "taskPlural", "type": "text"},
+            {"name": "locationSingular", "type": "text"},
+            {"name": "locationPlural", "type": "text"},
+            {"name": "spaceSingular", "type": "text"},
+            {"name": "spacePlural", "type": "text"},
+            {"name": "configurationSingular", "type": "text"},
+            {"name": "configurationPlural", "type": "text"}
           ]
         }
       }

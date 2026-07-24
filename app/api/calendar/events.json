@@ -1,0 +1,64 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {
+    "$_GET": [
+      {"type": "date", "name": "datefrom"},
+      {"type": "date", "name": "dateto"},
+      {"type": "number", "name": "workflowid"},
+      {"type": "number", "name": "locationid"},
+      {"type": "number", "name": "teamid"},
+      {"type": "text", "name": "status"},
+      {"type": "text", "name": "search"}
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "query",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "query": "SELECT items.id,items.workflowId,items.taskId,items.workflowName,items.referenceCode,items.eventType,items.eventLabel,items.eventDate,items.status,items.locationId,items.locationName,items.teamId,items.teamName,items.detail FROM (SELECT CONCAT('start-',w.id) id,w.id workflowId,NULL taskId,w.workflowName,w.referenceCode,'start_date' eventType,'Start date' eventLabel,w.startDate eventDate,w.status,w.locationId,l.locationName,w.ownerTeamId teamId,tm.teamName,NULL detail FROM tbl_workflows w LEFT JOIN tbl_locations l ON l.id=w.locationId AND l.tenantId=w.tenantId LEFT JOIN tbl_teams tm ON tm.id=w.ownerTeamId AND tm.tenantId=w.tenantId WHERE w.tenantId=:tenantId AND w.startDate IS NOT NULL UNION ALL SELECT CONCAT('target-',w.id),w.id,NULL,w.workflowName,w.referenceCode,'target_date','Target date',w.targetDate,w.status,w.locationId,l.locationName,w.ownerTeamId,tm.teamName,NULL FROM tbl_workflows w LEFT JOIN tbl_locations l ON l.id=w.locationId AND l.tenantId=w.tenantId LEFT JOIN tbl_teams tm ON tm.id=w.ownerTeamId AND tm.tenantId=w.tenantId WHERE w.tenantId=:tenantId2 AND w.targetDate IS NOT NULL UNION ALL SELECT CONCAT('field-',fv.id),w.id,NULL,w.workflowName,w.referenceCode,CASE WHEN fv.fieldKey='show_date' THEN 'show_date' ELSE 'custom_date' END,COALESCE(f.fieldLabel,CASE WHEN fv.fieldKey='show_date' THEN 'Show date' ELSE REPLACE(fv.fieldKey,'_',' ') END),fv.valueDate,w.status,w.locationId,l.locationName,w.ownerTeamId,tm.teamName,CASE WHEN fv.fieldKey='show_date' THEN NULLIF(CONCAT_WS(' / ',l.locationName,s.spaceName,c.configurationName),'') ELSE fv.fieldKey END FROM tbl_workflow_field_values fv INNER JOIN tbl_workflows w ON w.id=fv.workflowId AND w.tenantId=fv.tenantId LEFT JOIN tbl_template_custom_fields f ON f.id=fv.templateCustomFieldId AND f.tenantId=fv.tenantId LEFT JOIN tbl_locations l ON l.id=w.locationId AND l.tenantId=w.tenantId LEFT JOIN tbl_spaces s ON s.id=w.spaceId AND s.locationId=w.locationId AND s.tenantId=w.tenantId LEFT JOIN tbl_space_configurations c ON c.id=w.configurationId AND c.spaceId=w.spaceId AND c.tenantId=w.tenantId LEFT JOIN tbl_teams tm ON tm.id=w.ownerTeamId AND tm.tenantId=w.tenantId WHERE fv.tenantId=:tenantId3 AND fv.valueDate IS NOT NULL UNION ALL SELECT CONCAT('task-',t.id),w.id,t.id,w.workflowName,w.referenceCode,'task_due',t.taskName,t.dueDate,w.status,w.locationId,l.locationName,w.ownerTeamId,tm.teamName,CONCAT_WS(' — ',ws.stageName,REPLACE(t.status,'_',' ')) FROM tbl_tasks t INNER JOIN tbl_workflows w ON w.id=t.workflowId AND w.tenantId=t.tenantId LEFT JOIN tbl_workflow_stages ws ON ws.id=t.workflowStageId AND ws.tenantId=t.tenantId LEFT JOIN tbl_locations l ON l.id=w.locationId AND l.tenantId=w.tenantId LEFT JOIN tbl_teams tm ON tm.id=w.ownerTeamId AND tm.tenantId=w.tenantId WHERE t.tenantId=:tenantId4 AND t.dueDate IS NOT NULL UNION ALL SELECT CONCAT('complete-',w.id),w.id,NULL,w.workflowName,w.referenceCode,'completion','Completed',w.completedDate,w.status,w.locationId,l.locationName,w.ownerTeamId,tm.teamName,NULL FROM tbl_workflows w LEFT JOIN tbl_locations l ON l.id=w.locationId AND l.tenantId=w.tenantId LEFT JOIN tbl_teams tm ON tm.id=w.ownerTeamId AND tm.tenantId=w.tenantId WHERE w.tenantId=:tenantId5 AND w.completedDate IS NOT NULL) items WHERE items.eventDate>=COALESCE(NULLIF(:dateFrom,''),DATE_SUB(CURRENT_DATE,INTERVAL DAYOFMONTH(CURRENT_DATE)+6 DAY)) AND items.eventDate<COALESCE(NULLIF(:dateTo,''),DATE_ADD(LAST_DAY(CURRENT_DATE),INTERVAL 7 DAY)) AND (:workflowId=0 OR items.workflowId=:workflowId2) AND (:locationId=0 OR items.locationId=:locationId2) AND (:teamId=0 OR items.teamId=:teamId2) AND (:statusEmpty='' OR items.status=:status) AND (:searchEmpty='' OR CONCAT_WS(' ',items.workflowName,items.referenceCode,items.eventLabel,items.locationName,items.teamName,items.detail) LIKE CONCAT('%',:search,'%')) ORDER BY items.eventDate,items.workflowName,items.eventType",
+          "params": [
+            {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+            {"name": ":tenantId2", "value": "{{$_SESSION.TENANT_ID}}"},
+            {"name": ":tenantId3", "value": "{{$_SESSION.TENANT_ID}}"},
+            {"name": ":tenantId4", "value": "{{$_SESSION.TENANT_ID}}"},
+            {"name": ":tenantId5", "value": "{{$_SESSION.TENANT_ID}}"},
+            {"name": ":dateFrom", "value": "{{$_GET.datefrom.default('')}}"},
+            {"name": ":dateTo", "value": "{{$_GET.dateto.default('')}}"},
+            {"name": ":workflowId", "value": "{{$_GET.workflowid.default(0)}}"},
+            {"name": ":workflowId2", "value": "{{$_GET.workflowid.default(0)}}"},
+            {"name": ":locationId", "value": "{{$_GET.locationid.default(0)}}"},
+            {"name": ":locationId2", "value": "{{$_GET.locationid.default(0)}}"},
+            {"name": ":teamId", "value": "{{$_GET.teamid.default(0)}}"},
+            {"name": ":teamId2", "value": "{{$_GET.teamid.default(0)}}"},
+            {"name": ":statusEmpty", "value": "{{$_GET.status.default('')}}"},
+            {"name": ":status", "value": "{{$_GET.status.default('')}}"},
+            {"name": ":searchEmpty", "value": "{{$_GET.search.default('')}}"},
+            {"name": ":search", "value": "{{$_GET.search.default('')}}"}
+          ]
+        },
+        "output": true,
+        "outputType": "array",
+        "meta": [
+          {"name": "id", "type": "text"},
+          {"name": "workflowId", "type": "number"},
+          {"name": "taskId", "type": "number"},
+          {"name": "workflowName", "type": "text"},
+          {"name": "referenceCode", "type": "text"},
+          {"name": "eventType", "type": "text"},
+          {"name": "eventLabel", "type": "text"},
+          {"name": "eventDate", "type": "datetime"},
+          {"name": "status", "type": "text"},
+          {"name": "locationId", "type": "number"},
+          {"name": "locationName", "type": "text"},
+          {"name": "teamId", "type": "number"},
+          {"name": "teamName", "type": "text"},
+          {"name": "detail", "type": "text"}
+        ]
+      }
+    }
+  }
+}

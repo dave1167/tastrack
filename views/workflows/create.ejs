@@ -1,6 +1,9 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="create_workflow" appConnect="local" components="{dmxStateManagement:{}}" -->
 <dmx-serverconnect id="scTemplates" url="/api/workflows/template_options"></dmx-serverconnect>
 <dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
+<dmx-serverconnect id="scLocations" url="/api/locations/options"></dmx-serverconnect>
+<dmx-serverconnect id="scSpaces" url="/api/locations/spaceOptions" dmx-param:locationid="locationId.value"></dmx-serverconnect>
+<dmx-serverconnect id="scConfigurations" url="/api/locations/configurationOptions" dmx-param:spaceid="spaceId.value"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -26,6 +29,10 @@
                         <div class="col-md-6"><label class="form-label">Status</label><div class="form-control bg-light">Not started</div><div class="form-text" dmx-text="'Calculated automatically from ' + scTerminology.data.query[0].taskPlural.lowercase() + '.'">Calculated automatically.</div></div>
                         <div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" name="startDate" type="date" required></div>
                         <div class="col-md-6"><label class="form-label">Target date</label><input class="form-control" name="targetDate" type="date" required></div>
+                        <div class="col-12"><hr class="my-1"><h3 class="h6 mb-0">Location</h3></div>
+                        <div class="col-md-4"><label class="form-label" for="locationId">Location</label><select class="form-select" id="locationId" name="locationId" dmx-bind:options="scLocations.data.query" optiontext="locationLabel" optionvalue="id" dmx-on:changed="spaceId.setValue(''); configurationId.setValue(''); scSpaces.load(); scConfigurations.load()"><option value="">No location selected</option></select></div>
+                        <div class="col-md-4"><label class="form-label" for="spaceId">Space</label><select class="form-select" id="spaceId" name="spaceId" dmx-bind:options="scSpaces.data.query" optiontext="spaceLabel" optionvalue="id" dmx-bind:disabled="!locationId.value" dmx-on:changed="configurationId.setValue(''); scConfigurations.load()"><option value="">No space selected</option></select></div>
+                        <div class="col-md-4"><label class="form-label" for="configurationId">Configuration</label><select class="form-select" id="configurationId" name="configurationId" dmx-bind:options="scConfigurations.data.query" optiontext="configurationLabel" optionvalue="id" dmx-bind:disabled="!spaceId.value"><option value="">No configuration selected</option></select></div>
                     </div>
                     <div class="alert alert-info mt-4"><i class="fas fa-info-circle me-2"></i><span dmx-text="scTerminology.data.query[0].stagePlural + ', ' + scTerminology.data.query[0].taskPlural.lowercase() + ' and dependencies will be copied from the selected template.'">Template content will be copied.</span></div>
                     <div class="d-flex gap-2"><button class="btn btn-primary" type="submit" dmx-text="'Create ' + scTerminology.data.query[0].workflowSingular">Create</button><a class="btn btn-light" href="/workflows">Cancel</a></div>

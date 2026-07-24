@@ -1,0 +1,23 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "number", "name": "id"},
+    {"type": "number", "name": "workflowId"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "archiveDocument",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "UPDATE tbl_documents d INNER JOIN tbl_workflows w ON w.id=d.workflowId AND w.tenantId=d.tenantId SET d.status='archived',d.modifiedDate=CURRENT_TIMESTAMP WHERE d.id=:id AND d.workflowId=:workflowId AND d.tenantId=:tenantId",
+        "params": [
+          {"name": ":id", "value": "{{$_POST.id}}"},
+          {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+        ]
+      }},
+      "output": true
+    },
+    {"module": "core", "action": "redirect", "options": {"url": "/workflows/view?id={{$_POST.workflowId}}&section=documents", "status": 302}}
+  ]}}

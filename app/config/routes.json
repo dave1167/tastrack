@@ -109,6 +109,101 @@
       }
     },
     {
+      "path": "/workflows/calendar",
+      "page": "workflows/calendar",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/locations",
+      "page": "locations/locations",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/locations/view",
+      "page": "locations/view",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/locations/create",
+      "page": "locations/create",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/locations/add_space",
+      "page": "locations/add_space",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/locations/add_configuration",
+      "page": "locations/add_configuration",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/locations/edit",
+      "page": "locations/edit",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/locations/edit_space",
+      "page": "locations/edit_space",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/locations/edit_configuration",
+      "page": "locations/edit_configuration",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/activity-log",
+      "page": "activity/log",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ],
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
       "path": "/workflows/create",
       "page": "workflows/create",
       "layout": "main_shell",

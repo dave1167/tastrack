@@ -4,7 +4,8 @@
     {"type":"number","name":"templateId"}, {"type":"text","name":"workflowName"},
     {"type":"text","name":"referenceCode"}, {"type":"text","name":"status"},
     {"type":"number","name":"ownerTeamId"}, {"type":"text","name":"startDate"},
-    {"type":"text","name":"targetDate"}
+    {"type":"text","name":"targetDate"}, {"type":"number","name":"locationId"},
+    {"type":"number","name":"spaceId"}, {"type":"number","name":"configurationId"}
   ]},
   "exec": {"steps": [
     {
@@ -29,6 +30,10 @@
       ],"table":"tbl_workflows","returning":"id","query":"insert into `tbl_workflows` (`tenantId`,`templateId`,`templateVersionNumber`,`workflowName`,`referenceCode`,`status`,`ownerUserId`,`ownerTeamId`,`startDate`,`targetDate`,`createdByUserId`) values (?,?,?,?,?,?,?,?,?,?,?)","params":[
         {"name":":P1","type":"expression","value":"{{$_SESSION.TENANT_ID}}"},{"name":":P2","type":"expression","value":"{{getTemplate[0].id}}"},{"name":":P3","type":"expression","value":"{{getTemplate[0].versionNumber}}"},{"name":":P4","type":"expression","value":"{{$_POST.workflowName}}"},{"name":":P5","type":"expression","value":"{{$_POST.referenceCode}}"},{"name":":P6","type":"text","value":"not_started"},{"name":":P7","type":"expression","value":"{{$_SESSION.USER_ID}}"},{"name":":P8","type":"expression","value":"{{$_POST.ownerTeamId}}"},{"name":":P9","type":"expression","value":"{{$_POST.startDate}}"},{"name":":P10","type":"expression","value":"{{$_POST.targetDate}}"},{"name":":P11","type":"expression","value":"{{$_SESSION.USER_ID}}"}
       ]}},"meta":[{"name":"identity","type":"text"},{"name":"affected","type":"number"}],"output":true
+    },
+    {
+      "name":"setWorkflowLocation","module":"dbupdater","action":"custom",
+      "options":{"connection":"db","sql":{"query":"UPDATE tbl_workflows w SET w.locationId=(SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=w.tenantId LIMIT 1),w.spaceId=(SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=w.tenantId LIMIT 1),w.configurationId=(SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=w.tenantId LIMIT 1) WHERE w.id=:workflowId AND w.tenantId=:tenantId","params":[{"name":":locationId","value":"{{$_POST.locationId.default('')}}"},{"name":":spaceId","value":"{{$_POST.spaceId.default('')}}"},{"name":":locationId2","value":"{{$_POST.locationId.default('')}}"},{"name":":configurationId","value":"{{$_POST.configurationId.default('')}}"},{"name":":spaceId2","value":"{{$_POST.spaceId.default('')}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
     },
     {
       "name":"cloneStages","module":"dbupdater","action":"custom",

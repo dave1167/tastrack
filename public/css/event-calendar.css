@@ -1,0 +1,22 @@
+.calendar-key {
+    display: inline-block;
+    width: .7rem;
+    height: .7rem;
+    margin-right: .35rem;
+    border-radius: 50%;
+}
+
+.key-show { background: #7c3aed; }
+.key-start { background: #0d6efd; }
+.key-target { background: #dc3545; }
+.key-task { background: #fd7e14; }
+.key-custom { background: #0f766e; }
+.key-complete { background: #198754; }
+
+@media (max-width: 991.98px) {
+    .fc .fc-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: .75rem;
+    }
+}

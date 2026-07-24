@@ -37,6 +37,22 @@
       {
         "type": "text",
         "name": "dueDate"
+      },
+      {
+        "type": "text",
+        "name": "locationMode"
+      },
+      {
+        "type": "number",
+        "name": "locationId"
+      },
+      {
+        "type": "number",
+        "name": "spaceId"
+      },
+      {
+        "type": "number",
+        "name": "configurationId"
       }
     ]
   },
@@ -121,7 +137,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT id,workflowId,taskName,status,priority,assignedToTeamId,dueDate FROM tbl_tasks WHERE id=:id AND tenantId=:tenantId LIMIT 1",
+            "query": "SELECT id,workflowId,taskName,status,priority,assignedToTeamId,dueDate,locationMode,locationId,spaceId,configurationId FROM tbl_tasks WHERE id=:id AND tenantId=:tenantId LIMIT 1",
             "params": [
               {
                 "name": ":id",
@@ -218,6 +234,85 @@
                 "name": ":tenantId",
                 "value": "{{$_SESSION.TENANT_ID}}"
               }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "updateTaskLocation",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_tasks t SET t.locationMode=CASE WHEN :locationMode='override' THEN 'override' ELSE 'inherit' END,t.locationId=CASE WHEN :locationMode2='override' THEN (SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=t.tenantId LIMIT 1) ELSE NULL END,t.spaceId=CASE WHEN :locationMode3='override' THEN (SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=t.tenantId LIMIT 1) ELSE NULL END,t.configurationId=CASE WHEN :locationMode4='override' THEN (SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=t.tenantId LIMIT 1) ELSE NULL END WHERE t.id=:id AND t.tenantId=:tenantId",
+            "params": [
+              {"name":":locationMode","value":"{{$_POST.locationMode.default('inherit')}}"},
+              {"name":":locationMode2","value":"{{$_POST.locationMode.default('inherit')}}"},
+              {"name":":locationId","value":"{{$_POST.locationId.default('')}}"},
+              {"name":":locationMode3","value":"{{$_POST.locationMode.default('inherit')}}"},
+              {"name":":spaceId","value":"{{$_POST.spaceId.default('')}}"},
+              {"name":":locationId2","value":"{{$_POST.locationId.default('')}}"},
+              {"name":":locationMode4","value":"{{$_POST.locationMode.default('inherit')}}"},
+              {"name":":configurationId","value":"{{$_POST.configurationId.default('')}}"},
+              {"name":":spaceId2","value":"{{$_POST.spaceId.default('')}}"},
+              {"name":":id","value":"{{$_POST.id}}"},
+              {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "taskLocationAfter",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT locationMode,locationId,spaceId,configurationId FROM tbl_tasks WHERE id=:id AND tenantId=:tenantId LIMIT 1",
+            "params": [
+              {"name":":id","value":"{{$_POST.id}}"},
+              {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "logTaskLocationChanged",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_activity_log (tenantId,userId,workflowId,taskId,entityType,entityId,actionType,summary,beforeJson,afterJson,createdDate) SELECT :tenantId,:userId,:workflowId,:taskId,'task',:entityId,'task.location_changed',CONCAT(:actor,' changed the location setting for ',:taskName),JSON_OBJECT('locationMode',:oldMode,'locationId',:oldLocation,'spaceId',:oldSpace,'configurationId',:oldConfiguration),JSON_OBJECT('locationMode',:newMode,'locationId',:newLocation,'spaceId',:newSpace,'configurationId',:newConfiguration),CURRENT_TIMESTAMP WHERE COALESCE(:oldMode2,'')<>COALESCE(:newMode2,'') OR COALESCE(:oldLocation2,0)<>COALESCE(:newLocation2,0) OR COALESCE(:oldSpace2,0)<>COALESCE(:newSpace2,0) OR COALESCE(:oldConfiguration2,0)<>COALESCE(:newConfiguration2,0)",
+            "params": [
+              {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},
+              {"name":":userId","value":"{{$_SESSION.USER_ID}}"},
+              {"name":":workflowId","value":"{{taskBeforeChange[0].workflowId}}"},
+              {"name":":taskId","value":"{{$_POST.id}}"},
+              {"name":":entityId","value":"{{$_POST.id}}"},
+              {"name":":actor","value":"{{$_SESSION.DISPLAY_NAME.default('A user')}}"},
+              {"name":":taskName","value":"{{$_POST.taskName}}"},
+              {"name":":oldMode","value":"{{taskBeforeChange[0].locationMode}}"},
+              {"name":":oldLocation","value":"{{taskBeforeChange[0].locationId}}"},
+              {"name":":oldSpace","value":"{{taskBeforeChange[0].spaceId}}"},
+              {"name":":oldConfiguration","value":"{{taskBeforeChange[0].configurationId}}"},
+              {"name":":newMode","value":"{{taskLocationAfter[0].locationMode}}"},
+              {"name":":newLocation","value":"{{taskLocationAfter[0].locationId}}"},
+              {"name":":newSpace","value":"{{taskLocationAfter[0].spaceId}}"},
+              {"name":":newConfiguration","value":"{{taskLocationAfter[0].configurationId}}"},
+              {"name":":oldMode2","value":"{{taskBeforeChange[0].locationMode}}"},
+              {"name":":newMode2","value":"{{taskLocationAfter[0].locationMode}}"},
+              {"name":":oldLocation2","value":"{{taskBeforeChange[0].locationId}}"},
+              {"name":":newLocation2","value":"{{taskLocationAfter[0].locationId}}"},
+              {"name":":oldSpace2","value":"{{taskBeforeChange[0].spaceId}}"},
+              {"name":":newSpace2","value":"{{taskLocationAfter[0].spaceId}}"},
+              {"name":":oldConfiguration2","value":"{{taskBeforeChange[0].configurationId}}"},
+              {"name":":newConfiguration2","value":"{{taskLocationAfter[0].configurationId}}"}
             ]
           }
         },

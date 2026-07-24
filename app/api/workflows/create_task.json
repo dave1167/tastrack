@@ -110,7 +110,7 @@
         "module": "core",
         "action": "redirect",
         "options": {
-          "url": "/workflows/view?id={{$_POST.workflowId}}",
+          "url": "/workflows/view?id={{$_POST.workflowId}}&section=tasks",
           "status": 302
         }
       }

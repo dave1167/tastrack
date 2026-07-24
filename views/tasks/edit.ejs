@@ -2,6 +2,9 @@
 <dmx-browser id="browserTaskEdit"></dmx-browser>
 <dmx-serverconnect id="scTask" url="/api/tasks/get" dmx-param:id="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scAssignees" url="/api/tasks/assignee_options"></dmx-serverconnect>
+<dmx-serverconnect id="scLocations" url="/api/locations/options" dmx-param:selectedid="scTask.data.query[0].locationId"></dmx-serverconnect>
+<dmx-serverconnect id="scSpaces" url="/api/locations/spaceOptions" dmx-param:locationid="taskLocationId.value" dmx-param:selectedid="scTask.data.query[0].spaceId"></dmx-serverconnect>
+<dmx-serverconnect id="scConfigurations" url="/api/locations/configurationOptions" dmx-param:spaceid="taskSpaceId.value" dmx-param:selectedid="scTask.data.query[0].configurationId"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -28,6 +31,19 @@
                         <div class="col-md-3"><label class="form-label">Required</label><select class="form-select" name="isRequired" dmx-bind:value="scTask.data.query[0].isRequired"><option value="1">Yes</option><option value="0">No</option></select></div>
                         <div class="col-md-6"><label class="form-label">Assigned to</label><select class="form-select" name="assignment" dmx-bind:options="scAssignees.data.query" optiontext="assignmentLabel" optionvalue="assignmentKey" dmx-bind:value="scTask.data.query[0].assignmentKey"></select></div>
                         <div class="col-md-6"><label class="form-label">Due date and time</label><input class="form-control" name="dueDate" type="datetime-local" dmx-bind:value="scTask.data.query[0].dueDate.formatDate('yyyy-MM-ddTHH:mm')"></div>
+                    </div>
+                    <div class="border-top mt-4 pt-3">
+                        <h3 class="h6 mb-1">Task location</h3>
+                        <p class="small text-muted mb-3">By default this task follows the event location. Choose an override only when this task happens somewhere else.</p>
+                        <div class="row g-3">
+                            <div class="col-md-4"><label class="form-label" for="taskLocationMode">Location setting</label><select class="form-select" id="taskLocationMode" name="locationMode" dmx-bind:value="scTask.data.query[0].locationMode"><option value="inherit">Use event location</option><option value="override">Use a different location</option></select></div>
+                            <div class="col-md-8" dmx-show="taskLocationMode.value == 'inherit'"><label class="form-label">Effective location</label><div class="form-control bg-light"><i class="fas fa-map-marker-alt text-primary me-2"></i><span dmx-text="scTask.data.query[0].effectiveLocation"></span></div></div>
+                        </div>
+                        <div class="row g-3 mt-0" dmx-show="taskLocationMode.value == 'override'">
+                            <div class="col-md-4"><label class="form-label" for="taskLocationId">Location</label><select class="form-select" id="taskLocationId" name="locationId" dmx-bind:options="scLocations.data.query" optiontext="locationLabel" optionvalue="id" dmx-bind:value="scTask.data.query[0].locationId" dmx-on:changed="taskSpaceId.setValue(''); taskConfigurationId.setValue(''); scSpaces.load(); scConfigurations.load()"><option value="">No location selected</option></select></div>
+                            <div class="col-md-4"><label class="form-label" for="taskSpaceId">Space</label><select class="form-select" id="taskSpaceId" name="spaceId" dmx-bind:options="scSpaces.data.query" optiontext="spaceLabel" optionvalue="id" dmx-bind:value="scTask.data.query[0].spaceId" dmx-bind:disabled="!taskLocationId.value" dmx-on:changed="taskConfigurationId.setValue(''); scConfigurations.load()"><option value="">No space selected</option></select></div>
+                            <div class="col-md-4"><label class="form-label" for="taskConfigurationId">Configuration</label><select class="form-select" id="taskConfigurationId" name="configurationId" dmx-bind:options="scConfigurations.data.query" optiontext="configurationLabel" optionvalue="id" dmx-bind:value="scTask.data.query[0].configurationId" dmx-bind:disabled="!taskSpaceId.value"><option value="">No configuration selected</option></select></div>
+                        </div>
                     </div>
                     <div class="d-flex gap-2 mt-4">
                         <button class="btn btn-primary" type="submit" dmx-bind:disabled="frmTaskEdit.state.executing"><span dmx-show="!frmTaskEdit.state.executing">Update Task</span><span dmx-show="frmTaskEdit.state.executing">Saving...</span></button>

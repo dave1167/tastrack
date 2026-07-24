@@ -1,0 +1,32 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "workflowid"}]},
+  "exec": {"steps": {
+    "name": "query",
+    "module": "dbupdater",
+    "action": "custom",
+    "options": {"connection": "db", "sql": {
+      "query": "SELECT d.id,d.workflowId,d.documentName,d.documentType,d.status,d.originalFileName,d.mimeType,d.fileSizeBytes,d.versionNumber,d.notes,d.createdDate,u.displayName AS uploadedBy FROM tbl_documents d INNER JOIN tbl_workflows w ON w.id=d.workflowId AND w.tenantId=d.tenantId LEFT JOIN tbl_users u ON u.id=d.uploadedByUserId WHERE d.workflowId=:workflowId AND d.tenantId=:tenantId AND d.status<>'archived' ORDER BY d.createdDate DESC,d.id DESC",
+      "params": [
+        {"name": ":workflowId", "value": "{{$_GET.workflowid}}"},
+        {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+      ]
+    }},
+    "output": true,
+    "outputType": "array",
+    "meta": [
+      {"name": "id", "type": "number"},
+      {"name": "workflowId", "type": "number"},
+      {"name": "documentName", "type": "text"},
+      {"name": "documentType", "type": "text"},
+      {"name": "status", "type": "text"},
+      {"name": "originalFileName", "type": "text"},
+      {"name": "mimeType", "type": "text"},
+      {"name": "fileSizeBytes", "type": "number"},
+      {"name": "versionNumber", "type": "number"},
+      {"name": "notes", "type": "text"},
+      {"name": "createdDate", "type": "datetime"},
+      {"name": "uploadedBy", "type": "text"}
+    ]
+  }}
+}
