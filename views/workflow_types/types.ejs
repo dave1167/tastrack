@@ -1,0 +1,72 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="workflow_types" appConnect="local" -->
+<dmx-serverconnect id="scTypes" url="/api/workflow_types/list"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12">
+        <h1 dmx-text="scTerminology.data.query[0].workflowSingular + ' Types'">Event Types</h1>
+        <p class="text-muted">Manage the controlled dropdown values used by this organisation.</p>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="h5">Add type</h2>
+                <form method="post" action="/api/workflow_types/save">
+                    <%- _csrfInput() %>
+                    <input type="hidden" name="isActive" value="1">
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" name="typeName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input class="form-control" name="description">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Colour</label>
+                        <input class="form-control form-control-color" name="colour" type="color" value="#0d6efd">
+                    </div>
+                    <button class="btn btn-primary" type="submit">Add type</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <div is="dmx-repeat" id="repWorkflowTypes" dmx-bind:repeat="scTypes.data.query">
+                    <form class="row g-2 align-items-end border-bottom pb-3 mb-3" method="post" action="/api/workflow_types/save">
+                        <%- _csrfInput() %>
+                        <input type="hidden" name="id" dmx-bind:value="$value.id">
+                        <div class="col-md-3">
+                            <label class="form-label">Name</label>
+                            <input class="form-control" name="typeName" dmx-bind:value="$value.typeName" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Description</label>
+                            <input class="form-control" name="description" dmx-bind:value="$value.description">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Colour</label>
+                            <input class="form-control form-control-color" name="colour" type="color" dmx-bind:value="$value.colour">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="isActive" dmx-bind:value="$value.isActive">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-outline-primary" type="submit">Save</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="text-muted text-center py-4" dmx-show="!scTypes.state.executing && scTypes.data.query.count() == 0">No types have been created yet.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<meta name="ac:route" content="/workflow-types">

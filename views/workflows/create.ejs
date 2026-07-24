@@ -4,6 +4,7 @@
 <dmx-serverconnect id="scLocations" url="/api/locations/options"></dmx-serverconnect>
 <dmx-serverconnect id="scSpaces" url="/api/locations/spaceOptions" dmx-param:locationid="locationId.value"></dmx-serverconnect>
 <dmx-serverconnect id="scConfigurations" url="/api/locations/configurationOptions" dmx-param:spaceid="spaceId.value"></dmx-serverconnect>
+<dmx-serverconnect id="scWorkflowTypes" url="/api/workflow_types/options"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -24,6 +25,13 @@
                     <div class="mb-3"><label class="form-label">Template</label><select class="form-select" name="templateId" required dmx-bind:options="scTemplates.data.query" optiontext="templateName" optionvalue="id"><option value="">Select published template</option></select></div>
                     <div class="mb-3"><label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' name'">Name</label><input class="form-control" name="workflowName" required></div>
                     <div class="mb-3"><label class="form-label">Reference code</label><input class="form-control" name="referenceCode" required></div>
+                    <div class="mb-3">
+                        <label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' type'">Event type</label>
+                        <select class="form-select" name="workflowTypeId" dmx-bind:options="scWorkflowTypes.data.query" optiontext="typeName" optionvalue="id">
+                            <option value="">No type selected</option>
+                        </select>
+                        <div class="form-text">Types can be managed by an owner or administrator under Setup.</div>
+                    </div>
                     <div class="row g-3">
                         <div class="col-md-6"><label class="form-label">Owner team</label><select class="form-select" name="ownerTeamId" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id"><option value="">Select team</option></select></div>
                         <div class="col-md-6"><label class="form-label">Status</label><div class="form-control bg-light">Not started</div><div class="form-text" dmx-text="'Calculated automatically from ' + scTerminology.data.query[0].taskPlural.lowercase() + '.'">Calculated automatically.</div></div>

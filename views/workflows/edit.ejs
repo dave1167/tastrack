@@ -1,3 +1,98 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="edit_workflow" appConnect="local" components="{dmxStateManagement:{}}" -->
-<dmx-serverconnect id="scWorkflow" url="/api/workflows/get" dmx-param:id="query.id"></dmx-serverconnect><dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
-<div class="row g-4"><div class="col-12"><div class="d-flex justify-content-between align-items-center"><div><h1 class="mb-1" dmx-text="'Edit ' + scTerminology.data.query[0].workflowSingular">Edit Event</h1><p class="text-muted mb-0" dmx-text="scWorkflow.data.query[0].templateName"></p></div><a class="btn btn-outline-secondary" dmx-bind:href="'/workflows/view?id=' + query.id" dmx-text="'Back to ' + scTerminology.data.query[0].workflowSingular.lowercase()">Back to event</a></div></div><div class="col-12 col-xl-7"><div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0" dmx-text="scTerminology.data.query[0].workflowSingular + ' details'">Event details</h2></div><div class="card-body"><form method="post" action="/api/workflows/update"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="scWorkflow.data.query[0].id"><input type="hidden" name="locationId" dmx-bind:value="scWorkflow.data.query[0].locationId"><input type="hidden" name="spaceId" dmx-bind:value="scWorkflow.data.query[0].spaceId"><input type="hidden" name="configurationId" dmx-bind:value="scWorkflow.data.query[0].configurationId"><div class="mb-3"><label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' name'">Event name</label><input class="form-control" name="workflowName" required dmx-bind:value="scWorkflow.data.query[0].workflowName"></div><div class="mb-3"><label class="form-label">Reference code</label><input class="form-control" name="referenceCode" required dmx-bind:value="scWorkflow.data.query[0].referenceCode"></div><div class="row g-3"><div class="col-md-6"><label class="form-label">Owner team</label><select class="form-select" name="ownerTeamId" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].ownerTeamId"><option value="">Select team</option></select></div><div class="col-md-6"><label class="form-label">Status</label><select class="form-select" name="status" dmx-bind:value="scWorkflow.data.query[0].status"><option value="draft">Draft</option><option value="not_started">Not started</option><option value="active">Active</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="complete">Complete</option><option value="cancelled">Cancelled</option><option value="archived">Archived</option></select></div><div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" name="startDate" type="date" required dmx-bind:value="scWorkflow.data.query[0].startDate"></div><div class="col-md-6"><label class="form-label">Target date</label><input class="form-control" name="targetDate" type="date" required dmx-bind:value="scWorkflow.data.query[0].targetDate"></div><div class="col-md-6"><label class="form-label">Show date</label><input class="form-control" name="showDate" type="date" dmx-bind:value="scWorkflow.data.query[0].showDate"></div><div class="col-md-6"><label class="form-label">Show start time</label><input class="form-control" name="showTime" type="time" dmx-bind:value="scWorkflow.data.query[0].showTime"><div class="form-text">The public performance start time.</div></div></div><div class="d-flex gap-2 mt-4"><button class="btn btn-primary" type="submit" dmx-text="'Update ' + scTerminology.data.query[0].workflowSingular.lowercase()">Update event</button><a class="btn btn-light" dmx-bind:href="'/workflows/view?id=' + query.id">Cancel</a></div></form></div></div></div></div><meta name="ac:route" content="/workflows/edit">
+<dmx-serverconnect id="scWorkflow" url="/api/workflows/get" dmx-param:id="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
+<dmx-serverconnect id="scLocations" url="/api/locations/options" dmx-param:selectedid="scWorkflow.data.query[0].locationId"></dmx-serverconnect>
+<dmx-serverconnect id="scSpaces" url="/api/locations/spaceOptions" dmx-param:locationid="eventLocationId.value" dmx-param:selectedid="scWorkflow.data.query[0].spaceId" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scConfigurations" url="/api/locations/configurationOptions" dmx-param:spaceid="eventSpaceId.value" dmx-param:selectedid="scWorkflow.data.query[0].configurationId" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scWorkflowTypes" url="/api/workflow_types/options"></dmx-serverconnect>
+<dmx-serverconnect id="scAssignedWorkflowType" url="/api/workflow_types/assigned" dmx-param:workflowid="query.id"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-1" dmx-text="'Edit ' + scTerminology.data.query[0].workflowSingular">Edit Event</h1>
+                <p class="text-muted mb-0" dmx-text="scWorkflow.data.query[0].templateName"></p>
+            </div>
+            <a class="btn btn-outline-secondary" dmx-bind:href="'/workflows/view?id=' + query.id" dmx-text="'Back to ' + scTerminology.data.query[0].workflowSingular.lowercase()">Back to event</a>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-9">
+        <div class="alert alert-danger" dmx-show="!scWorkflow.state.executing && (scWorkflow.lastError.message || scWorkflow.data.query.count() == 0)">
+            <span dmx-text="scWorkflow.lastError.message || 'This event could not be loaded for the current organisation.'">This event could not be loaded.</span>
+        </div>
+
+        <div class="card border-0 shadow-sm" dmx-show="scWorkflow.data.query.count() > 0">
+            <div class="card-header bg-white"><h2 class="h5 mb-0" dmx-text="scTerminology.data.query[0].workflowSingular + ' details'">Event details</h2></div>
+            <div class="card-body">
+                <form method="post" action="/api/workflows/update">
+                    <%- _csrfInput() %>
+                    <input type="hidden" name="id" dmx-bind:value="scWorkflow.data.query[0].id">
+
+                    <div class="mb-3">
+                        <label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' name'">Event name</label>
+                        <input class="form-control" name="workflowName" required dmx-bind:value="scWorkflow.data.query[0].workflowName">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reference code</label>
+                        <input class="form-control" name="referenceCode" required dmx-bind:value="scWorkflow.data.query[0].referenceCode">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' type'">Event type</label>
+                        <select class="form-select" name="workflowTypeId" dmx-bind:options="scWorkflowTypes.data.query" optiontext="typeName" optionvalue="id" dmx-bind:value="scAssignedWorkflowType.data.query[0].workflowTypeId">
+                            <option value="">No type selected</option>
+                        </select>
+                        <div class="form-text">Types can be managed by an owner or administrator under Setup.</div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Owner team</label>
+                            <select class="form-select" name="ownerTeamId" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].ownerTeamId"><option value="">Select team</option></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status" dmx-bind:value="scWorkflow.data.query[0].status">
+                                <option value="draft">Draft</option>
+                                <option value="not_started">Not started</option>
+                                <option value="active">Active</option>
+                                <option value="in_progress">In progress</option>
+                                <option value="waiting">Waiting</option>
+                                <option value="complete">Complete</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" name="startDate" type="date" required dmx-bind:value="scWorkflow.data.query[0].startDate ? scWorkflow.data.query[0].startDate.formatDate('yyyy-MM-dd') : ''"></div>
+                        <div class="col-md-6"><label class="form-label">Target date</label><input class="form-control" name="targetDate" type="date" required dmx-bind:value="scWorkflow.data.query[0].targetDate ? scWorkflow.data.query[0].targetDate.formatDate('yyyy-MM-dd') : ''"></div>
+                        <div class="col-md-6"><label class="form-label">Show date</label><input class="form-control" name="showDate" type="date" dmx-bind:value="scWorkflow.data.query[0].showDate ? scWorkflow.data.query[0].showDate.formatDate('yyyy-MM-dd') : ''"></div>
+                        <div class="col-md-6"><label class="form-label">Show start time</label><input class="form-control" name="showTime" type="time" dmx-bind:value="scWorkflow.data.query[0].showTime"><div class="form-text">The public performance start time.</div></div>
+
+                        <div class="col-12"><hr><h3 class="h6 mb-3">Venue setup</h3></div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="eventLocationId" dmx-text="scTerminology.data.query[0].locationSingular">Location</label>
+                            <select class="form-select" id="eventLocationId" name="locationId" dmx-bind:options="scLocations.data.query" optiontext="locationLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].locationId"><option value="">No location selected</option></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="eventSpaceId" dmx-text="scTerminology.data.query[0].spaceSingular">Space</label>
+                            <select class="form-select" id="eventSpaceId" name="spaceId" dmx-bind:options="scSpaces.data.query" optiontext="spaceLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].spaceId" dmx-bind:disabled="!eventLocationId.value"><option value="">No space selected</option></select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="eventConfigurationId" dmx-text="scTerminology.data.query[0].configurationSingular">Configuration</label>
+                            <select class="form-select" id="eventConfigurationId" name="configurationId" dmx-bind:options="scConfigurations.data.query" optiontext="configurationLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].configurationId" dmx-bind:disabled="!eventSpaceId.value"><option value="">No configuration selected</option></select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button class="btn btn-primary" type="submit" dmx-text="'Update ' + scTerminology.data.query[0].workflowSingular.lowercase()">Update event</button>
+                        <a class="btn btn-light" dmx-bind:href="'/workflows/view?id=' + query.id">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/event-location-cascade.js"></script>
+<meta name="ac:route" content="/workflows/edit">

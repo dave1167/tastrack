@@ -134,6 +134,13 @@
       }
     },
     {
+      "path": "/workflow-types",
+      "page": "workflow_types/types",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
       "path": "/locations/view",
       "page": "locations/view",
       "layout": "main_shell",

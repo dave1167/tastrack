@@ -114,7 +114,7 @@
                             </div>
                         </div>
 
-                        <div class="shell-nav-group">
+                        <div class="shell-nav-group" dmx-show="scWelcome.data.ROLE_ID==1||scWelcome.data.ROLE_ID==2">
                             <button class="shell-nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navSetup" aria-expanded="false" aria-controls="navSetup">
                                 <span>
                                     <i class="fas fa-sliders-h"></i>
@@ -126,6 +126,18 @@
                                 <a class="shell-nav-link" href="/workflow_templates">
                                     <i class="fas fa-layer-group"></i>
                                     <span dmx-text="scTerminology.data.query[0].workflowSingular + ' templates'">Templates</span>
+                                </a>
+                                <a class="shell-nav-link" href="/locations">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    <span dmx-text="scTerminology.data.query[0].locationPlural">Locations</span>
+                                </a>
+                                <a class="shell-nav-link" href="/workflow-types">
+                                    <i class="fas fa-list-alt"></i>
+                                    <span dmx-text="scTerminology.data.query[0].workflowSingular + ' types'">Event types</span>
+                                </a>
+                                <a class="shell-nav-link" href="/contacts/categories">
+                                    <i class="fas fa-tags"></i>
+                                    <span>Contact categories</span>
                                 </a>
                                 <a class="shell-nav-link" href="/automation">
                                     <i class="fas fa-bolt"></i>
@@ -178,6 +190,10 @@
                                 <a class="shell-nav-link" href="/settings">
                                     <i class="fas fa-sliders-h"></i>
                                     <span>Settings</span>
+                                </a>
+                                <a class="shell-nav-link" href="/activity-log" dmx-show="scWelcome.data.ROLE_ID==1||scWelcome.data.ROLE_ID==2">
+                                    <i class="fas fa-history"></i>
+                                    <span>Activity Log</span>
                                 </a>
                                 <a class="shell-nav-link" href="/billing">
                                     <i class="fas fa-credit-card"></i>

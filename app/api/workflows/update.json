@@ -14,6 +14,7 @@
       { "type": "number", "name": "locationId" },
       { "type": "number", "name": "spaceId" },
       { "type": "number", "name": "configurationId" }
+      ,{ "type": "number", "name": "workflowTypeId" }
     ]
   },
   "exec": {
@@ -26,7 +27,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_workflows w SET w.workflowName=:workflowName,w.referenceCode=NULLIF(:referenceCode,''),w.status=:status,w.ownerTeamId=NULLIF(:ownerTeamId,''),w.locationId=(SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=w.tenantId LIMIT 1),w.spaceId=(SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=w.tenantId LIMIT 1),w.configurationId=(SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=w.tenantId LIMIT 1),w.startDate=NULLIF(:startDate,''),w.targetDate=NULLIF(:targetDate,''),w.completedDate=CASE WHEN :status2='complete' THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:id AND w.tenantId=:tenantId",
+            "query": "UPDATE tbl_workflows w SET w.workflowName=:workflowName,w.referenceCode=NULLIF(:referenceCode,''),w.status=:status,w.ownerTeamId=NULLIF(:ownerTeamId,''),w.workflowTypeId=(SELECT t.id FROM tbl_workflow_types t WHERE t.id=NULLIF(:workflowTypeId,'') AND t.tenantId=w.tenantId AND t.isActive=1 LIMIT 1),w.locationId=(SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=w.tenantId LIMIT 1),w.spaceId=(SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=w.tenantId LIMIT 1),w.configurationId=(SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=w.tenantId LIMIT 1),w.startDate=NULLIF(:startDate,''),w.targetDate=NULLIF(:targetDate,''),w.completedDate=CASE WHEN :status2='complete' THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:id AND w.tenantId=:tenantId",
             "params": [
               { "name": ":workflowName", "value": "{{$_POST.workflowName}}" },
               {
@@ -38,6 +39,7 @@
                 "name": ":ownerTeamId",
                 "value": "{{$_POST.ownerTeamId.default('')}}"
               },
+              { "name": ":workflowTypeId", "value": "{{$_POST.workflowTypeId.default('')}}" },
               { "name": ":locationId", "value": "{{$_POST.locationId.default('')}}" },
               { "name": ":spaceId", "value": "{{$_POST.spaceId.default('')}}" },
               { "name": ":locationId2", "value": "{{$_POST.locationId.default('')}}" },
