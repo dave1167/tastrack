@@ -114,3 +114,10 @@ Do not commit secrets, database passwords, .env files or private connection deta
 Keep .gitignore suitable for Node/Wappler projects.
 Commit documentation changes alongside related code changes.
 Before large structural changes, explain the plan first.
+
+Switchable Tenant Modules
+Optional product functionality is controlled by `tbl_modules` and `tbl_tenant_modules`.
+Canonical module codes are documented in `app/config/moduleCodes.json`.
+Platform administrators are separate from tenant roles and use `tbl_users.isPlatformAdmin`.
+Every paid-module Server Connect action must require the tenant module and then check the user's normal permission separately.
+See `app_docs/MODULES.md` for runtime, administration and lifecycle rules.

@@ -1,0 +1,39 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "tenantId"}]},
+  "exec": {"steps": [
+    {
+      "name": "tenant",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT t.id tenantId,t.tenantName FROM tbl_tenants t WHERE t.id=:tenantId AND EXISTS(SELECT 1 FROM tbl_users u WHERE u.id=:userId AND u.isActive=1 AND u.isPlatformAdmin=1) LIMIT 1",
+        "params": [{"name": ":tenantId", "value": "{{$_GET.tenantId.default(0)}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "modules",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT m.id moduleId,m.moduleCode,m.moduleName,m.moduleDescription,m.isCore,m.isBillable,m.isActive,m.defaultMonthlyPrice,m.defaultAnnualPrice,m.currencyCode catalogueCurrency,tm.id tenantModuleId,COALESCE(tm.status,'DISABLED') status,tm.billingInterval,tm.monthlyPrice,tm.annualPrice,COALESCE(tm.currencyCode,m.currencyCode) currencyCode,tm.accessStartDate,tm.accessEndDate,tm.trialEndsDate,tm.enabledDate,tm.disabledDate,COALESCE(tm.autoRenew,0) autoRenew,tm.billingReference,tm.notes FROM tbl_modules m LEFT JOIN tbl_tenant_modules tm ON tm.moduleId=m.id AND tm.tenantId=:tenantId WHERE EXISTS(SELECT 1 FROM tbl_users u WHERE u.id=:userId AND u.isActive=1 AND u.isPlatformAdmin=1) ORDER BY m.displayOrder,m.moduleName",
+        "params": [{"name": ":tenantId", "value": "{{$_GET.tenantId.default(0)}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "history",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT h.id,h.actionCode,h.previousStatus,h.newStatus,h.previousMonthlyPrice,h.newMonthlyPrice,h.previousAnnualPrice,h.newAnnualPrice,h.changeNote,h.changedDate,m.moduleName,COALESCE(u.displayName,'System') changedBy FROM tbl_tenant_module_history h INNER JOIN tbl_modules m ON m.id=h.moduleId LEFT JOIN tbl_users u ON u.id=h.changedByUserId WHERE h.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_users adminUser WHERE adminUser.id=:userId AND adminUser.isActive=1 AND adminUser.isPlatformAdmin=1) ORDER BY h.changedDate DESC,h.id DESC LIMIT 100",
+        "params": [{"name": ":tenantId", "value": "{{$_GET.tenantId.default(0)}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}]
+      }},
+      "output": true,
+      "outputType": "array"
+    }
+  ]}
+}

@@ -39,7 +39,7 @@
                         <input class="form-control" name="referenceCode" required dmx-bind:value="scWorkflow.data.query[0].referenceCode">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' type'">Event type</label>
+                        <label class="form-label" dmx-text="scTerminology.data.query[0].performanceTypeSingular">Performance Type</label>
                         <select class="form-select" name="workflowTypeId" dmx-bind:options="scWorkflowTypes.data.query" optiontext="typeName" optionvalue="id" dmx-bind:value="scAssignedWorkflowType.data.query[0].workflowTypeId">
                             <option value="">No type selected</option>
                         </select>

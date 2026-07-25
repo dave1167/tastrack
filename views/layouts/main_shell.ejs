@@ -33,6 +33,7 @@
     <div is="dmx-browser" id="browser1"></div>
     <dmx-serverconnect id="scWelcome" url="/api/security/sessionContext"></dmx-serverconnect>
     <dmx-serverconnect id="scTerminology" url="/api/settings/terminology"></dmx-serverconnect>
+    <dmx-serverconnect id="scTenantModules" url="/api/modules/currentTenantModules"></dmx-serverconnect>
     <header class="navbar shell-navbar sticky-top">
         <div class="container-fluid px-3 px-lg-4">
             <button class="shell-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open menu">
@@ -133,7 +134,7 @@
                                 </a>
                                 <a class="shell-nav-link" href="/workflow-types">
                                     <i class="fas fa-list-alt"></i>
-                                    <span dmx-text="scTerminology.data.query[0].workflowSingular + ' types'">Event types</span>
+                                    <span dmx-text="scTerminology.data.query[0].performanceTypePlural">Performance Types</span>
                                 </a>
                                 <a class="shell-nav-link" href="/contacts/categories">
                                     <i class="fas fa-tags"></i>
@@ -198,6 +199,26 @@
                                 <a class="shell-nav-link" href="/billing">
                                     <i class="fas fa-credit-card"></i>
                                     <span>Billing</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="shell-nav-group" dmx-show="scWelcome.data.platformAdmin[0].isPlatformAdmin == 1">
+                            <button class="shell-nav-toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navPlatform" aria-expanded="false" aria-controls="navPlatform">
+                                <span>
+                                    <i class="fas fa-user-shield"></i>
+                                    Platform Administration
+                                </span>
+                                <i class="fas fa-chevron-down shell-nav-caret"></i>
+                            </button>
+                            <div class="collapse shell-nav-collapse" id="navPlatform" data-bs-parent="#sidebarNavAccordion">
+                                <a class="shell-nav-link" href="/platform/modules">
+                                    <i class="fas fa-cubes"></i>
+                                    <span>Module Catalogue</span>
+                                </a>
+                                <a class="shell-nav-link" href="/platform/tenant-modules">
+                                    <i class="fas fa-building"></i>
+                                    <span>Tenant Modules</span>
                                 </a>
                             </div>
                         </div>

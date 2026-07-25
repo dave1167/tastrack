@@ -1,0 +1,184 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "number", "name": "tenantId"},
+    {"type": "number", "name": "moduleId"},
+    {"type": "text", "name": "status"},
+    {"type": "text", "name": "billingInterval"},
+    {"type": "number", "name": "monthlyPrice"},
+    {"type": "number", "name": "annualPrice"},
+    {"type": "text", "name": "currencyCode"},
+    {"type": "text", "name": "accessStartDate"},
+    {"type": "text", "name": "accessEndDate"},
+    {"type": "text", "name": "trialEndsDate"},
+    {"type": "number", "name": "autoRenew"},
+    {"type": "text", "name": "billingReference"},
+    {"type": "text", "name": "notes"},
+    {"type": "text", "name": "changeNote"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "platformAdmin",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT id FROM tbl_users WHERE id=:userId AND isActive=1 AND isPlatformAdmin=1 LIMIT 1",
+        "params": [{"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}]
+      }},
+      "output": false,
+      "outputType": "array"
+    },
+    {
+      "name": "requirePlatformAdmin",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{platformAdmin.count() == 0}}", "then": {"steps": {"module": "core", "action": "error", "options": {"status": 403, "message": "Platform administrator access is required."}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "validation",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT m.id moduleId,m.moduleCode,m.moduleName,m.isCore,CAST(:status IN ('ACTIVE','TRIAL','DISABLED','SUSPENDED','EXPIRED') AS UNSIGNED) validStatus,CAST(:billing IN ('INCLUDED','MONTHLY','ANNUAL','MANUAL') AS UNSIGNED) validBilling,CAST(CASE WHEN m.moduleCode='CORE' AND :coreStatus<>'ACTIVE' THEN 0 ELSE 1 END AS UNSIGNED) coreAllowed,(SELECT COUNT(*) FROM tbl_module_dependencies d WHERE d.moduleId=m.id AND d.isRequired=1 AND NOT EXISTS(SELECT 1 FROM tbl_tenant_modules depTm INNER JOIN tbl_modules depM ON depM.id=depTm.moduleId AND depM.isActive=1 WHERE depTm.tenantId=:tenantId AND depTm.moduleId=d.dependsOnModuleId AND (depTm.status='ACTIVE' OR (depTm.status='TRIAL' AND (depTm.trialEndsDate IS NULL OR depTm.trialEndsDate>CURRENT_TIMESTAMP))) AND (depTm.accessStartDate IS NULL OR depTm.accessStartDate<=CURRENT_TIMESTAMP) AND (depTm.accessEndDate IS NULL OR depTm.accessEndDate>CURRENT_TIMESTAMP))) missingDependencies,(SELECT COUNT(*) FROM tbl_module_dependencies d INNER JOIN tbl_tenant_modules childTm ON childTm.moduleId=d.moduleId AND childTm.tenantId=:tenantId2 INNER JOIN tbl_modules childM ON childM.id=childTm.moduleId AND childM.isActive=1 WHERE d.dependsOnModuleId=m.id AND d.isRequired=1 AND (childTm.status='ACTIVE' OR (childTm.status='TRIAL' AND (childTm.trialEndsDate IS NULL OR childTm.trialEndsDate>CURRENT_TIMESTAMP)))) activeDependants FROM tbl_modules m WHERE m.id=:moduleId AND EXISTS(SELECT 1 FROM tbl_tenants t WHERE t.id=:tenantExists) AND EXISTS(SELECT 1 FROM tbl_users u WHERE u.id=:userId AND u.isActive=1 AND u.isPlatformAdmin=1) LIMIT 1",
+        "params": [
+          {"name": ":status", "value": "{{$_POST.status}}"},
+          {"name": ":billing", "value": "{{$_POST.billingInterval}}"},
+          {"name": ":coreStatus", "value": "{{$_POST.status}}"},
+          {"name": ":tenantId", "value": "{{$_POST.tenantId}}"},
+          {"name": ":tenantId2", "value": "{{$_POST.tenantId}}"},
+          {"name": ":moduleId", "value": "{{$_POST.moduleId}}"},
+          {"name": ":tenantExists", "value": "{{$_POST.tenantId}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "requireValidRequest",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{validation.count() == 0 || validation[0].validStatus == 0 || validation[0].validBilling == 0}}", "then": {"steps": {"module": "core", "action": "error", "options": {"status": 400, "message": "The module status or billing interval is invalid."}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "protectCore",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{validation[0].coreAllowed == 0}}", "then": {"steps": {"module": "core", "action": "error", "options": {"status": 400, "message": "Tastrack Core cannot be disabled."}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "requireDependencies",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{($_POST.status == 'ACTIVE' || $_POST.status == 'TRIAL') && validation[0].missingDependencies > 0}}", "then": {"steps": {"module": "core", "action": "error", "options": {"status": 400, "message": "MODULE_DEPENDENCY_MISSING: This module requires another module which is not enabled."}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "protectDependants",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{$_POST.status != 'ACTIVE' && $_POST.status != 'TRIAL' && validation[0].activeDependants > 0}}", "then": {"steps": {"module": "core", "action": "error", "options": {"status": 400, "message": "MODULE_HAS_ACTIVE_DEPENDANTS: Another enabled module depends on this module."}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "beforeChange",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT tm.id,tm.status,tm.monthlyPrice,tm.annualPrice,tm.billingInterval,tm.accessStartDate,tm.accessEndDate,tm.trialEndsDate FROM (SELECT :tenantId tenantId,:moduleId moduleId) requested LEFT JOIN tbl_tenant_modules tm ON tm.tenantId=requested.tenantId AND tm.moduleId=requested.moduleId LIMIT 1",
+        "params": [{"name": ":tenantId", "value": "{{$_POST.tenantId}}"}, {"name": ":moduleId", "value": "{{$_POST.moduleId}}"}]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "saveEntitlement",
+      "module": "dbupdater",
+      "action": "transaction",
+      "options": {
+        "connection": "db",
+        "exec": {"steps": [
+          {
+            "name": "upsert",
+            "module": "dbupdater",
+            "action": "custom",
+            "options": {"connection": "db", "sql": {
+              "query": "INSERT INTO tbl_tenant_modules (tenantId,moduleId,status,accessStartDate,accessEndDate,trialEndsDate,billingInterval,monthlyPrice,annualPrice,currencyCode,billingReference,autoRenew,enabledDate,disabledDate,createdByUserId,modifiedByUserId,notes) VALUES (:tenantId,:moduleId,:status,NULLIF(:accessStart,''),NULLIF(:accessEnd,''),NULLIF(:trialEnd,''),:billingInterval,NULLIF(:monthlyPrice,''),NULLIF(:annualPrice,''),:currencyCode,NULLIF(:billingReference,''),:autoRenew,CASE WHEN :enableStatus IN ('ACTIVE','TRIAL') THEN CURRENT_TIMESTAMP ELSE NULL END,CASE WHEN :disableStatus='DISABLED' THEN CURRENT_TIMESTAMP ELSE NULL END,:createdBy,:modifiedBy,NULLIF(:notes,'')) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id),status=VALUES(status),accessStartDate=VALUES(accessStartDate),accessEndDate=VALUES(accessEndDate),trialEndsDate=VALUES(trialEndsDate),billingInterval=VALUES(billingInterval),monthlyPrice=VALUES(monthlyPrice),annualPrice=VALUES(annualPrice),currencyCode=VALUES(currencyCode),billingReference=VALUES(billingReference),autoRenew=VALUES(autoRenew),enabledDate=CASE WHEN VALUES(status) IN ('ACTIVE','TRIAL') AND status NOT IN ('ACTIVE','TRIAL') THEN CURRENT_TIMESTAMP ELSE enabledDate END,disabledDate=CASE WHEN VALUES(status)='DISABLED' AND status<>'DISABLED' THEN CURRENT_TIMESTAMP WHEN VALUES(status) IN ('ACTIVE','TRIAL') THEN NULL ELSE disabledDate END,modifiedByUserId=VALUES(modifiedByUserId),notes=VALUES(notes),modifiedDate=CURRENT_TIMESTAMP",
+              "params": [
+                {"name": ":tenantId", "value": "{{$_POST.tenantId}}"},
+                {"name": ":moduleId", "value": "{{$_POST.moduleId}}"},
+                {"name": ":status", "value": "{{$_POST.status}}"},
+                {"name": ":accessStart", "value": "{{$_POST.accessStartDate.default('')}}"},
+                {"name": ":accessEnd", "value": "{{$_POST.accessEndDate.default('')}}"},
+                {"name": ":trialEnd", "value": "{{$_POST.trialEndsDate.default('')}}"},
+                {"name": ":billingInterval", "value": "{{$_POST.billingInterval}}"},
+                {"name": ":monthlyPrice", "value": "{{$_POST.monthlyPrice.default('')}}"},
+                {"name": ":annualPrice", "value": "{{$_POST.annualPrice.default('')}}"},
+                {"name": ":currencyCode", "value": "{{$_POST.currencyCode.default('GBP')}}"},
+                {"name": ":billingReference", "value": "{{$_POST.billingReference.default('')}}"},
+                {"name": ":autoRenew", "value": "{{$_POST.autoRenew.default(0)}}"},
+                {"name": ":enableStatus", "value": "{{$_POST.status}}"},
+                {"name": ":disableStatus", "value": "{{$_POST.status}}"},
+                {"name": ":createdBy", "value": "{{$_SESSION.USER_ID}}"},
+                {"name": ":modifiedBy", "value": "{{$_SESSION.USER_ID}}"},
+                {"name": ":notes", "value": "{{$_POST.notes.default('')}}"}
+              ]
+            }},
+            "output": true
+          },
+          {
+            "name": "entitlement",
+            "module": "dbupdater",
+            "action": "custom",
+            "options": {"connection": "db", "sql": {
+              "query": "SELECT id,tenantId,moduleId,status,monthlyPrice,annualPrice,billingInterval,accessStartDate,accessEndDate,trialEndsDate FROM tbl_tenant_modules WHERE tenantId=:tenantId AND moduleId=:moduleId LIMIT 1",
+              "params": [{"name": ":tenantId", "value": "{{$_POST.tenantId}}"}, {"name": ":moduleId", "value": "{{$_POST.moduleId}}"}]
+            }},
+            "output": true,
+            "outputType": "array"
+          },
+          {
+            "name": "history",
+            "module": "dbupdater",
+            "action": "custom",
+            "options": {"connection": "db", "sql": {
+              "query": "INSERT INTO tbl_tenant_module_history (tenantModuleId,tenantId,moduleId,actionCode,previousStatus,newStatus,previousMonthlyPrice,newMonthlyPrice,previousAnnualPrice,newAnnualPrice,changeNote,changedByUserId) VALUES (:tenantModuleId,:tenantId,:moduleId,CASE WHEN :previousStatus='' THEN 'CREATED' WHEN :newStatus='TRIAL' AND :previousStatus2<>'TRIAL' THEN 'TRIAL_STARTED' WHEN :newStatus2='DISABLED' THEN 'DISABLED' WHEN :newStatus3='SUSPENDED' THEN 'SUSPENDED' WHEN :newStatus4='ACTIVE' AND :previousStatus3 IN ('DISABLED','SUSPENDED','EXPIRED') THEN 'REACTIVATED' WHEN COALESCE(:oldMonthly,'')<>COALESCE(:newMonthly,'') OR COALESCE(:oldAnnual,'')<>COALESCE(:newAnnual,'') THEN 'PRICE_CHANGED' WHEN COALESCE(:oldBilling,'')<>COALESCE(:newBilling,'') THEN 'BILLING_CHANGED' ELSE 'DATES_CHANGED' END,NULLIF(:previousStatus4,''),:newStatus5,NULLIF(:oldMonthly2,''),NULLIF(:newMonthly2,''),NULLIF(:oldAnnual2,''),NULLIF(:newAnnual2,''),NULLIF(:changeNote,''),:userId)",
+              "params": [
+                {"name": ":tenantModuleId", "value": "{{entitlement[0].id}}"},
+                {"name": ":tenantId", "value": "{{$_POST.tenantId}}"},
+                {"name": ":moduleId", "value": "{{$_POST.moduleId}}"},
+                {"name": ":previousStatus", "value": "{{beforeChange[0].status.default('')}}"},
+                {"name": ":newStatus", "value": "{{$_POST.status}}"},
+                {"name": ":previousStatus2", "value": "{{beforeChange[0].status.default('')}}"},
+                {"name": ":newStatus2", "value": "{{$_POST.status}}"},
+                {"name": ":newStatus3", "value": "{{$_POST.status}}"},
+                {"name": ":newStatus4", "value": "{{$_POST.status}}"},
+                {"name": ":previousStatus3", "value": "{{beforeChange[0].status.default('')}}"},
+                {"name": ":oldMonthly", "value": "{{beforeChange[0].monthlyPrice.default('')}}"},
+                {"name": ":newMonthly", "value": "{{$_POST.monthlyPrice.default('')}}"},
+                {"name": ":oldAnnual", "value": "{{beforeChange[0].annualPrice.default('')}}"},
+                {"name": ":newAnnual", "value": "{{$_POST.annualPrice.default('')}}"},
+                {"name": ":oldBilling", "value": "{{beforeChange[0].billingInterval.default('')}}"},
+                {"name": ":newBilling", "value": "{{$_POST.billingInterval}}"},
+                {"name": ":previousStatus4", "value": "{{beforeChange[0].status.default('')}}"},
+                {"name": ":newStatus5", "value": "{{$_POST.status}}"},
+                {"name": ":oldMonthly2", "value": "{{beforeChange[0].monthlyPrice.default('')}}"},
+                {"name": ":newMonthly2", "value": "{{$_POST.monthlyPrice.default('')}}"},
+                {"name": ":oldAnnual2", "value": "{{beforeChange[0].annualPrice.default('')}}"},
+                {"name": ":newAnnual2", "value": "{{$_POST.annualPrice.default('')}}"},
+                {"name": ":changeNote", "value": "{{$_POST.changeNote.default('')}}"},
+                {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}
+              ]
+            }},
+            "output": true
+          }
+        ]}
+      },
+      "output": true
+    },
+    {"module": "core", "action": "redirect", "options": {"url": "/platform/tenant-modules?tenantId={{$_POST.tenantId}}&saved=1", "status": 302}}
+  ]}
+}

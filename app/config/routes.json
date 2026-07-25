@@ -488,6 +488,28 @@
       }
     },
     {
+      "path": "/platform/modules",
+      "page": "platform/modules",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/platform/tenant-modules",
+      "page": "platform/tenant_modules",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
       "path": "/teams/delete_team_role",
       "page": "teams/delete_team_role",
       "layout": "main_shell",

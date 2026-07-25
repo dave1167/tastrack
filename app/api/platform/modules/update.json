@@ -1,0 +1,58 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "number", "name": "moduleId"},
+    {"type": "text", "name": "moduleName"},
+    {"type": "text", "name": "moduleDescription"},
+    {"type": "text", "name": "moduleCategory"},
+    {"type": "number", "name": "isBillable"},
+    {"type": "number", "name": "isActive"},
+    {"type": "number", "name": "defaultMonthlyPrice"},
+    {"type": "number", "name": "defaultAnnualPrice"},
+    {"type": "text", "name": "currencyCode"},
+    {"type": "number", "name": "displayOrder"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "platformAdmin",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT id FROM tbl_users WHERE id=:userId AND isActive=1 AND isPlatformAdmin=1 LIMIT 1",
+        "params": [{"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}]
+      }},
+      "output": false,
+      "outputType": "array"
+    },
+    {
+      "name": "requirePlatformAdmin",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{platformAdmin.count() == 0}}", "then": {"steps": {"module": "core", "action": "error", "options": {"status": 403, "message": "Platform administrator access is required."}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "updateModule",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "UPDATE tbl_modules m SET m.moduleName=:moduleName,m.moduleDescription=NULLIF(:description,''),m.moduleCategory=NULLIF(:category,''),m.isBillable=:isBillable,m.isActive=CASE WHEN m.moduleCode='CORE' THEN 1 ELSE :isActive END,m.defaultMonthlyPrice=NULLIF(:monthlyPrice,''),m.defaultAnnualPrice=NULLIF(:annualPrice,''),m.currencyCode=:currencyCode,m.displayOrder=:displayOrder WHERE m.id=:moduleId AND EXISTS(SELECT 1 FROM tbl_users u WHERE u.id=:userId AND u.isActive=1 AND u.isPlatformAdmin=1)",
+        "params": [
+          {"name": ":moduleName", "value": "{{$_POST.moduleName}}"},
+          {"name": ":description", "value": "{{$_POST.moduleDescription.default('')}}"},
+          {"name": ":category", "value": "{{$_POST.moduleCategory.default('')}}"},
+          {"name": ":isBillable", "value": "{{$_POST.isBillable.default(0)}}"},
+          {"name": ":isActive", "value": "{{$_POST.isActive.default(0)}}"},
+          {"name": ":monthlyPrice", "value": "{{$_POST.defaultMonthlyPrice.default('')}}"},
+          {"name": ":annualPrice", "value": "{{$_POST.defaultAnnualPrice.default('')}}"},
+          {"name": ":currencyCode", "value": "{{$_POST.currencyCode.default('GBP')}}"},
+          {"name": ":displayOrder", "value": "{{$_POST.displayOrder.default(0)}}"},
+          {"name": ":moduleId", "value": "{{$_POST.moduleId}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}
+        ]
+      }},
+      "output": true
+    },
+    {"module": "core", "action": "redirect", "options": {"url": "/platform/modules?saved=1", "status": 302}}
+  ]}
+}

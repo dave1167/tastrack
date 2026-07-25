@@ -565,3 +565,17 @@
     max-width: 150px;
   }
 }
+
+/* The bright primary turquoise needs dark text for readable contrast. */
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary:disabled,
+.btn-primary.disabled,
+.badge.bg-primary,
+.bg-primary,
+.text-bg-primary {
+  color: #000 !important;
+}

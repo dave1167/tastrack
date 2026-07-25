@@ -1,0 +1,18 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "exec": {"steps": {
+    "name": "modules",
+    "module": "dbupdater",
+    "action": "custom",
+    "options": {"connection": "db", "sql": {
+      "query": "SELECT m.moduleCode,m.moduleName,CAST(CASE WHEN m.isActive=1 AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP))) AND (tm.accessStartDate IS NULL OR tm.accessStartDate<=CURRENT_TIMESTAMP) AND (tm.accessEndDate IS NULL OR tm.accessEndDate>CURRENT_TIMESTAMP) THEN 1 ELSE 0 END AS UNSIGNED) hasAccess,COALESCE(tm.status,'DISABLED') status,tm.trialEndsDate FROM tbl_modules m LEFT JOIN tbl_tenant_modules tm ON tm.moduleId=m.id AND tm.tenantId=:tenantId WHERE EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr WHERE utr.userId=:userId AND utr.tenantId=:membershipTenant AND utr.isActive=1) ORDER BY m.displayOrder,m.moduleName",
+      "params": [
+        {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+        {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+        {"name": ":membershipTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+      ]
+    }},
+    "output": true,
+    "outputType": "array"
+  }}
+}

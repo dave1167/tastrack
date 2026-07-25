@@ -1,0 +1,44 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "text", "name": "moduleCode"}]},
+  "exec": {"steps": [
+    {
+      "name": "entitlement",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT tm.id tenantModuleId,m.moduleCode,m.moduleName,tm.status,tm.trialEndsDate,tm.accessStartDate,tm.accessEndDate FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId WHERE tm.tenantId=:tenantId AND m.moduleCode=:moduleCode AND m.isActive=1 AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP))) AND (tm.accessStartDate IS NULL OR tm.accessStartDate<=CURRENT_TIMESTAMP) AND (tm.accessEndDate IS NULL OR tm.accessEndDate>CURRENT_TIMESTAMP) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr WHERE utr.userId=:userId AND utr.tenantId=tm.tenantId AND utr.isActive=1) LIMIT 1",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":moduleCode", "value": "{{$_GET.moduleCode}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "requireAccess",
+      "module": "core",
+      "action": "condition",
+      "options": {
+        "if": "{{entitlement.count() == 0}}",
+        "then": {"steps": {
+          "name": "moduleNotEnabled",
+          "module": "core",
+          "action": "response",
+          "options": {
+            "status": 403,
+            "data": {
+              "success": false,
+              "errorCode": "MODULE_NOT_ENABLED",
+              "message": "The requested module is not enabled for this organisation.",
+              "moduleCode": "{{$_GET.moduleCode}}"
+            }
+          }
+        }}
+      },
+      "outputType": "boolean"
+    }
+  ]}
+}

@@ -105,6 +105,20 @@
         "output": true,
         "meta": [],
         "outputType": "text"
+      },
+      {
+        "name": "platformAdmin",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT CAST(CASE WHEN EXISTS(SELECT 1 FROM tbl_users u WHERE u.id=:userId AND u.isActive=1 AND u.isPlatformAdmin=1) THEN 1 ELSE 0 END AS UNSIGNED) isPlatformAdmin",
+            "params": [{"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}]
+          }
+        },
+        "output": true,
+        "outputType": "array"
       }
     ]
   }

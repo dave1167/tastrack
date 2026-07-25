@@ -1,0 +1,14 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "exec": {"steps": {
+    "name": "tenants",
+    "module": "dbupdater",
+    "action": "custom",
+    "options": {"connection": "db", "sql": {
+      "query": "SELECT t.id tenantId,t.tenantName FROM tbl_tenants t WHERE EXISTS(SELECT 1 FROM tbl_users u WHERE u.id=:userId AND u.isActive=1 AND u.isPlatformAdmin=1) ORDER BY t.tenantName",
+      "params": [{"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}]
+    }},
+    "output": true,
+    "outputType": "array"
+  }}
+}
