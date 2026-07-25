@@ -1,0 +1,9 @@
+{
+  "settings":{"options":{"nocsrf":true,"method":"get"}},
+  "meta":{"$_GET":[{"type":"number","name":"tenantid"},{"type":"number","name":"moduleid"}]},
+  "exec":{"steps":{
+    "name":"entitlement","module":"dbupdater","action":"custom",
+    "options":{"connection":"db","sql":{"query":"SELECT t.id tenantId,t.tenantName,m.id moduleId,m.moduleCode,m.moduleName,m.moduleDescription,m.isCore,m.isBillable,m.defaultMonthlyPrice,m.defaultAnnualPrice,m.currencyCode catalogueCurrency,tm.id tenantModuleId,COALESCE(tm.status,'DISABLED') status,COALESCE(tm.billingInterval,CASE WHEN m.isCore=1 THEN 'INCLUDED' ELSE 'MONTHLY' END) billingInterval,tm.monthlyPrice,tm.annualPrice,COALESCE(tm.currencyCode,m.currencyCode) currencyCode,tm.accessStartDate,tm.accessEndDate,tm.trialEndsDate,tm.enabledDate,tm.disabledDate,COALESCE(tm.autoRenew,0) autoRenew,tm.billingReference,tm.notes FROM tbl_tenants t INNER JOIN tbl_modules m ON m.id=:moduleId LEFT JOIN tbl_tenant_modules tm ON tm.tenantId=t.id AND tm.moduleId=m.id WHERE t.id=:tenantId AND EXISTS(SELECT 1 FROM tbl_users u WHERE u.id=:userId AND u.isActive=1 AND u.isPlatformAdmin=1) LIMIT 1","params":[{"name":":moduleId","value":"{{$_GET.moduleid.default(0)}}"},{"name":":tenantId","value":"{{$_GET.tenantid.default(0)}}"},{"name":":userId","value":"{{$_SESSION.USER_ID.default(0)}}"}]}},
+    "output":true,"outputType":"array"
+  }}
+}

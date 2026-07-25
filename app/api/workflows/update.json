@@ -15,6 +15,7 @@
       { "type": "number", "name": "spaceId" },
       { "type": "number", "name": "configurationId" }
       ,{ "type": "number", "name": "workflowTypeId" }
+      ,{ "type": "number", "name": "contractingEntityId" }
     ]
   },
   "exec": {
@@ -27,7 +28,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_workflows w SET w.workflowName=:workflowName,w.referenceCode=NULLIF(:referenceCode,''),w.status=:status,w.ownerTeamId=NULLIF(:ownerTeamId,''),w.workflowTypeId=(SELECT t.id FROM tbl_workflow_types t WHERE t.id=NULLIF(:workflowTypeId,'') AND t.tenantId=w.tenantId AND t.isActive=1 LIMIT 1),w.locationId=(SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=w.tenantId LIMIT 1),w.spaceId=(SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=w.tenantId LIMIT 1),w.configurationId=(SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=w.tenantId LIMIT 1),w.startDate=NULLIF(:startDate,''),w.targetDate=NULLIF(:targetDate,''),w.completedDate=CASE WHEN :status2='complete' THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:id AND w.tenantId=:tenantId",
+            "query": "UPDATE tbl_workflows w SET w.workflowName=:workflowName,w.referenceCode=NULLIF(:referenceCode,''),w.status=:status,w.ownerTeamId=NULLIF(:ownerTeamId,''),w.workflowTypeId=(SELECT t.id FROM tbl_workflow_types t WHERE t.id=NULLIF(:workflowTypeId,'') AND t.tenantId=w.tenantId AND t.isActive=1 LIMIT 1),w.locationId=CASE WHEN EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='LOCATIONS' AND m.isActive=1 WHERE tm.tenantId=w.tenantId AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP))) AND (tm.accessStartDate IS NULL OR tm.accessStartDate<=CURRENT_TIMESTAMP) AND (tm.accessEndDate IS NULL OR tm.accessEndDate>CURRENT_TIMESTAMP)) THEN (SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=w.tenantId LIMIT 1) ELSE w.locationId END,w.spaceId=CASE WHEN EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='LOCATIONS' AND m.isActive=1 WHERE tm.tenantId=w.tenantId AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP)))) THEN (SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=w.tenantId LIMIT 1) ELSE w.spaceId END,w.configurationId=CASE WHEN EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='LOCATIONS' AND m.isActive=1 WHERE tm.tenantId=w.tenantId AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP)))) THEN (SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=w.tenantId LIMIT 1) ELSE w.configurationId END,w.startDate=NULLIF(:startDate,''),w.targetDate=NULLIF(:targetDate,''),w.completedDate=CASE WHEN :status2='complete' THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:id AND w.tenantId=:tenantId",
             "params": [
               { "name": ":workflowName", "value": "{{$_POST.workflowName}}" },
               {
@@ -60,6 +61,9 @@
           }
         },
         "output": true
+      },
+      {
+        "name":"updateContractingEntity","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_workflows w SET w.contractingEntityId=COALESCE((SELECT ce.id FROM tbl_contracting_entities ce WHERE ce.id=NULLIF(:contractingEntityId,'') AND ce.tenantId=w.tenantId AND ce.isActive=1 LIMIT 1),(SELECT ce.id FROM tbl_contracting_entities ce WHERE ce.tenantId=w.tenantId AND ce.isDefault=1 AND ce.isActive=1 LIMIT 1)) WHERE w.id=:workflowId AND w.tenantId=:tenantId","params":[{"name":":contractingEntityId","value":"{{$_POST.contractingEntityId.default('')}}"},{"name":":workflowId","value":"{{$_POST.id}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
       },
       {
         "name": "updateShowDateAndTime",

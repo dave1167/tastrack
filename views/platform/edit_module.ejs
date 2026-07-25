@@ -1,0 +1,24 @@
+<!-- Wappler include head-page="layouts/platform_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="platform_edit_module" appConnect="local" -->
+<dmx-serverconnect id="scPlatformModule" url="/api/platform/modules/get" dmx-param:id="query.id"></dmx-serverconnect>
+<div class="row g-4">
+    <div class="col-12"><div class="d-flex justify-content-between align-items-center"><div><h1 class="mb-1">Edit Module</h1><p class="text-muted mb-0" dmx-text="scPlatformModule.data.module[0].moduleName"></p></div><a class="btn btn-outline-secondary" href="/platform/modules">Back to modules</a></div></div>
+    <div class="col-12 col-xl-8"><div class="card border-0 shadow-sm" dmx-show="scPlatformModule.data.module.count() > 0"><div class="card-body p-4">
+        <form method="post" action="/api/platform/modules/update">
+            <%- _csrfInput() %><input type="hidden" name="moduleId" dmx-bind:value="scPlatformModule.data.module[0].id">
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Module name</label><input class="form-control" name="moduleName" required dmx-bind:value="scPlatformModule.data.module[0].moduleName"></div>
+                <div class="col-md-6"><label class="form-label">Module code</label><input class="form-control" readonly dmx-bind:value="scPlatformModule.data.module[0].moduleCode"><div class="form-text">Module codes cannot be changed after creation.</div></div>
+                <div class="col-md-6"><label class="form-label">Category</label><input class="form-control" name="moduleCategory" dmx-bind:value="scPlatformModule.data.module[0].moduleCategory"></div>
+                <div class="col-md-3"><label class="form-label">Display order</label><input class="form-control" name="displayOrder" type="number" dmx-bind:value="scPlatformModule.data.module[0].displayOrder"></div>
+                <div class="col-md-3"><label class="form-label">Billable</label><select class="form-select" name="isBillable" dmx-bind:value="scPlatformModule.data.module[0].isBillable"><option value="1">Yes</option><option value="0">No</option></select></div>
+                <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" name="moduleDescription" rows="3" dmx-bind:value="scPlatformModule.data.module[0].moduleDescription"></textarea></div>
+                <div class="col-md-4"><label class="form-label">Monthly price</label><input class="form-control" name="defaultMonthlyPrice" type="number" min="0" step="0.01" dmx-bind:value="scPlatformModule.data.module[0].defaultMonthlyPrice"></div>
+                <div class="col-md-4"><label class="form-label">Annual price</label><input class="form-control" name="defaultAnnualPrice" type="number" min="0" step="0.01" dmx-bind:value="scPlatformModule.data.module[0].defaultAnnualPrice"></div>
+                <div class="col-md-2"><label class="form-label">Currency</label><input class="form-control text-uppercase" name="currencyCode" maxlength="3" dmx-bind:value="scPlatformModule.data.module[0].currencyCode"></div>
+                <div class="col-md-2"><label class="form-label">Status</label><select class="form-select" name="isActive" dmx-bind:value="scPlatformModule.data.module[0].isActive" dmx-bind:disabled="scPlatformModule.data.module[0].isCore == 1"><option value="1">Active</option><option value="0">Retired</option></select><input type="hidden" name="isActive" value="1" dmx-show="scPlatformModule.data.module[0].isCore == 1" dmx-bind:disabled="scPlatformModule.data.module[0].isCore != 1"></div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-light" href="/platform/modules">Cancel</a><button class="btn btn-primary" type="submit">Save module</button></div>
+        </form>
+    </div></div></div>
+</div>
+<meta name="ac:route" content="/platform/modules/edit">

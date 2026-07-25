@@ -1,5 +1,8 @@
 {
   "main_shell.ejs": {
     "description": ""
+  },
+  "platform_shell.ejs": {
+    "description": "Separate shell for TasTrack platform administration"
   }
 }

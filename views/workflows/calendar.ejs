@@ -33,7 +33,7 @@
                 <div class="row g-3 align-items-end">
                     <div class="col-12 col-md-6 col-xl-3"><label class="form-label" for="calendarSearch">Search</label><input class="form-control" id="calendarSearch" type="search" placeholder="Name, reference, location or team"></div>
                     <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="calendarWorkflow" dmx-text="scTerminology.data.query[0].workflowSingular">Event</label><select class="form-select" id="calendarWorkflow" dmx-bind:options="scCalendarWorkflows.data.query" optiontext="workflowName" optionvalue="id"><option value="">All events</option></select></div>
-                    <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="calendarLocation" dmx-text="scTerminology.data.query[0].locationSingular">Location</label><select class="form-select" id="calendarLocation" dmx-bind:options="scCalendarLocations.data.query" optiontext="locationLabel" optionvalue="id"><option value="">All locations</option></select></div>
+                    <div class="col-6 col-md-3 col-xl-2" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><label class="form-label" for="calendarLocation" dmx-text="scTerminology.data.query[0].locationSingular">Location</label><select class="form-select" id="calendarLocation" dmx-bind:options="scCalendarLocations.data.query" optiontext="locationLabel" optionvalue="id"><option value="">All locations</option></select></div>
                     <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="calendarTeam">Team</label><select class="form-select" id="calendarTeam" dmx-bind:options="scCalendarTeams.data.query" optiontext="teamName" optionvalue="id"><option value="">All teams</option></select></div>
                     <div class="col-6 col-md-3 col-xl-2"><label class="form-label" for="calendarStatus">Status</label><select class="form-select" id="calendarStatus"><option value="">All statuses</option><option value="draft">Draft</option><option value="not_started">Not started</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="complete">Complete</option><option value="cancelled">Cancelled</option></select></div>
                     <div class="col-6 col-xl-1 d-grid"><button class="btn btn-primary" id="calendarApplyFilters" type="button" dmx-on:click="scCalendarEvents.load()">Apply</button></div>
@@ -42,7 +42,6 @@
                 <div class="d-flex flex-wrap gap-3 mt-3" id="calendarDateTypes">
                     <div class="form-check"><input class="form-check-input" id="dateTypeShow" type="checkbox" value="show_date" checked><label class="form-check-label" for="dateTypeShow"><span class="calendar-key key-show"></span>Show dates</label></div>
                     <div class="form-check"><input class="form-check-input" id="dateTypeStart" type="checkbox" value="start_date" checked><label class="form-check-label" for="dateTypeStart"><span class="calendar-key key-start"></span>Start dates</label></div>
-                    <div class="form-check"><input class="form-check-input" id="dateTypeTarget" type="checkbox" value="target_date" checked><label class="form-check-label" for="dateTypeTarget"><span class="calendar-key key-target"></span>Target dates</label></div>
                     <div class="form-check"><input class="form-check-input" id="dateTypeTask" type="checkbox" value="task_due" checked><label class="form-check-label" for="dateTypeTask"><span class="calendar-key key-task"></span><span dmx-text="scTerminology.data.query[0].taskSingular + ' deadlines'">Task deadlines</span></label></div>
                     <div class="form-check"><input class="form-check-input" id="dateTypeCustom" type="checkbox" value="custom_date" checked><label class="form-check-label" for="dateTypeCustom"><span class="calendar-key key-custom"></span>Other dates</label></div>
                     <div class="form-check"><input class="form-check-input" id="dateTypeComplete" type="checkbox" value="completion"><label class="form-check-label" for="dateTypeComplete"><span class="calendar-key key-complete"></span>Completed dates</label></div>
@@ -65,10 +64,6 @@
                         event-url="'/workflows/view?id=' + workflowId"></dmx-calendar-source>
                     <dmx-calendar-source id="startDates" color="#0d6efd" text-color="#ffffff"
                         dmx-bind:events="dateTypeStart.checked ? scCalendarEvents.data.query.where('eventType','start_date') : []"
-                        event-id="id" event-title="eventLabel + ': ' + workflowName" event-start="eventDate" event-all-day="true"
-                        event-url="'/workflows/view?id=' + workflowId"></dmx-calendar-source>
-                    <dmx-calendar-source id="targetDates" color="#dc3545" text-color="#ffffff"
-                        dmx-bind:events="dateTypeTarget.checked ? scCalendarEvents.data.query.where('eventType','target_date') : []"
                         event-id="id" event-title="eventLabel + ': ' + workflowName" event-start="eventDate" event-all-day="true"
                         event-url="'/workflows/view?id=' + workflowId"></dmx-calendar-source>
                     <dmx-calendar-source id="taskDates" color="#fd7e14" text-color="#1e2b37"

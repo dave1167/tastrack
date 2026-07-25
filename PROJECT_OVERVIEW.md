@@ -121,3 +121,15 @@ Canonical module codes are documented in `app/config/moduleCodes.json`.
 Platform administrators are separate from tenant roles and use `tbl_users.isPlatformAdmin`.
 Every paid-module Server Connect action must require the tenant module and then check the user's normal permission separately.
 See `app_docs/MODULES.md` for runtime, administration and lifecycle rules.
+
+Platform Administration
+Platform administration is separated from tenant workspaces under `/platform`.
+Platform pages use the Wappler `platform_shell` layout and `/platform/login`.
+Do not add platform administration links to the tenant `main_shell` navigation.
+Platform Server Connect actions must verify that the authenticated user is active and has `tbl_users.isPlatformAdmin = 1`.
+A dedicated administration subdomain may route to `/platform` at deployment without creating a separate Node application.
+
+Session Storage
+Tastrack stores server-side login sessions in the `tbl_sessions` table through Wappler's database session store.
+Sessions use the existing `db` connection, expire after 12 hours and are automatically removed after expiry.
+Do not store passwords or application records directly in session data.

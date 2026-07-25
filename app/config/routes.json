@@ -488,24 +488,130 @@
       }
     },
     {
-      "path": "/platform/modules",
-      "page": "platform/modules",
+      "path": "/contract-templates",
+      "page": "contracts/templates",
       "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/contracting-entities",
+      "page": "contracting_entities/list",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/contracting-entities/editor",
+      "page": "contracting_entities/editor",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/contract-templates/editor",
+      "page": "contracts/editor",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/contract-clauses",
+      "page": "contracts/clauses",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/contract-clauses/editor",
+      "page": "contracts/clause_editor",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/contracts/preview",
+      "page": "contracts/preview",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/contracts/generated",
+      "page": "contracts/generated",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/platform/login",
+      "page": "platform/login",
+      "layout": "main",
+      "routeType": "page"
+    },
+    {
+      "path": "/platform",
+      "page": "platform/modules",
+      "layout": "platform_shell",
       "routeType": "page",
       "restrict": {
         "provider": "security",
-        "loginUrl": "/login/login",
+        "loginUrl": "/platform/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/platform/modules",
+      "page": "platform/modules",
+      "layout": "platform_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/platform/login",
         "forbiddenUrl": "/unauthorised"
       }
     },
     {
       "path": "/platform/tenant-modules",
       "page": "platform/tenant_modules",
-      "layout": "main_shell",
+      "layout": "platform_shell",
       "routeType": "page",
       "restrict": {
         "provider": "security",
-        "loginUrl": "/login/login",
+        "loginUrl": "/platform/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/platform/modules/add",
+      "page": "platform/add_module",
+      "layout": "platform_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/platform/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/platform/modules/edit",
+      "page": "platform/edit_module",
+      "layout": "platform_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/platform/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/platform/tenant-modules/edit",
+      "page": "platform/edit_tenant_module",
+      "layout": "platform_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/platform/login",
         "forbiddenUrl": "/unauthorised"
       }
     },
@@ -529,6 +635,13 @@
       "restrict": {
         "provider": "security",
         "loginUrl": "/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    "platform_shell": {
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/platform/login",
         "forbiddenUrl": "/unauthorised"
       }
     }

@@ -1,0 +1,58 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="contract_template_editor" appConnect="local" -->
+<dmx-serverconnect id="scContractTemplate" url="/api/contracts/getTemplate" dmx-param:id="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scContractOptions" url="/api/contracts/options"></dmx-serverconnect>
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center gap-3">
+            <div>
+                <h1 class="mb-1" dmx-text="query.id ? 'Edit Contract Template' : 'Add Contract Template'">Contract Template</h1>
+                <p class="text-muted mb-0">Use Insert field to add approved information from an event.</p>
+            </div><a class="btn btn-outline-secondary" href="/contract-templates">Back to templates</a>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form id="contractTemplateForm" method="post" dmx-bind:action="query.id ? '/api/contracts/updateTemplate' : '/api/contracts/createTemplate'">
+                    <%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="query.id">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7"><label class="form-label">Template name</label><input class="form-control" name="templateName" required maxlength="180" dmx-bind:value="scContractTemplate.data.template[0].templateName"></div>
+                        <div class="col-md-3"><label class="form-label">Status</label><select class="form-select" name="isActive" dmx-bind:value="scContractTemplate.data.template[0].isActive.default(1)">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select></div>
+                        <div class="col-md-2"><label class="form-label">Version</label><input class="form-control" readonly dmx-bind:value="scContractTemplate.data.template[0].versionNumber.default(1)"></div>
+                        <div class="col-12"><label class="form-label">Description</label><input class="form-control" name="description" dmx-bind:value="scContractTemplate.data.template[0].description"></div>
+                    </div>
+                    <input type="hidden" id="contractClauseIds" name="clauseIds">
+                    <div class="row g-2 align-items-end mb-3">
+                        <div class="col-12 col-md-7 col-lg-5"><label class="form-label small fw-semibold" for="contractClauseSelect">Insert reusable clause</label><select class="form-select" id="contractClauseSelect"><option value="">Select a clause</option></select></div>
+                        <div class="col-auto"><button class="btn btn-outline-primary" id="insertContractClause" type="button"><i class="fas fa-plus me-2"></i>Insert clause</button></div>
+                        <div class="col-auto"><a class="btn btn-link" href="/contract-clauses">Manage clause library</a></div>
+                    </div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2"><span class="small fw-semibold me-1">Insert field:</span><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="event.name">Event name</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="event.reference">Reference</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="event.showDate">Show date</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="event.showTime">Show time</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="location.name">Location</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="space.name">Space</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="configuration.name">Configuration</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="tenant.name">Account name</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contractingEntity.legalName">Legal entity</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contractingEntity.tradingName">Trading name</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contractingEntity.registrationNumber">Registration number</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contractingEntity.vatNumber">VAT number</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contractingEntity.registeredAddress">Registered address</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contractingEntity.signatoryName">Signatory</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contractingEntity.signatoryTitle">Signatory title</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contractingEntity.paymentTerms">Payment terms</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contractingEntity.footer">Contract footer</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="owner.name">Owner</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contact.name">Primary contact</button><button class="btn btn-sm btn-outline-secondary contract-field" type="button" data-field="contact.email">Contact email</button></div>
+                    <label class="form-label" for="contractBody">Contract content</label><textarea class="form-control" id="contractBody" name="bodyHtml" rows="18" required dmx-bind:value="scContractTemplate.data.template[0].bodyHtml"></textarea>
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mt-4">
+                        <div class="d-flex gap-2 align-items-end" dmx-show="query.id">
+                            <div><label class="form-label small">Preview using event</label><select class="form-select" id="contractPreviewWorkflow" dmx-bind:options="scContractOptions.data.workflows" optiontext="workflowLabel" optionvalue="id">
+                                    <option value="">Select event</option>
+                                </select></div><button class="btn btn-outline-primary" type="button" id="previewContractButton" dmx-bind:data-template-id="query.id">Preview</button>
+                        </div>
+                        <div class="d-flex gap-2 ms-lg-auto"><a class="btn btn-light" href="/contract-templates">Cancel</a><button class="btn btn-primary" type="submit">Save template</button></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-12" dmx-show="query.id && scContractTemplate.data.versions.count() > 0">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h2 class="h5 mb-0">Previous versions</h2>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2" is="dmx-repeat" dmx-bind:repeat="scContractTemplate.data.versions"><span class="badge bg-light text-dark border" dmx-text="'Version ' + $value.versionNumber + ' Â· ' + $value.createdDate.formatDate('dd MMM yyyy')"></span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/contract-templates/editor">

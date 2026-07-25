@@ -1,0 +1,15 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "id"}]},
+  "exec": {"steps": {
+    "name": "module",
+    "module": "dbupdater",
+    "action": "custom",
+    "options": {"connection": "db", "sql": {
+      "query": "SELECT m.id,m.moduleCode,m.moduleName,m.moduleDescription,m.moduleCategory,m.isCore,m.isBillable,m.isActive,m.defaultMonthlyPrice,m.defaultAnnualPrice,m.currencyCode,m.displayOrder FROM tbl_modules m WHERE m.id=:id AND EXISTS(SELECT 1 FROM tbl_users u WHERE u.id=:userId AND u.isActive=1 AND u.isPlatformAdmin=1) LIMIT 1",
+      "params": [{"name": ":id", "value": "{{$_GET.id.default(0)}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}]
+    }},
+    "output": true,
+    "outputType": "array"
+  }}
+}

@@ -1,0 +1,52 @@
+<!-- Wappler include head-page="layouts/main" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="platform_login" appConnect="local" components="{dmxBootstrap5Alert:{},dmxBrowser:{}}" -->
+<div is="dmx-browser" id="browser1"></div>
+<meta name="ac:route" content="/platform/login">
+
+<section class="login-page py-5 py-lg-0">
+    <div class="container">
+        <div class="row min-vh-100 align-items-center justify-content-center">
+            <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+                <div class="card border-0 shadow-lg overflow-hidden login-shell">
+                    <div class="card-body p-4 p-md-5">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <img src="/assets/images/tastrack_logo.png" alt="TasTrack" width="150" class="img-fluid">
+                            <span class="badge bg-dark text-white">Platform Administration</span>
+                        </div>
+                        <h1 class="h3 mb-2">Platform administrator sign in</h1>
+                        <p class="text-body-secondary mb-4">Manage organisations, modules and platform-wide settings.</p>
+
+                        <form id="platform_login_form" class="needs-validation" method="post" action="/api/platform/login" novalidate>
+                            <div class="alert alert-danger" role="alert" dmx-show="platform_login_form.state.lastError">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <span dmx-text="platform_login_form.lastError.message.default('Platform administrator sign in failed.')"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label for="platform_username" class="form-label">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user-shield"></i></span>
+                                    <input type="text" class="form-control" id="platform_username" name="username" required autocomplete="username">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="platform_password" class="form-label">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" id="platform_password" name="password" required autocomplete="current-password">
+                                </div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <span class="spinner-border spinner-border-sm me-2" dmx-show="platform_login_form.state.executing"></span>
+                                    Sign in to platform
+                                </button>
+                            </div>
+                        </form>
+                        <div class="text-center mt-4">
+                            <a href="/login/login" class="small text-decoration-none">Return to tenant sign in</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

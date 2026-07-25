@@ -1,57 +1,33 @@
-<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="platform_tenant_modules" appConnect="local" -->
+<!-- Wappler include head-page="layouts/platform_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="platform_tenant_modules" appConnect="local" -->
 <dmx-serverconnect id="scPlatformTenants" url="/api/platform/tenantModules/tenants"></dmx-serverconnect>
-<dmx-serverconnect id="scTenantModules" url="/api/platform/tenantModules/list" dmx-param:tenantid="query.tenantId" dmx-show="query.tenantId"></dmx-serverconnect>
+<dmx-serverconnect id="scTenantModules" url="/api/platform/tenantModules/list" dmx-param:tenantid="query.tenantId"></dmx-serverconnect>
 
 <div class="row g-4">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <div><h1 class="mb-1">Tenant Modules</h1><p class="text-muted mb-0">Manage module access, trials and agreed prices by organisation.</p></div>
-            <a class="btn btn-outline-primary" href="/platform/modules">Module Catalogue</a>
-        </div>
-    </div>
+    <div class="col-12"><div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"><div><h1 class="mb-1">Tenant Modules</h1><p class="text-muted mb-0">Select an organisation, then open a module to manage its access.</p></div><a class="btn btn-outline-primary" href="/platform/modules">Module Catalogue</a></div></div>
     <div class="col-12 col-xl-6">
-        <form method="get" action="/platform/tenant-modules" class="card border-0 shadow-sm">
-            <div class="card-body"><label class="form-label">Organisation</label><div class="input-group"><select class="form-select" name="tenantId" required dmx-bind:options="scPlatformTenants.data.tenants" optiontext="tenantName" optionvalue="tenantId" dmx-bind:value="query.tenantId"><option value="">Select an organisation</option></select><button class="btn btn-primary" type="submit">View modules</button></div></div>
-        </form>
+        <form method="get" action="/platform/tenant-modules" class="card border-0 shadow-sm"><div class="card-body"><label class="form-label">Organisation</label><div class="input-group"><select class="form-select" name="tenantId" required dmx-bind:options="scPlatformTenants.data.tenants" optiontext="tenantName" optionvalue="tenantId" dmx-bind:value="query.tenantId"><option value="">Select an organisation</option></select><button class="btn btn-primary" type="submit">View modules</button></div></div></form>
     </div>
-    <div class="col-12"><div class="alert alert-success mb-0" dmx-show="query.saved == 1">Tenant module updated and recorded in history.</div></div>
-
+    <div class="col-12"><div class="alert alert-success mb-0" dmx-show="query.saved == 1">Tenant module saved.</div></div>
     <div class="col-12" dmx-show="query.tenantId && scTenantModules.data.tenant.count() > 0">
-        <h2 class="h4 mb-0"><span dmx-text="scTenantModules.data.tenant[0].tenantName"></span> modules</h2>
-    </div>
-    <div class="col-12" is="dmx-repeat" id="repTenantModules" dmx-bind:repeat="scTenantModules.data.modules">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <div><h3 class="h5 mb-0" dmx-text="$value.moduleName"></h3><code dmx-text="$value.moduleCode"></code></div>
-                <span class="badge text-uppercase" dmx-class:bg-success="$value.status == 'ACTIVE'" dmx-class:bg-primary="$value.status == 'TRIAL'" dmx-class:bg-warning="$value.status == 'SUSPENDED'" dmx-class:bg-secondary="$value.status == 'DISABLED' || $value.status == 'EXPIRED'" dmx-text="$value.status"></span>
-            </div>
-            <div class="card-body">
-                <form method="post" action="/api/platform/tenantModules/update">
-                    <%- _csrfInput() %>
-                    <input type="hidden" name="tenantId" dmx-bind:value="query.tenantId">
-                    <input type="hidden" name="moduleId" dmx-bind:value="$value.moduleId">
-                    <div class="row g-3">
-                        <div class="col-md-3"><label class="form-label">Status</label><select class="form-select" name="status" dmx-bind:value="$value.status" dmx-bind:disabled="$value.isCore == 1"><option value="ACTIVE">Active</option><option value="TRIAL">Trial</option><option value="DISABLED">Disabled</option><option value="SUSPENDED">Suspended</option><option value="EXPIRED">Expired</option></select><input type="hidden" name="status" value="ACTIVE" dmx-show="$value.isCore == 1"></div>
-                        <div class="col-md-3"><label class="form-label">Billing</label><select class="form-select" name="billingInterval" dmx-bind:value="$value.billingInterval || ($value.isCore == 1 ? 'INCLUDED' : 'MONTHLY')"><option value="INCLUDED">Included / free</option><option value="MONTHLY">Monthly</option><option value="ANNUAL">Annual</option><option value="MANUAL">Manual</option></select></div>
-                        <div class="col-md-2"><label class="form-label">Monthly price</label><input class="form-control" name="monthlyPrice" type="number" min="0" step="0.01" dmx-bind:value="$value.monthlyPrice != null ? $value.monthlyPrice : $value.defaultMonthlyPrice"></div>
-                        <div class="col-md-2"><label class="form-label">Annual price</label><input class="form-control" name="annualPrice" type="number" min="0" step="0.01" dmx-bind:value="$value.annualPrice != null ? $value.annualPrice : $value.defaultAnnualPrice"></div>
-                        <div class="col-md-2"><label class="form-label">Currency</label><input class="form-control text-uppercase" name="currencyCode" maxlength="3" dmx-bind:value="$value.currencyCode"></div>
-                        <div class="col-md-3"><label class="form-label">Access starts</label><input class="form-control" name="accessStartDate" type="datetime-local" dmx-bind:value="$value.accessStartDate ? $value.accessStartDate.formatDate('yyyy-MM-dd HH:mm').replace(' ','T') : ''"></div>
-                        <div class="col-md-3"><label class="form-label">Access ends</label><input class="form-control" name="accessEndDate" type="datetime-local" dmx-bind:value="$value.accessEndDate ? $value.accessEndDate.formatDate('yyyy-MM-dd HH:mm').replace(' ','T') : ''"></div>
-                        <div class="col-md-3"><label class="form-label">Trial ends</label><input class="form-control" name="trialEndsDate" type="datetime-local" dmx-bind:value="$value.trialEndsDate ? $value.trialEndsDate.formatDate('yyyy-MM-dd HH:mm').replace(' ','T') : ''"></div>
-                        <div class="col-md-3"><label class="form-label">Auto renew</label><select class="form-select" name="autoRenew" dmx-bind:value="$value.autoRenew"><option value="0">No</option><option value="1">Yes</option></select></div>
-                        <div class="col-md-6"><label class="form-label">Billing reference</label><input class="form-control" name="billingReference" dmx-bind:value="$value.billingReference"></div>
-                        <div class="col-md-6"><label class="form-label">Change note</label><input class="form-control" name="changeNote" required placeholder="Reason for this change"></div>
-                        <div class="col-12"><label class="form-label">Commercial notes</label><textarea class="form-control" name="notes" rows="2" dmx-bind:value="$value.notes"></textarea></div>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mt-3"><small class="text-muted"><span dmx-show="$value.enabledDate">Enabled <span dmx-text="$value.enabledDate.formatDate('dd MMM yyyy')"></span></span><span dmx-show="$value.disabledDate"> · Disabled <span dmx-text="$value.disabledDate.formatDate('dd MMM yyyy')"></span></span></small><button class="btn btn-primary" type="submit">Save entitlement</button></div>
-                </form>
-            </div>
+            <div class="card-header bg-white"><h2 class="h5 mb-0"><span dmx-text="scTenantModules.data.tenant[0].tenantName"></span> modules</h2></div>
+            <div class="card-body p-0"><div class="table-responsive"><table class="table table-hover align-middle mb-0">
+                <thead class="table-light"><tr><th>Module</th><th>Status</th><th>Billing</th><th>Agreed price</th><th>Access period</th><th class="text-end">Actions</th></tr></thead>
+                <tbody is="dmx-repeat" dmx-bind:repeat="scTenantModules.data.modules">
+                    <tr>
+                        <td><div class="fw-semibold" dmx-text="$value.moduleName"></div><code dmx-text="$value.moduleCode"></code></td>
+                        <td><span class="badge text-uppercase" dmx-class:bg-success="$value.status == 'ACTIVE'" dmx-class:bg-primary="$value.status == 'TRIAL'" dmx-class:bg-warning="$value.status == 'SUSPENDED'" dmx-class:bg-secondary="$value.status == 'DISABLED' || $value.status == 'EXPIRED'" dmx-text="$value.status"></span></td>
+                        <td dmx-text="$value.billingInterval || 'Not set'"></td>
+                        <td><span dmx-text="$value.monthlyPrice != null ? $value.currencyCode + ' ' + $value.monthlyPrice + ' monthly' : ($value.annualPrice != null ? $value.currencyCode + ' ' + $value.annualPrice + ' annually' : '—')"></span></td>
+                        <td><span dmx-text="$value.accessStartDate ? $value.accessStartDate.formatDate('dd MMM yyyy') : 'Open'"></span><span> – </span><span dmx-text="$value.accessEndDate ? $value.accessEndDate.formatDate('dd MMM yyyy') : 'No end date'"></span></td>
+                        <td class="text-end"><a class="btn btn-sm btn-outline-primary" dmx-bind:href="'/platform/tenant-modules/edit?tenantId=' + query.tenantId + '&moduleId=' + $value.moduleId"><i class="fas fa-pen me-1"></i>Edit</a></td>
+                    </tr>
+                </tbody>
+            </table></div></div>
         </div>
     </div>
-
     <div class="col-12" dmx-show="scTenantModules.data.history.count() > 0">
-        <div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Module history</h2></div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Date</th><th>Module</th><th>Change</th><th>Status</th><th>Changed by</th><th>Note</th></tr></thead><tbody is="dmx-repeat" dmx-bind:repeat="scTenantModules.data.history"><tr><td dmx-text="$value.changedDate.formatDate('dd MMM yyyy HH:mm')"></td><td dmx-text="$value.moduleName"></td><td dmx-text="$value.actionCode.replace('_',' ')"></td><td><span dmx-text="($value.previousStatus || 'New') + ' → ' + $value.newStatus"></span></td><td dmx-text="$value.changedBy"></td><td dmx-text="$value.changeNote"></td></tr></tbody></table></div></div>
+        <div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Recent changes</h2></div><div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>Date</th><th>Module</th><th>Change</th><th>Status</th><th>Changed by</th><th>Note</th></tr></thead><tbody is="dmx-repeat" dmx-bind:repeat="scTenantModules.data.history"><tr><td dmx-text="$value.changedDate.formatDate('dd MMM yyyy HH:mm')"></td><td dmx-text="$value.moduleName"></td><td dmx-text="$value.actionCode.replace('_',' ')"></td><td dmx-text="($value.previousStatus || 'New') + ' → ' + $value.newStatus"></td><td dmx-text="$value.changedBy"></td><td dmx-text="$value.changeNote"></td></tr></tbody></table></div></div>
     </div>
 </div>
 <meta name="ac:route" content="/platform/tenant-modules">

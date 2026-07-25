@@ -1,4 +1,4 @@
-{
+﻿{
   "settings": {"options": {"method": "post"}},
   "meta": {"$_POST": [
     {"type": "text", "name": "viewName"},
@@ -41,7 +41,7 @@
       "module": "dbupdater",
       "action": "custom",
       "options": {"connection": "db", "sql": {
-        "query": "INSERT INTO tbl_board_view_columns (boardViewId,fieldKey,columnLabel,isVisible,sortOrder,width) VALUES (:viewId,'workflowName','Workflow',1,10,280),(:viewId2,'templateName','Template',:showTemplate,20,180),(:viewId3,'targetDate','Target date',:showTargetDate,30,140),(:viewId4,'ownerName','Owner',:showOwner,40,180),(:viewId5,'progress','Progress',:showProgress,50,150),(:viewId6,'status','Status',:showStatus,60,120),(:viewId7,'risk','Risk',:showRisk,70,220)",
+        "query": "INSERT INTO tbl_board_view_columns (boardViewId,fieldKey,columnLabel,isVisible,sortOrder,width) VALUES (:viewId,'workflowName','Workflow',1,10,280),(:viewId2,'templateName','Template',:showTemplate,20,180),(:viewId3,'targetDate','Show date',:showTargetDate,30,140),(:viewId4,'ownerName','Owner',:showOwner,40,180),(:viewId5,'progress','Progress',:showProgress,50,150),(:viewId6,'status','Status',:showStatus,60,120),(:viewId7,'risk','Risk',:showRisk,70,220)",
         "params": [
           {"name": ":viewId", "value": "{{createView.identity}}"},
           {"name": ":viewId2", "value": "{{createView.identity}}"},

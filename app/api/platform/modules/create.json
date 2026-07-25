@@ -1,0 +1,17 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type":"text","name":"moduleCode"},{"type":"text","name":"moduleName"},{"type":"text","name":"moduleDescription"},{"type":"text","name":"moduleCategory"},
+    {"type":"number","name":"isCore"},{"type":"number","name":"isBillable"},{"type":"number","name":"isActive"},
+    {"type":"number","name":"defaultMonthlyPrice"},{"type":"number","name":"defaultAnnualPrice"},{"type":"text","name":"currencyCode"},{"type":"number","name":"displayOrder"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name":"createModule","module":"dbupdater","action":"custom",
+      "options":{"connection":"db","sql":{"query":"INSERT INTO tbl_modules (moduleCode,moduleName,moduleDescription,moduleCategory,isCore,isBillable,isActive,defaultMonthlyPrice,defaultAnnualPrice,currencyCode,displayOrder) SELECT UPPER(:moduleCode),:moduleName,NULLIF(:description,''),NULLIF(:category,''),:isCore,:isBillable,:isActive,NULLIF(:monthlyPrice,''),NULLIF(:annualPrice,''),UPPER(:currencyCode),:displayOrder FROM DUAL WHERE UPPER(:moduleCode2) REGEXP '^[A-Z][A-Z0-9_]{1,79}$' AND EXISTS(SELECT 1 FROM tbl_users u WHERE u.id=:userId AND u.isActive=1 AND u.isPlatformAdmin=1)","params":[
+        {"name":":moduleCode","value":"{{$_POST.moduleCode}}"},{"name":":moduleName","value":"{{$_POST.moduleName}}"},{"name":":description","value":"{{$_POST.moduleDescription.default('')}}"},{"name":":category","value":"{{$_POST.moduleCategory.default('')}}"},{"name":":isCore","value":"{{$_POST.isCore.default(0)}}"},{"name":":isBillable","value":"{{$_POST.isBillable.default(1)}}"},{"name":":isActive","value":"{{$_POST.isActive.default(1)}}"},{"name":":monthlyPrice","value":"{{$_POST.defaultMonthlyPrice.default('')}}"},{"name":":annualPrice","value":"{{$_POST.defaultAnnualPrice.default('')}}"},{"name":":currencyCode","value":"{{$_POST.currencyCode.default('GBP')}}"},{"name":":displayOrder","value":"{{$_POST.displayOrder.default(0)}}"},{"name":":moduleCode2","value":"{{$_POST.moduleCode}}"},{"name":":userId","value":"{{$_SESSION.USER_ID.default(0)}}"}
+      ]}},"output":true
+    },
+    {"module":"core","action":"redirect","options":{"url":"/platform/modules?saved=1","status":302}}
+  ]}
+}

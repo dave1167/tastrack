@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <base href="/">
+    <script src="/dmxAppConnect/dmxAppConnect.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TasTrack Platform Administration</title>
+    <link rel="stylesheet" href="/bootstrap/5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/style.css?v=20260725-locations">
+    <script src="/dmxAppConnect/dmxRouting/dmxRouting.js" defer></script>
+    <script src="/dmxAppConnect/dmxServerConnect/dmxServerConnect.js" defer></script>
+    <script src="/dmxAppConnect/dmxBrowser/dmxBrowser.js" defer></script>
+    <script src="/dmxAppConnect/dmxStateManagement/dmxStateManagement.js" defer></script>
+    <script src="/dmxAppConnect/dmxFormatter/dmxFormatter.js" defer></script>
+</head>
+
+<body is="dmx-app" id="platform_shell" class="shell-app">
+    <div is="dmx-browser" id="platformBrowser"></div>
+    <dmx-serverconnect id="scPlatformContext" url="/api/security/sessionContext"></dmx-serverconnect>
+
+    <header class="navbar shell-navbar sticky-top">
+        <div class="container-fluid px-3 px-lg-4">
+            <a href="/platform/modules" class="d-flex align-items-center gap-3 text-decoration-none">
+                <img src="/assets/images/tastrack_logo.png" width="135" class="img-fluid" alt="TasTrack">
+                <span class="badge bg-dark text-white">Platform Administration</span>
+            </a>
+            <div class="shell-actions ms-auto">
+                <span class="small me-2 text-white" dmx-text="scPlatformContext.data.DISPLAY_NAME.default(scPlatformContext.data.FNAME)">Platform administrator</span>
+                <a class="btn btn-sm btn-outline-light" href="/login/login">Tenant application</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="shell-body" dmx-show="scPlatformContext.data.platformAdmin[0].isPlatformAdmin == 1">
+        <aside class="shell-sidebar-holder">
+            <nav class="shell-sidebar h-100">
+                <div class="shell-sidebar-body">
+                    <div class="card border-0 bg-transparent mb-3 pb-2 border-bottom border-white border-opacity-10">
+                        <div class="card-body py-2 px-3">
+                            <p class="mb-1 text-white text-uppercase small fw-semibold opacity-75">Administration</p>
+                            <h6 class="mb-0 fs-5 fw-semibold text-white">TasTrack Platform</h6>
+                        </div>
+                    </div>
+                    <div class="shell-nav-accordion">
+                        <div class="shell-nav-group">
+                            <a class="shell-nav-link" href="/platform/modules">
+                                <i class="fas fa-cubes"></i>
+                                <span>Module Catalogue</span>
+                            </a>
+                            <a class="shell-nav-link" href="/platform/tenant-modules">
+                                <i class="fas fa-building"></i>
+                                <span>Tenant Modules</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="shell-sidebar-footer">
+                        <a class="shell-nav-link shell-nav-link-muted" href="/api/platform/logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Leave platform admin</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        <main class="shell-content" is="dmx-view" id="content">
+            <div class="shell-content-inner">
+                <%- await include(content, locals); %>
+            </div>
+        </main>
+    </div>
+
+    <main class="container py-5" dmx-show="scPlatformContext.data.platformAdmin[0].isPlatformAdmin != 1">
+        <div class="alert alert-danger shadow-sm">
+            <h1 class="h4"><i class="fas fa-lock me-2"></i>Platform administrator access required</h1>
+            <p class="mb-3">This administration area is separate from tenant workspaces.</p>
+            <a class="btn btn-dark" href="/platform/login">Platform administrator sign in</a>
+        </div>
+    </main>
+
+    <script src="/bootstrap/5/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentPath = window.location.pathname.toLowerCase();
+            document.querySelectorAll('.shell-nav-link[href]').forEach(function (link) {
+                const href = link.getAttribute('href').toLowerCase();
+                if (currentPath === href || currentPath.startsWith(href + '/')) {
+                    link.classList.add('active');
+                    link.setAttribute('aria-current', 'page');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

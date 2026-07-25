@@ -1,38 +1,34 @@
-<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="platform_modules" appConnect="local" -->
+<!-- Wappler include head-page="layouts/platform_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="platform_modules" appConnect="local" -->
 <dmx-serverconnect id="scModuleCatalogue" url="/api/platform/modules/catalogue"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center">
-            <div><h1 class="mb-1">Module Catalogue</h1><p class="text-muted mb-0">Platform-wide module availability and standard pricing.</p></div>
-            <a class="btn btn-outline-primary" href="/platform/tenant-modules">Tenant Modules</a>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div><h1 class="mb-1">Module Catalogue</h1><p class="text-muted mb-0">Modules available across the Tastrack platform.</p></div>
+            <div class="d-flex gap-2"><a class="btn btn-outline-primary" href="/platform/tenant-modules">Tenant Modules</a><a class="btn btn-primary" href="/platform/modules/add"><i class="fas fa-plus me-2"></i>Add module</a></div>
         </div>
-        <div class="alert alert-success mt-3 mb-0" dmx-show="query.saved == 1">Module updated.</div>
+        <div class="alert alert-success mt-3 mb-0" dmx-show="query.saved == 1">Module saved.</div>
     </div>
-
-    <div class="col-12" is="dmx-repeat" id="repPlatformModules" dmx-bind:repeat="scModuleCatalogue.data.modules">
+    <div class="col-12">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <div><h2 class="h5 mb-0" dmx-text="$value.moduleName"></h2><code dmx-text="$value.moduleCode"></code></div>
-                <span class="badge" dmx-class:bg-primary="$value.isCore == 1" dmx-class:bg-secondary="$value.isCore != 1" dmx-text="$value.isCore == 1 ? 'Core' : 'Optional'"></span>
-            </div>
-            <div class="card-body">
-                <form method="post" action="/api/platform/modules/update">
-                    <%- _csrfInput() %>
-                    <input type="hidden" name="moduleId" dmx-bind:value="$value.id">
-                    <div class="row g-3">
-                        <div class="col-md-4"><label class="form-label">Name</label><input class="form-control" name="moduleName" required dmx-bind:value="$value.moduleName"></div>
-                        <div class="col-md-4"><label class="form-label">Category</label><input class="form-control" name="moduleCategory" dmx-bind:value="$value.moduleCategory"></div>
-                        <div class="col-md-2"><label class="form-label">Display order</label><input class="form-control" name="displayOrder" type="number" dmx-bind:value="$value.displayOrder"></div>
-                        <div class="col-md-2"><label class="form-label">Currency</label><input class="form-control text-uppercase" name="currencyCode" maxlength="3" dmx-bind:value="$value.currencyCode"></div>
-                        <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" name="moduleDescription" rows="2" dmx-bind:value="$value.moduleDescription"></textarea></div>
-                        <div class="col-md-3"><label class="form-label">Monthly price</label><input class="form-control" name="defaultMonthlyPrice" type="number" min="0" step="0.01" dmx-bind:value="$value.defaultMonthlyPrice"></div>
-                        <div class="col-md-3"><label class="form-label">Annual price</label><input class="form-control" name="defaultAnnualPrice" type="number" min="0" step="0.01" dmx-bind:value="$value.defaultAnnualPrice"></div>
-                        <div class="col-md-3"><label class="form-label">Billable</label><select class="form-select" name="isBillable" dmx-bind:value="$value.isBillable"><option value="1">Yes</option><option value="0">No</option></select></div>
-                        <div class="col-md-3"><label class="form-label">Availability</label><select class="form-select" name="isActive" dmx-bind:value="$value.isActive" dmx-bind:disabled="$value.isCore == 1"><option value="1">Active</option><option value="0">Retired</option></select><input type="hidden" name="isActive" value="1" dmx-show="$value.isCore == 1"></div>
-                    </div>
-                    <div class="text-end mt-3"><button class="btn btn-primary" type="submit">Save module</button></div>
-                </form>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light"><tr><th>Module</th><th>Category</th><th>Type</th><th>Monthly</th><th>Annual</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                        <tbody is="dmx-repeat" dmx-bind:repeat="scModuleCatalogue.data.modules">
+                            <tr>
+                                <td><div class="fw-semibold" dmx-text="$value.moduleName"></div><code dmx-text="$value.moduleCode"></code><div class="small text-muted mt-1" dmx-text="$value.moduleDescription"></div></td>
+                                <td dmx-text="$value.moduleCategory || '—'"></td>
+                                <td><span class="badge" dmx-class:bg-primary="$value.isCore == 1" dmx-class:bg-secondary="$value.isCore != 1" dmx-text="$value.isCore == 1 ? 'Core' : ($value.isBillable == 1 ? 'Paid' : 'Included')"></span></td>
+                                <td dmx-text="$value.defaultMonthlyPrice != null ? $value.currencyCode + ' ' + $value.defaultMonthlyPrice : '—'"></td>
+                                <td dmx-text="$value.defaultAnnualPrice != null ? $value.currencyCode + ' ' + $value.defaultAnnualPrice : '—'"></td>
+                                <td><span class="badge bg-success" dmx-show="$value.isActive == 1">Active</span><span class="badge bg-secondary" dmx-show="$value.isActive != 1">Retired</span></td>
+                                <td class="text-end"><a class="btn btn-sm btn-outline-primary" dmx-bind:href="'/platform/modules/edit?id=' + $value.id"><i class="fas fa-pen me-1"></i>Edit</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center text-muted py-5" dmx-show="!scModuleCatalogue.state.executing && scModuleCatalogue.data.modules.count() == 0">No modules have been created.</div>
             </div>
         </div>
     </div>

@@ -1,0 +1,8 @@
+{
+  "settings":{"options":{"method":"post"}},
+  "meta":{"$_POST":[{"type":"number","name":"id"},{"type":"text","name":"clauseName"},{"type":"text","name":"clauseCategory"},{"type":"text","name":"clauseHtml"},{"type":"number","name":"sortOrder"},{"type":"number","name":"isActive"}]},
+  "exec":{"steps":[
+    {"name":"updateClause","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_contract_clauses c SET c.clauseName=:clauseName,c.clauseCategory=NULLIF(:category,''),c.clauseHtml=:clauseHtml,c.sortOrder=:sortOrder,c.isActive=:isActive,c.modifiedByUserId=:userId,c.modifiedDate=CURRENT_TIMESTAMP WHERE c.id=:id AND c.tenantId=:tenantId AND NULLIF(TRIM(:nameCheck),'') IS NOT NULL AND NULLIF(TRIM(:htmlCheck),'') IS NOT NULL AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.roleKey IN ('owner','admin') WHERE utr.userId=:roleUser AND utr.tenantId=c.tenantId AND utr.isActive=1)","params":[{"name":":clauseName","value":"{{$_POST.clauseName}}"},{"name":":category","value":"{{$_POST.clauseCategory.default('')}}"},{"name":":clauseHtml","value":"{{$_POST.clauseHtml}}"},{"name":":sortOrder","value":"{{$_POST.sortOrder.default(100)}}"},{"name":":isActive","value":"{{$_POST.isActive.default(1)}}"},{"name":":userId","value":"{{$_SESSION.USER_ID.default(0)}}"},{"name":":id","value":"{{$_POST.id.default(0)}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"},{"name":":nameCheck","value":"{{$_POST.clauseName}}"},{"name":":htmlCheck","value":"{{$_POST.clauseHtml}}"},{"name":":roleUser","value":"{{$_SESSION.USER_ID.default(0)}}"}]}},"output":true},
+    {"module":"core","action":"redirect","options":{"url":"/contract-clauses?saved=1","status":302}}
+  ]}
+}

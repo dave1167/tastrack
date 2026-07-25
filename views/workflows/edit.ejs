@@ -6,6 +6,8 @@
 <dmx-serverconnect id="scConfigurations" url="/api/locations/configurationOptions" dmx-param:spaceid="eventSpaceId.value" dmx-param:selectedid="scWorkflow.data.query[0].configurationId" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scWorkflowTypes" url="/api/workflow_types/options"></dmx-serverconnect>
 <dmx-serverconnect id="scAssignedWorkflowType" url="/api/workflow_types/assigned" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scContractingEntities" url="/api/contracting_entities/options"></dmx-serverconnect>
+<dmx-serverconnect id="scAssignedContractingEntity" url="/api/contracting_entities/assigned" dmx-param:workflowid="query.id"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -47,6 +49,7 @@
                     </div>
 
                     <div class="row g-3">
+                        <div class="col-12" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1"><label class="form-label">Contracting entity</label><select class="form-select" name="contractingEntityId" dmx-bind:options="scContractingEntities.data.query" optiontext="entityLabel" optionvalue="id" dmx-bind:value="scAssignedContractingEntity.data.query[0].contractingEntityId"><option value="">Use default contracting entity</option></select><div class="form-text">The legal organisation that will issue this event's contracts.</div></div>
                         <div class="col-md-6">
                             <label class="form-label">Owner team</label>
                             <select class="form-select" name="ownerTeamId" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].ownerTeamId"><option value="">Select team</option></select>
@@ -65,20 +68,20 @@
                             </select>
                         </div>
                         <div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" name="startDate" type="date" required dmx-bind:value="scWorkflow.data.query[0].startDate ? scWorkflow.data.query[0].startDate.formatDate('yyyy-MM-dd') : ''"></div>
-                        <div class="col-md-6"><label class="form-label">Target date</label><input class="form-control" name="targetDate" type="date" required dmx-bind:value="scWorkflow.data.query[0].targetDate ? scWorkflow.data.query[0].targetDate.formatDate('yyyy-MM-dd') : ''"></div>
-                        <div class="col-md-6"><label class="form-label">Show date</label><input class="form-control" name="showDate" type="date" dmx-bind:value="scWorkflow.data.query[0].showDate ? scWorkflow.data.query[0].showDate.formatDate('yyyy-MM-dd') : ''"></div>
+                        <input type="hidden" name="targetDate" dmx-bind:value="showDate.value">
+                        <div class="col-md-6"><label class="form-label">Show date</label><input class="form-control" id="showDate" name="showDate" type="date" required dmx-bind:value="scWorkflow.data.query[0].showDate ? scWorkflow.data.query[0].showDate.formatDate('yyyy-MM-dd') : ''"><div class="form-text">This also anchors template task deadlines.</div></div>
                         <div class="col-md-6"><label class="form-label">Show start time</label><input class="form-control" name="showTime" type="time" dmx-bind:value="scWorkflow.data.query[0].showTime"><div class="form-text">The public performance start time.</div></div>
 
-                        <div class="col-12"><hr><h3 class="h6 mb-3">Venue setup</h3></div>
-                        <div class="col-md-4">
+                        <div class="col-12" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><hr><h3 class="h6 mb-3">Venue setup</h3></div>
+                        <div class="col-md-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1">
                             <label class="form-label" for="eventLocationId" dmx-text="scTerminology.data.query[0].locationSingular">Location</label>
                             <select class="form-select" id="eventLocationId" name="locationId" dmx-bind:options="scLocations.data.query" optiontext="locationLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].locationId"><option value="">No location selected</option></select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1">
                             <label class="form-label" for="eventSpaceId" dmx-text="scTerminology.data.query[0].spaceSingular">Space</label>
                             <select class="form-select" id="eventSpaceId" name="spaceId" dmx-bind:options="scSpaces.data.query" optiontext="spaceLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].spaceId" dmx-bind:disabled="!eventLocationId.value"><option value="">No space selected</option></select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1">
                             <label class="form-label" for="eventConfigurationId" dmx-text="scTerminology.data.query[0].configurationSingular">Configuration</label>
                             <select class="form-select" id="eventConfigurationId" name="configurationId" dmx-bind:options="scConfigurations.data.query" optiontext="configurationLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].configurationId" dmx-bind:disabled="!eventSpaceId.value"><option value="">No configuration selected</option></select>
                         </div>

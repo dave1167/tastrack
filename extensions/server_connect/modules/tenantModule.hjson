@@ -1,0 +1,22 @@
+{
+  type: 'tenant_module_require',
+  module: 'tenantModule',
+  action: 'require',
+  groupTitle: 'Tenant Modules',
+  groupIcon: 'fa fa-cubes comp-data',
+  addTitle: 'Require Tenant Module',
+  title: 'Require Tenant Module',
+  icon: 'fa fa-lock comp-data',
+  serverModel: ['node'],
+  dataPickObject: true,
+  properties: [
+    {
+      group: 'Module access',
+      variables: [
+        { name: 'moduleCode', optionName: 'moduleCode', title: 'Module code', type: 'text', required: true, serverDataBindings: true, allowBindings: true },
+        { name: 'tenantId', optionName: 'tenantId', title: 'Session tenant ID', type: 'number', required: true, serverDataBindings: true, allowBindings: true },
+        { name: 'userId', optionName: 'userId', title: 'Session user ID', type: 'number', required: true, serverDataBindings: true, allowBindings: true }
+      ]
+    }
+  ]
+}

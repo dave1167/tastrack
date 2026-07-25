@@ -1,0 +1,113 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {"type": "text", "name": "username"},
+      {"type": "text", "name": "password"}
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "identity",
+        "module": "auth",
+        "action": "login",
+        "options": {
+          "provider": "security",
+          "username": "{{$_POST.username}}",
+          "password": "{{$_POST.password}}",
+          "remember": "0"
+        },
+        "output": true
+      },
+      {
+        "name": "platformAdmin",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT id,fName,lName,displayName FROM tbl_users WHERE id=:userId AND isActive=1 AND isPlatformAdmin=1 LIMIT 1",
+            "params": [
+              {"name": ":userId", "value": "{{identity}}"}
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{platformAdmin.count() == 0}}",
+          "then": {
+            "steps": {
+              "module": "core",
+              "action": "error",
+              "options": {
+                "status": 403,
+                "message": "This account is not authorised for platform administration."
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "USER_ID",
+        "module": "core",
+        "action": "setsession",
+        "options": {"value": "{{identity}}"}
+      },
+      {
+        "name": "FNAME",
+        "module": "core",
+        "action": "setsession",
+        "options": {"value": "{{platformAdmin[0].fName}}"}
+      },
+      {
+        "name": "LNAME",
+        "module": "core",
+        "action": "setsession",
+        "options": {"value": "{{platformAdmin[0].lName}}"}
+      },
+      {
+        "name": "DISPLAY_NAME",
+        "module": "core",
+        "action": "setsession",
+        "options": {"value": "{{platformAdmin[0].displayName}}"}
+      },
+      {
+        "name": "TENANT_ID",
+        "module": "core",
+        "action": "setsession",
+        "options": {"value": ""}
+      },
+      {
+        "name": "TENANT_NAME",
+        "module": "core",
+        "action": "setsession",
+        "options": {"value": ""}
+      },
+      {
+        "name": "ROLE_ID",
+        "module": "core",
+        "action": "setsession",
+        "options": {"value": ""}
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/platform/modules",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+<!-- Wappler include head-page="layouts/platform_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="platform_add_module" appConnect="local" -->
+<div class="row g-4">
+    <div class="col-12"><div class="d-flex justify-content-between align-items-center"><div><h1 class="mb-1">Add Module</h1><p class="text-muted mb-0">Create a new optional platform capability.</p></div><a class="btn btn-outline-secondary" href="/platform/modules">Back to modules</a></div></div>
+    <div class="col-12 col-xl-8"><div class="card border-0 shadow-sm"><div class="card-body p-4">
+        <form method="post" action="/api/platform/modules/create">
+            <%- _csrfInput() %>
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Module name</label><input class="form-control" name="moduleName" required></div>
+                <div class="col-md-6"><label class="form-label">Module code</label><input class="form-control text-uppercase" name="moduleCode" required pattern="[A-Za-z][A-Za-z0-9_]{1,79}"><div class="form-text">Permanent code, for example DOCUMENT_STORAGE.</div></div>
+                <div class="col-md-6"><label class="form-label">Category</label><input class="form-control" name="moduleCategory"></div>
+                <div class="col-md-2"><label class="form-label">Display order</label><input class="form-control" name="displayOrder" type="number" value="100"></div>
+                <div class="col-md-2"><label class="form-label">Type</label><div class="form-control bg-light">Optional</div><input type="hidden" name="isCore" value="0"></div>
+                <div class="col-md-2"><label class="form-label">Billable</label><select class="form-select" name="isBillable"><option value="1">Yes</option><option value="0">No</option></select></div>
+                <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" name="moduleDescription" rows="3"></textarea></div>
+                <div class="col-md-4"><label class="form-label">Monthly price</label><input class="form-control" name="defaultMonthlyPrice" type="number" min="0" step="0.01"></div>
+                <div class="col-md-4"><label class="form-label">Annual price</label><input class="form-control" name="defaultAnnualPrice" type="number" min="0" step="0.01"></div>
+                <div class="col-md-2"><label class="form-label">Currency</label><input class="form-control text-uppercase" name="currencyCode" maxlength="3" value="GBP"></div>
+                <div class="col-md-2"><label class="form-label">Status</label><select class="form-select" name="isActive"><option value="1">Active</option><option value="0">Retired</option></select></div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-light" href="/platform/modules">Cancel</a><button class="btn btn-primary" type="submit">Add module</button></div>
+        </form>
+    </div></div></div>
+</div>
+<meta name="ac:route" content="/platform/modules/add">

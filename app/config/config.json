@@ -1,4 +1,16 @@
 {
   "debug": true,
-  "debugOutputAll": true
+  "debugOutputAll": true,
+  "session": {
+    "store": {
+      "$type": "database",
+      "knex": "db",
+      "tablename": "tbl_sessions",
+      "sidfieldname": "sid",
+      "createtable": false,
+      "clearInterval": 60000,
+      "disableDbCleanup": false,
+      "ttl": 43200
+    }
+  }
 }

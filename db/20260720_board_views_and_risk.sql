@@ -1,4 +1,4 @@
-USE `task_tracker`;
+﻿USE `task_tracker`;
 
 CREATE TABLE IF NOT EXISTS `tbl_board_views` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -81,7 +81,7 @@ FROM `tbl_board_views` v
 JOIN (
   SELECT 'workflowName' fieldKey,'Workflow' columnLabel,10 sortOrder,280 width UNION ALL
   SELECT 'templateName','Template',20,180 UNION ALL
-  SELECT 'targetDate','Target date',30,140 UNION ALL
+  SELECT 'targetDate','Show date',30,140 UNION ALL
   SELECT 'ownerName','Owner',40,180 UNION ALL
   SELECT 'progress','Progress',50,150 UNION ALL
   SELECT 'status','Status',60,120 UNION ALL

@@ -5,6 +5,7 @@
 <dmx-serverconnect id="scWorkflowContacts" url="/api/workflows/contacts" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scContactOptions" url="/api/workflows/contact_options"></dmx-serverconnect>
 <dmx-serverconnect id="scDocuments" url="/api/workflows/documents" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scContractOptions" url="/api/contracts/options" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scTaskAssignees" url="/api/tasks/assignee_options"></dmx-serverconnect>
 <dmx-serverconnect id="scLocations" url="/api/locations/options" dmx-param:selectedid="scWorkflow.data.query[0].locationId"></dmx-serverconnect>
 <dmx-serverconnect id="scSpaces" url="/api/locations/spaceOptions" dmx-param:locationid="eventLocationId.value" dmx-param:selectedid="scWorkflow.data.query[0].spaceId" dmx-param:workflowid="query.id"></dmx-serverconnect>
@@ -33,7 +34,6 @@
         <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Status</div><div class="fw-semibold text-capitalize" dmx-text="scWorkflow.data.query[0].status.replace('_',' ')"></div></div></div>
         <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Owner team</div><div class="fw-semibold" dmx-text="scWorkflow.data.query[0].teamName"></div></div></div>
         <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Start date</div><div class="fw-semibold" dmx-text="scWorkflow.data.query[0].startDate.formatDate('dd MMM yyyy')"></div></div></div>
-        <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Target date</div><div class="fw-semibold" dmx-text="scWorkflow.data.query[0].targetDate.formatDate('dd MMM yyyy')"></div></div></div>
         <div class="col-12"><div class="p-3 bg-white border rounded shadow-sm"><div class="d-flex justify-content-between align-items-start gap-3"><div><div class="small text-muted" dmx-text="scTerminology.data.query[0].locationSingular">Location</div><div class="fw-semibold"><i class="fas fa-map-marker-alt text-primary me-2"></i><span dmx-text="scWorkflow.data.query[0].effectiveLocation"></span></div><div class="small text-muted ms-4" dmx-show="scWorkflow.data.query[0].townCity || scWorkflow.data.query[0].postcode"><span dmx-text="scWorkflow.data.query[0].townCity"></span><span dmx-show="scWorkflow.data.query[0].townCity && scWorkflow.data.query[0].postcode">, </span><span dmx-text="scWorkflow.data.query[0].postcode"></span></div><div class="small text-warning ms-4" dmx-show="scWorkflow.data.query[0].locationIsActive == 0 || scWorkflow.data.query[0].spaceIsActive == 0 || scWorkflow.data.query[0].configurationIsActive == 0" dmx-text="'This ' + scTerminology.data.query[0].workflowSingular.lowercase() + ' uses an inactive ' + scTerminology.data.query[0].locationSingular.lowercase() + ' record.'">This event uses an inactive location record.</div></div><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#editEventLocation">Change</button></div><div class="collapse mt-3" id="editEventLocation"><form method="post" action="/api/workflows/update_location" class="row g-3"><%- _csrfInput() %><input type="hidden" name="workflowId" dmx-bind:value="query.id"><div class="col-md-4"><label class="form-label" for="eventLocationId" dmx-text="scTerminology.data.query[0].locationSingular">Location</label><select class="form-select" id="eventLocationId" name="locationId" dmx-bind:options="scLocations.data.query" optiontext="locationLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].locationId" dmx-on:changed="eventSpaceId.setValue(''); eventConfigurationId.setValue(''); scSpaces.load(); scConfigurations.load()"><option value="">No location selected</option></select></div><div class="col-md-4"><label class="form-label" for="eventSpaceId" dmx-text="scTerminology.data.query[0].spaceSingular">Space</label><select class="form-select" id="eventSpaceId" name="spaceId" dmx-bind:options="scSpaces.data.query" optiontext="spaceLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].spaceId" dmx-bind:disabled="!eventLocationId.value" dmx-on:changed="eventConfigurationId.setValue(''); scConfigurations.load()"><option value="">No space selected</option></select></div><div class="col-md-4"><label class="form-label" for="eventConfigurationId" dmx-text="scTerminology.data.query[0].configurationSingular">Configuration</label><select class="form-select" id="eventConfigurationId" name="configurationId" dmx-bind:options="scConfigurations.data.query" optiontext="configurationLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].configurationId" dmx-bind:disabled="!eventSpaceId.value"><option value="">No configuration selected</option></select></div><div class="col-12"><button class="btn btn-primary btn-sm" type="submit">Save location</button></div></form></div></div></div>
     </div></div>
 
@@ -66,9 +66,15 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 py-3">
                 <div><h2 class="h4 mb-1">Documents</h2><p class="text-muted small mb-0" dmx-text="'Contracts, technical riders, sales reports, invoices and settlement files for this ' + scTerminology.data.query[0].workflowSingular.lowercase() + '.'">Contracts, technical riders, sales reports, invoices and settlement files for this event.</p></div>
-                <span class="badge rounded-pill bg-primary" dmx-text="scDocuments.data.query.count() + (scDocuments.data.query.count() == 1 ? ' document' : ' documents')"></span>
+                <div class="d-flex align-items-center gap-2"><span class="badge rounded-pill bg-primary" dmx-text="scDocuments.data.query.count() + (scDocuments.data.query.count() == 1 ? ' document' : ' documents')"></span><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#createEventContract" aria-expanded="false" aria-controls="createEventContract" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1"><i class="fas fa-file-signature me-2"></i>Create contract</button></div>
             </div>
             <div class="card-body">
+                <div class="collapse mb-4" id="createEventContract" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1">
+                <div class="card border-primary">
+                    <div class="card-header bg-white"><h3 class="h5 mb-1"><i class="fas fa-file-contract me-2"></i>Create contract from template</h3><p class="small text-muted mb-0">Merge this event’s details into an approved contract template.</p></div>
+                    <div class="card-body"><form method="post" action="/api/contracts/generate" class="row g-3 align-items-end"><%- _csrfInput() %><input type="hidden" name="workflowId" dmx-bind:value="query.id"><div class="col-12 col-md-5"><label class="form-label">Template</label><select class="form-select" name="templateId" required dmx-bind:options="scContractOptions.data.templates" optiontext="templateName" optionvalue="id"><option value="">Select template</option></select></div><div class="col-12 col-md-5"><label class="form-label">Contract name</label><input class="form-control" name="contractName" required dmx-bind:value="scWorkflow.data.query[0].workflowName + ' Contract'"></div><div class="col-12 col-md-2 d-grid"><button class="btn btn-primary" type="submit"><i class="fas fa-magic me-2"></i>Generate</button></div></form><div class="small text-muted mt-2" dmx-show="scContractOptions.data.templates.count() == 0">No active templates exist. An owner or admin can create one under Setup → Contract Templates.</div></div>
+                </div>
+                </div>
                 <form method="post" action="/api/workflows/upload_document" enctype="multipart/form-data" class="row g-3 align-items-end"><%- _csrfInput() %>
                     <input type="hidden" name="workflowId" dmx-bind:value="query.id">
                     <div class="col-12 col-lg-3"><label class="form-label" for="documentName">Document name</label><input class="form-control" id="documentName" name="documentName" maxlength="180" placeholder="e.g. Signed contract" required></div>
@@ -87,7 +93,7 @@
                                 <td><span class="badge bg-light text-dark border" dmx-text="$value.documentType || 'Other'"></span></td>
                                 <td><div dmx-text="$value.originalFileName"></div><div class="small text-muted" dmx-text="$value.fileSizeBytes + ' bytes'"></div></td>
                                 <td><div dmx-text="$value.createdDate.formatDate('dd MMM yyyy')"></div><div class="small text-muted" dmx-text="$value.uploadedBy || 'Unknown user'"></div></td>
-                                <td class="text-end"><div class="d-inline-flex gap-2"><a class="btn btn-sm btn-outline-primary" dmx-bind:href="'/api/workflows/download_document?id=' + $value.id" title="Download"><i class="fas fa-download"></i><span class="visually-hidden">Download</span></a><form method="post" action="/api/workflows/archive_document"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><button class="btn btn-sm btn-outline-danger" type="submit" title="Archive document"><i class="fas fa-archive"></i><span class="visually-hidden">Archive document</span></button></form></div></td>
+                                <td class="text-end"><div class="d-inline-flex gap-2"><a class="btn btn-sm btn-outline-primary" dmx-show="$value.sourceType == 'upload'" dmx-bind:href="'/api/workflows/download_document?id=' + $value.id" title="Download"><i class="fas fa-download"></i><span class="visually-hidden">Download</span></a><a class="btn btn-sm btn-outline-primary" dmx-show="$value.sourceType == 'generated_contract'" dmx-bind:href="'/contracts/generated?id=' + $value.id" title="Open generated contract"><i class="fas fa-eye"></i><span class="visually-hidden">Open generated contract</span></a><form method="post" action="/api/workflows/archive_document" dmx-show="$value.sourceType == 'upload'"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><button class="btn btn-sm btn-outline-danger" type="submit" title="Archive document"><i class="fas fa-archive"></i><span class="visually-hidden">Archive document</span></button></form></div></td>
                             </tr>
                         </tbody>
                     </table>
@@ -98,7 +104,7 @@
     </div>
 
     <div class="col-12" id="eventInfoWorkflow" role="tabpanel" aria-labelledby="eventTasksTab" dmx-show="query.section == 'tasks'">
-        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3"><div><h2 class="h4 mb-1" dmx-text="scTerminology.data.query[0].stagePlural + ' and ' + scTerminology.data.query[0].taskPlural.lowercase()">Stages and tasks</h2><p class="text-muted small mb-0">Each section shows its next due item. Expand it to manage everything in that section.</p></div><div class="d-flex gap-2 align-items-center"><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + ' ' + scTerminology.data.query[0].stagePlural.lowercase()"></span><button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addOneOffTask" aria-expanded="false" aria-controls="addOneOffTask"><i class="fas fa-plus me-1"></i><span dmx-text="'Add ' + scTerminology.data.query[0].taskSingular.lowercase()">Add task</span></button></div></div>
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3"><div><h2 class="h4 mb-1">Phases and tasks</h2><p class="text-muted small mb-0" dmx-text="'This ' + scTerminology.data.query[0].workflowSingular.lowercase() + ' is divided into phases. Each phase contains its own ' + scTerminology.data.query[0].taskPlural.lowercase() + '.'">This event is divided into phases. Each phase contains its own tasks.</p></div><div class="d-flex gap-2 align-items-center"><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + (scStages.data.query.count() == 1 ? ' phase' : ' phases')"></span><button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addOneOffTask" aria-expanded="false" aria-controls="addOneOffTask"><i class="fas fa-plus me-1"></i><span dmx-text="'Add ' + scTerminology.data.query[0].taskSingular.lowercase()">Add task</span></button></div></div>
 
         <div class="collapse mb-4" id="addOneOffTask">
             <div class="card border-primary shadow-sm">
@@ -120,14 +126,14 @@
         </div>
 
         <div is="dmx-repeat" id="repWorkflowStages" dmx-bind:repeat="scStages.data.query">
-            <div class="card border-0 shadow-sm mb-3" dmx-bind:id="'workflowStageCard' + $value.id">
+            <div class="card shadow-sm mb-3 workflow-phase-card" dmx-bind:id="'workflowStageCard' + $value.id" dmx-bind:style.border-left="'6px solid ' + $value.colour">
                 <div class="card-body">
                     <div class="row g-3 align-items-center">
-                        <div class="col-auto"><span class="d-block rounded-circle" dmx-bind:style.background-color="$value.colour" style="width: 18px; height: 18px;"></span></div>
-                        <div class="col-12 col-md-3"><div class="fw-semibold" dmx-text="$value.stageName"></div><div class="small text-muted" dmx-text="$value.completedTaskCount + '/' + $value.taskCount + ' ' + scTerminology.data.query[0].taskPlural.lowercase() + ' complete'"></div></div>
+                        <div class="col-auto"><span class="phase-number d-inline-flex align-items-center justify-content-center rounded-circle" dmx-bind:style.background-color="$value.colour" dmx-text="$index + 1">1</span></div>
+                        <div class="col-12 col-md-3"><div class="small fw-bold text-uppercase text-muted" dmx-text="'Phase ' + ($index + 1)">Phase 1</div><div class="h5 mb-0" dmx-text="$value.stageName"></div><div class="small text-muted mt-1" dmx-text="$value.completedTaskCount + '/' + $value.taskCount + ' ' + scTerminology.data.query[0].taskPlural.lowercase() + ' complete'"></div></div>
                         <div class="col"><div class="small text-muted text-uppercase" dmx-text="'Next ' + scTerminology.data.query[0].taskSingular.lowercase()">Next task</div><div class="fw-semibold" dmx-show="$value.nextTaskId" dmx-text="$value.nextTaskName"></div><div class="text-muted" dmx-show="!$value.nextTaskId" dmx-text="'No open ' + scTerminology.data.query[0].taskPlural.lowercase()">No open tasks</div><div class="small text-muted" dmx-show="$value.nextTaskId"><span dmx-text="$value.nextAssignee"></span><span dmx-show="$value.nextDueDate"> &middot; Due </span><span dmx-text="$value.nextDueDate.formatDate('dd MMM yyyy')"></span></div></div>
                         <div class="col-auto"><span class="badge text-capitalize" dmx-class:bg-secondary="$value.status == 'not_started'" dmx-class:bg-primary="$value.status == 'in_progress'" dmx-class:bg-warning="$value.status == 'waiting'" dmx-class:text-dark="$value.status == 'waiting'" dmx-class:bg-success="$value.status == 'complete'" dmx-class:bg-danger="$value.status == 'overdue'" dmx-text="$value.status.replace('_',' ')"></span></div>
-                        <div class="col-auto"><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" dmx-bind:data-bs-target="'#workflowStageTasks' + $value.id" dmx-bind:aria-controls="'workflowStageTasks' + $value.id" aria-expanded="false" aria-label="Show all tasks"><i class="fas fa-chevron-down"></i></button></div>
+                        <div class="col-auto"><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" dmx-bind:data-bs-target="'#workflowStageTasks' + $value.id" dmx-bind:aria-controls="'workflowStageTasks' + $value.id" aria-expanded="false" aria-label="Show all tasks"><span class="d-none d-md-inline me-2" dmx-text="'View ' + scTerminology.data.query[0].taskPlural.lowercase()">View tasks</span><i class="fas fa-chevron-down"></i></button></div>
                     </div>
                 </div>
 
@@ -155,6 +161,16 @@
 <script src="/js/event-location-cascade.js"></script>
 <script src="/js/event-page-terminology.js"></script>
 <style>
+.workflow-phase-card {
+    border-width: 1px 1px 1px 6px;
+    border-color: #dee2e6;
+}
+.phase-number {
+    width: 2.25rem;
+    height: 2.25rem;
+    color: #111;
+    font-weight: 700;
+}
 #eventInfoSummary .p-3 {
     padding: .65rem 1rem !important;
 }
