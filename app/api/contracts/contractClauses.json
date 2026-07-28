@@ -1,0 +1,89 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "contractId"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "contract",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT gc.id,gc.contractName,gc.status,gc.workflowId,gc.issuedDate FROM tbl_generated_contracts gc WHERE gc.id=:contractId AND gc.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr WHERE utr.userId=:userId AND utr.tenantId=gc.tenantId AND utr.isActive=1) LIMIT 1",
+            "params": [
+              {
+                "name": ":contractId",
+                "value": "{{$_GET.contractId.default(0)}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "clauses",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT dc.id,dc.sourceClauseId,dc.clauseHeading,dc.clauseTextSnapshot,dc.clauseBehaviour,dc.conditionKey,dc.displayOrder,dc.isIncluded,dc.isCustom,dc.modifiedDate FROM tbl_contract_document_clauses dc INNER JOIN tbl_generated_contracts gc ON gc.id=dc.contractId AND gc.tenantId=dc.tenantId WHERE dc.contractId=:contractId AND dc.tenantId=:tenantId ORDER BY dc.displayOrder,dc.id",
+            "params": [
+              {
+                "name": ":contractId",
+                "value": "{{$_GET.contractId.default(0)}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "library",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT c.id,c.clauseName,c.clauseHtml,c.clauseBehaviour,c.conditionKey FROM tbl_contract_clauses c WHERE c.tenantId=:tenantId AND c.isActive=1 ORDER BY c.sortOrder,c.clauseName",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      }
+    ]
+  }
+}

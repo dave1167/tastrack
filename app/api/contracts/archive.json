@@ -1,0 +1,8 @@
+{
+  "settings":{"options":{"method":"post"}},
+  "meta":{"$_POST":[{"type":"number","name":"id"},{"type":"number","name":"workflowId"}]},
+  "exec":{"steps":[
+    {"name":"archiveContract","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_generated_contracts gc INNER JOIN tbl_workflows w ON w.id=gc.workflowId AND w.tenantId=gc.tenantId SET gc.status='archived',gc.modifiedDate=CURRENT_TIMESTAMP WHERE gc.id=:id AND gc.workflowId=:workflowId AND gc.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr WHERE utr.userId=:roleUser AND utr.tenantId=gc.tenantId AND utr.isActive=1)","params":[{"name":":id","value":"{{$_POST.id.default(0)}}"},{"name":":workflowId","value":"{{$_POST.workflowId.default(0)}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"},{"name":":roleUser","value":"{{$_SESSION.USER_ID.default(0)}}"}]}},"output":true},
+    {"module":"core","action":"redirect","options":{"url":"/workflows/view?id={{$_POST.workflowId}}&section=documents","status":302}}
+  ]}
+}

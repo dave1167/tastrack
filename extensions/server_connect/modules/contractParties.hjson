@@ -1,0 +1,23 @@
+{
+  type: 'contract_parties_snapshot',
+  module: 'contractParties',
+  action: 'snapshot',
+  groupTitle: 'Contract Operations',
+  groupIcon: 'fa fa-address-card comp-data',
+  addTitle: 'Snapshot contract parties',
+  title: 'Snapshot contract parties',
+  icon: 'fa fa-address-card comp-data',
+  serverModel: ['node'],
+  dataPickObject: true,
+  dataScheme: [
+    { name: 'success', type: 'boolean' },
+    { name: 'contractId', type: 'number' }
+  ],
+  properties: [{
+    group: 'Contract',
+    variables: [
+      { name: 'contractId', optionName: 'contractId', title: 'Contract ID', type: 'number', required: true, serverDataBindings: true },
+      { name: 'tenantId', optionName: 'tenantId', title: 'Tenant ID', type: 'number', required: true, serverDataBindings: true }
+    ]
+  }]
+}

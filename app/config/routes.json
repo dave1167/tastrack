@@ -544,6 +544,13 @@
       "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
+      "path": "/contracts/editor",
+      "page": "contracts/contract_editor",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
       "path": "/platform/login",
       "page": "platform/login",
       "layout": "main",

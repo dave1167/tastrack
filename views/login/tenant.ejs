@@ -23,7 +23,7 @@
                             <div class="p-4 p-md-5">
                                 <div class="mb-4">
                                     <h1 class="h4 mb-2">Choose your tenant</h1>
-                                    <p class="text-body-secondary mb-0">You are a member of multiple tenants. Select the workspace you want to use.</p>
+                                    <p class="text-body-secondary mb-0">You are a member of multiple organisations. Select the workspace you want to use.</p>
                                 </div>
 
                                 <form id="tenant_form" class="needs-validation" method="post" action="/api/login/select_tenant" novalidate>
@@ -37,7 +37,7 @@
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-building"></i></span>
                                             <select id="inp_tenant" name="tenant_id" class="form-select" required="" data-msg-required="Please select a tenant" dmx-bind:options="scTenantOptions.data.query" optiontext="tenantName" optionvalue="tenantId">
-                                                <option selected="" value="">Select a tenant</option>
+                                                <option selected="" value="">Select a Organisation</option>
                                             </select>
                                         </div>
                                     </div>

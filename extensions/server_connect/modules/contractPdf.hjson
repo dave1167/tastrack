@@ -1,0 +1,29 @@
+{
+  type: 'contract_pdf_generate',
+  module: 'contractPdf',
+  action: 'generate',
+  groupTitle: 'Contract Operations',
+  groupIcon: 'fa fa-file-pdf comp-data',
+  addTitle: 'Generate immutable contract PDF',
+  title: 'Generate immutable contract PDF',
+  icon: 'fa fa-file-pdf comp-data',
+  serverModel: ['node'],
+  dataPickObject: true,
+  dataScheme: [
+    { name: 'success', type: 'boolean' },
+    { name: 'contractId', type: 'number' },
+    { name: 'storagePath', type: 'text' },
+    { name: 'filename', type: 'text' },
+    { name: 'sha256', type: 'text' },
+    { name: 'size', type: 'number' }
+  ],
+  usedModules: { node: { 'playwright-core': '^1.54.1', 'fs-extra': '^11.2.0' } },
+  properties: [{
+    group: 'Contract',
+    variables: [
+      { name: 'contractId', optionName: 'contractId', title: 'Contract ID', type: 'number', required: true, serverDataBindings: true },
+      { name: 'tenantId', optionName: 'tenantId', title: 'Tenant ID', type: 'number', required: true, serverDataBindings: true },
+      { name: 'userId', optionName: 'userId', title: 'User ID', type: 'number', required: true, serverDataBindings: true }
+    ]
+  }]
+}

@@ -63,26 +63,6 @@
             .finally(function () { delete select.dataset.loading; });
     }
 
-    function initialiseEditor() {
-        if (!window.jQuery || !jQuery.fn.summernote) return;
-        var editor = jQuery('#contractBody');
-        if (!editor.length || editor.next('.note-editor').length) return;
-        var editingExisting = new URLSearchParams(window.location.search).has('id');
-        if (editingExisting && !editor.val()) return;
-        editor.summernote({
-            height: 520,
-            tooltip: false,
-            placeholder: 'Create the contract content here…',
-            toolbar: [
-                ['style', ['style']],
-                ['font', ['bold', 'italic', 'underline', 'clear']],
-                ['para', ['ul', 'ol', 'paragraph']],
-                ['insert', ['link', 'table', 'hr']],
-                ['view', ['codeview', 'help']]
-            ]
-        });
-    }
-
     function bindEditorControls() {
         document.querySelectorAll('.contract-field').forEach(function (button) {
             if (button.dataset.contractEditorBound) return;
@@ -129,11 +109,6 @@
     }
 
     function initialiseContractPage() {
-        try {
-            initialiseEditor();
-        } catch (error) {
-            window.console.error('Contract editor could not initialise:', error);
-        }
         bindEditorControls();
         loadClauseLibrary();
     }

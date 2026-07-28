@@ -1,0 +1,25 @@
+{
+  type: 'contract_draft_remove',
+  module: 'contractDraft',
+  action: 'remove',
+  groupTitle: 'Contract Operations',
+  groupIcon: 'fa fa-file-contract comp-data',
+  addTitle: 'Delete or discard contract draft',
+  title: 'Delete or discard contract draft',
+  icon: 'fa fa-trash comp-data',
+  serverModel: ['node'],
+  dataPickObject: true,
+  dataScheme: [
+    { name: 'success', type: 'boolean' },
+    { name: 'action', type: 'text' },
+    { name: 'workflowId', type: 'number' }
+  ],
+  properties: [{
+    group: 'Contract',
+    variables: [
+      { name: 'contractId', optionName: 'contractId', title: 'Contract ID', type: 'number', required: true, serverDataBindings: true },
+      { name: 'tenantId', optionName: 'tenantId', title: 'Tenant ID', type: 'number', required: true, serverDataBindings: true },
+      { name: 'userId', optionName: 'userId', title: 'User ID', type: 'number', required: true, serverDataBindings: true }
+    ]
+  }]
+}

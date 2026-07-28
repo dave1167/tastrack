@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `tbl_contracting_entities` (
   `website` varchar(255) NULL,
   `signatoryName` varchar(180) NULL,
   `signatoryTitle` varchar(180) NULL,
-  `defaultPaymentTerms` varchar(255) NULL,
+  `defaultPaymentTerms` text NULL,
   `contractFooter` text NULL,
   `isDefault` tinyint(1) NOT NULL DEFAULT 0,
   `isActive` tinyint(1) NOT NULL DEFAULT 1,

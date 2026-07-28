@@ -1,0 +1,45 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "id"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "contract",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "query": "SELECT gc.id,gc.workflowId,gc.contractName,gc.renderedHtml,gc.contractingEntitySnapshot,gc.contractPartiesSnapshot,(SELECT t.tenantName FROM tbl_tenants t WHERE t.id=gc.tenantId LIMIT 1) tenantName,gc.status,gc.templateVersionNumber,gc.contractVersionNumber,gc.createdDate,gc.issuedDate,gc.pdfFileName,gc.pdfSha256,gc.pdfGeneratedDate,w.workflowName,ct.templateName,COALESCE(u.displayName,'Unknown') generatedBy FROM tbl_generated_contracts gc INNER JOIN tbl_workflows w ON w.id=gc.workflowId AND w.tenantId=gc.tenantId INNER JOIN tbl_contract_templates ct ON ct.id=gc.templateId AND ct.tenantId=gc.tenantId LEFT JOIN tbl_users u ON u.id=gc.generatedByUserId WHERE gc.id=:id AND gc.tenantId=:tenantId AND gc.status<>'archived' AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='CONTRACT_GENERATION' AND m.isActive=1 WHERE tm.tenantId=gc.tenantId AND tm.status IN ('ACTIVE','TRIAL')) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr WHERE utr.userId=:userId AND utr.tenantId=gc.tenantId AND utr.isActive=1) LIMIT 1",
+          "params": [
+            {
+              "name": ":id",
+              "value": "{{$_GET.id.default(0)}}"
+            },
+            {
+              "name": ":tenantId",
+              "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+            },
+            {
+              "name": ":userId",
+              "value": "{{$_SESSION.USER_ID.default(0)}}"
+            }
+          ]
+        }
+      },
+      "output": true,
+      "outputType": "array"
+    }
+  }
+}

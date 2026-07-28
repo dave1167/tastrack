@@ -4,14 +4,15 @@
     {"type":"text","name":"search"},
     {"type":"text","name":"category"},
     {"type":"text","name":"datefrom"},
-    {"type":"text","name":"dateto"}
+    {"type":"text","name":"dateto"},
+    {"type":"number","name":"hidelogins"}
   ]},
   "exec": {"steps": {
     "name": "query",
     "module": "dbupdater",
     "action": "custom",
     "options": {"connection": "db", "sql": {
-      "query": "SELECT a.id,a.userId,a.workflowId,a.taskId,a.entityType,a.entityId,a.actionType,a.summary,a.beforeJson,a.afterJson,a.ipAddress,a.createdDate,COALESCE(u.displayName,CONCAT_WS(' ',u.fName,u.lName),'System') actorName,w.workflowName,t.taskName,COALESCE(at.activityName,REPLACE(a.actionType,'.',' ')) activityName,COALESCE(at.activityCategory,a.entityType) activityCategory,at.icon,at.colour FROM tbl_activity_log a LEFT JOIN tbl_users u ON u.id=a.userId LEFT JOIN tbl_workflows w ON w.id=a.workflowId AND w.tenantId=a.tenantId LEFT JOIN tbl_tasks t ON t.id=a.taskId AND t.tenantId=a.tenantId LEFT JOIN tbl_activity_types at ON at.activityKey=a.actionType AND at.tenantId=a.tenantId WHERE a.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId WHERE utr.userId=:userId AND utr.tenantId=a.tenantId AND utr.isActive=1 AND r.roleKey IN ('owner','admin') AND r.isActive=1) AND (:searchEmpty='' OR CONCAT_WS(' ',a.summary,a.actionType,a.entityType,COALESCE(u.displayName,''),COALESCE(w.workflowName,''),COALESCE(t.taskName,'')) LIKE CONCAT('%',:searchText,'%')) AND (:categoryEmpty='' OR COALESCE(at.activityCategory,a.entityType)=:category) AND (:dateFromEmpty='' OR a.createdDate>=CONCAT(:dateFrom,' 00:00:00')) AND (:dateToEmpty='' OR a.createdDate<DATE_ADD(CONCAT(:dateTo,' 00:00:00'),INTERVAL 1 DAY)) ORDER BY a.createdDate DESC,a.id DESC LIMIT 500",
+      "query": "SELECT a.id,a.userId,a.workflowId,a.taskId,a.entityType,a.entityId,a.actionType,a.summary,a.beforeJson,a.afterJson,a.ipAddress,a.createdDate,COALESCE(u.displayName,CONCAT_WS(' ',u.fName,u.lName),'System') actorName,w.workflowName,t.taskName,COALESCE(at.activityName,REPLACE(a.actionType,'.',' ')) activityName,COALESCE(at.activityCategory,a.entityType) activityCategory,at.icon,at.colour FROM tbl_activity_log a LEFT JOIN tbl_users u ON u.id=a.userId LEFT JOIN tbl_workflows w ON w.id=a.workflowId AND w.tenantId=a.tenantId LEFT JOIN tbl_tasks t ON t.id=a.taskId AND t.tenantId=a.tenantId LEFT JOIN tbl_activity_types at ON at.activityKey=a.actionType AND at.tenantId=a.tenantId WHERE a.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId WHERE utr.userId=:userId AND utr.tenantId=a.tenantId AND utr.isActive=1 AND r.roleKey IN ('owner','admin') AND r.isActive=1) AND (:searchEmpty='' OR CONCAT_WS(' ',a.summary,a.actionType,a.entityType,COALESCE(u.displayName,''),COALESCE(w.workflowName,''),COALESCE(t.taskName,'')) LIKE CONCAT('%',:searchText,'%')) AND (:categoryEmpty='' OR COALESCE(at.activityCategory,a.entityType)=:category) AND (:dateFromEmpty='' OR a.createdDate>=CONCAT(:dateFrom,' 00:00:00')) AND (:dateToEmpty='' OR a.createdDate<DATE_ADD(CONCAT(:dateTo,' 00:00:00'),INTERVAL 1 DAY)) AND (:hideSuccessfulLogins=0 OR a.actionType<>'user.login') ORDER BY a.createdDate DESC,a.id DESC LIMIT 500",
       "params": [
         {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},
         {"name":":userId","value":"{{$_SESSION.USER_ID}}"},
@@ -22,7 +23,8 @@
         {"name":":dateFromEmpty","value":"{{$_GET.datefrom.default('')}}"},
         {"name":":dateFrom","value":"{{$_GET.datefrom.default('')}}"},
         {"name":":dateToEmpty","value":"{{$_GET.dateto.default('')}}"},
-        {"name":":dateTo","value":"{{$_GET.dateto.default('')}}"}
+        {"name":":dateTo","value":"{{$_GET.dateto.default('')}}"},
+        {"name":":hideSuccessfulLogins","value":"{{$_GET.hidelogins.default(1)}}"}
       ]
     }},
     "output": true,

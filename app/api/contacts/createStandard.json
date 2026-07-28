@@ -1,0 +1,33 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type":"number","name":"contactCategoryId"},{"type":"text","name":"organisationName"},{"type":"text","name":"legalName"},{"type":"text","name":"tradingName"},{"type":"text","name":"firstName"},{"type":"text","name":"lastName"},{"type":"text","name":"jobTitle"},{"type":"text","name":"displayName","options":{"rules":{"core:required":{"param":""}}}},{"type":"text","name":"email"},{"type":"text","name":"phone"},{"type":"text","name":"registrationNumber"},{"type":"text","name":"vatNumber"},{"type":"text","name":"website"},{"type":"text","name":"addressLine1"},{"type":"text","name":"addressLine2"},{"type":"text","name":"city"},{"type":"text","name":"region"},{"type":"text","name":"postcode"},{"type":"text","name":"country"},{"type":"text","name":"notes"},{"type":"number","name":"isActive"}
+  ]},
+  "exec": {"steps": [
+    {"name":"insertContact","module":"dbupdater","action":"insert","options":{"connection":"db","sql":{"type":"insert","table":"tbl_contacts","returning":"id","values":[
+      {"table":"tbl_contacts","column":"tenantId","type":"number","value":"{{$_SESSION.TENANT_ID}}"},
+      {"table":"tbl_contacts","column":"contactCategoryId","type":"number","value":"{{$_POST.contactCategoryId}}"},
+      {"table":"tbl_contacts","column":"organisationName","type":"text","value":"{{$_POST.organisationName}}"},
+      {"table":"tbl_contacts","column":"legalName","type":"text","value":"{{$_POST.legalName}}"},
+      {"table":"tbl_contacts","column":"tradingName","type":"text","value":"{{$_POST.tradingName}}"},
+      {"table":"tbl_contacts","column":"firstName","type":"text","value":"{{$_POST.firstName}}"},
+      {"table":"tbl_contacts","column":"lastName","type":"text","value":"{{$_POST.lastName}}"},
+      {"table":"tbl_contacts","column":"jobTitle","type":"text","value":"{{$_POST.jobTitle}}"},
+      {"table":"tbl_contacts","column":"displayName","type":"text","value":"{{$_POST.displayName}}"},
+      {"table":"tbl_contacts","column":"email","type":"text","value":"{{$_POST.email.lowercase()}}"},
+      {"table":"tbl_contacts","column":"phone","type":"text","value":"{{$_POST.phone}}"},
+      {"table":"tbl_contacts","column":"registrationNumber","type":"text","value":"{{$_POST.registrationNumber}}"},
+      {"table":"tbl_contacts","column":"vatNumber","type":"text","value":"{{$_POST.vatNumber}}"},
+      {"table":"tbl_contacts","column":"website","type":"text","value":"{{$_POST.website}}"},
+      {"table":"tbl_contacts","column":"addressLine1","type":"text","value":"{{$_POST.addressLine1}}"},
+      {"table":"tbl_contacts","column":"addressLine2","type":"text","value":"{{$_POST.addressLine2}}"},
+      {"table":"tbl_contacts","column":"city","type":"text","value":"{{$_POST.city}}"},
+      {"table":"tbl_contacts","column":"region","type":"text","value":"{{$_POST.region}}"},
+      {"table":"tbl_contacts","column":"postcode","type":"text","value":"{{$_POST.postcode}}"},
+      {"table":"tbl_contacts","column":"country","type":"text","value":"{{$_POST.country}}"},
+      {"table":"tbl_contacts","column":"notes","type":"text","value":"{{$_POST.notes}}"},
+      {"table":"tbl_contacts","column":"isActive","type":"number","value":"{{$_POST.isActive.default(1)}}"}
+    ]}},"output":true},
+    {"module":"core","action":"redirect","options":{"url":"/contacts","status":302}}
+  ]}
+}

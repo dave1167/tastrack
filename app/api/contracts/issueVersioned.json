@@ -1,0 +1,9 @@
+{
+  "settings":{"options":{"method":"post"}},
+  "meta":{"$_GET":[{"type":"number","name":"id"}],"$_POST":[{"type":"number","name":"contractId"}]},
+  "exec":{"steps":[
+    {"name":"contractModule","module":"tenantModule","action":"require","options":{"moduleCode":"CONTRACT_GENERATION","tenantId":"{{$_SESSION.TENANT_ID}}","userId":"{{$_SESSION.USER_ID}}"},"output":false},
+    {"name":"contractPdf","module":"contractPdf","action":"generate","options":{"contractId":"{{$_POST.contractId.default($_GET.id)}}","tenantId":"{{$_SESSION.TENANT_ID}}","userId":"{{$_SESSION.USER_ID}}"},"output":true},
+    {"module":"core","action":"redirect","options":{"url":"/contracts/generated?id={{$_POST.contractId.default($_GET.id)}}&issued=1","status":302}}
+  ]}
+}

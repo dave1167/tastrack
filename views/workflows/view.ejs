@@ -4,8 +4,9 @@
 <dmx-serverconnect id="scTasks" url="/api/workflows/tasks" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scWorkflowContacts" url="/api/workflows/contacts" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scContactOptions" url="/api/workflows/contact_options"></dmx-serverconnect>
-<dmx-serverconnect id="scDocuments" url="/api/workflows/documents" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scDocuments" url="/api/workflows/activeDocuments" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scContractOptions" url="/api/contracts/options" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scEventContractDetails" url="/api/contracts/eventContractDetails" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scTaskAssignees" url="/api/tasks/assignee_options"></dmx-serverconnect>
 <dmx-serverconnect id="scLocations" url="/api/locations/options" dmx-param:selectedid="scWorkflow.data.query[0].locationId"></dmx-serverconnect>
 <dmx-serverconnect id="scSpaces" url="/api/locations/spaceOptions" dmx-param:locationid="eventLocationId.value" dmx-param:selectedid="scWorkflow.data.query[0].spaceId" dmx-param:workflowid="query.id"></dmx-serverconnect>
@@ -66,39 +67,84 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 py-3">
                 <div><h2 class="h4 mb-1">Documents</h2><p class="text-muted small mb-0" dmx-text="'Contracts, technical riders, sales reports, invoices and settlement files for this ' + scTerminology.data.query[0].workflowSingular.lowercase() + '.'">Contracts, technical riders, sales reports, invoices and settlement files for this event.</p></div>
-                <div class="d-flex align-items-center gap-2"><span class="badge rounded-pill bg-primary" dmx-text="scDocuments.data.query.count() + (scDocuments.data.query.count() == 1 ? ' document' : ' documents')"></span><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#createEventContract" aria-expanded="false" aria-controls="createEventContract" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1"><i class="fas fa-file-signature me-2"></i>Create contract</button></div>
+                <div class="d-flex flex-wrap align-items-center gap-2"><span class="badge rounded-pill bg-primary" dmx-text="scDocuments.data.query.count() + (scDocuments.data.query.count() == 1 ? ' document' : ' documents')"></span><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#eventContractDetailsModal" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1"><i class="fas fa-address-card me-2"></i>Contract parties</button><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#uploadEventDocumentModal"><i class="fas fa-upload me-2"></i>Upload document</button><button class="btn btn-sm btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#generateEventContractModal" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1"><i class="fas fa-file-signature me-2"></i>Generate contract</button></div>
             </div>
             <div class="card-body">
-                <div class="collapse mb-4" id="createEventContract" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1">
-                <div class="card border-primary">
-                    <div class="card-header bg-white"><h3 class="h5 mb-1"><i class="fas fa-file-contract me-2"></i>Create contract from template</h3><p class="small text-muted mb-0">Merge this event’s details into an approved contract template.</p></div>
-                    <div class="card-body"><form method="post" action="/api/contracts/generate" class="row g-3 align-items-end"><%- _csrfInput() %><input type="hidden" name="workflowId" dmx-bind:value="query.id"><div class="col-12 col-md-5"><label class="form-label">Template</label><select class="form-select" name="templateId" required dmx-bind:options="scContractOptions.data.templates" optiontext="templateName" optionvalue="id"><option value="">Select template</option></select></div><div class="col-12 col-md-5"><label class="form-label">Contract name</label><input class="form-control" name="contractName" required dmx-bind:value="scWorkflow.data.query[0].workflowName + ' Contract'"></div><div class="col-12 col-md-2 d-grid"><button class="btn btn-primary" type="submit"><i class="fas fa-magic me-2"></i>Generate</button></div></form><div class="small text-muted mt-2" dmx-show="scContractOptions.data.templates.count() == 0">No active templates exist. An owner or admin can create one under Setup → Contract Templates.</div></div>
-                </div>
-                </div>
-                <form method="post" action="/api/workflows/upload_document" enctype="multipart/form-data" class="row g-3 align-items-end"><%- _csrfInput() %>
-                    <input type="hidden" name="workflowId" dmx-bind:value="query.id">
-                    <div class="col-12 col-lg-3"><label class="form-label" for="documentName">Document name</label><input class="form-control" id="documentName" name="documentName" maxlength="180" placeholder="e.g. Signed contract" required></div>
-                    <div class="col-12 col-md-5 col-lg-2"><label class="form-label" for="documentType">Type</label><select class="form-select" id="documentType" name="documentType"><option value="">Other</option><option value="Contract">Contract</option><option value="Technical rider">Technical rider</option><option value="Ticket sales">Ticket sales</option><option value="Invoice">Invoice</option><option value="Settlement">Settlement</option><option value="Marketing">Marketing</option></select></div>
-                    <div class="col-12 col-md-7 col-lg-4"><label class="form-label" for="documentFile">File</label><input class="form-control" id="documentFile" name="documentFile" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" required><div class="form-text">PDF, Word, Excel, JPG or PNG; maximum 10 MB.</div></div>
-                    <div class="col-12 col-lg-2"><label class="form-label" for="documentNotes">Notes</label><input class="form-control" id="documentNotes" name="notes" maxlength="65535" placeholder="Optional"></div>
-                    <div class="col-12 col-lg-1 d-grid"><button class="btn btn-primary" type="submit" title="Upload document"><i class="fas fa-upload me-lg-0 me-2"></i><span class="d-lg-none">Upload</span><span class="visually-hidden d-none d-lg-inline">Upload document</span></button></div>
-                </form>
-
-                <div class="table-responsive mt-4" dmx-show="scDocuments.data.query.count() > 0">
+                <div class="table-responsive" dmx-show="scDocuments.data.query.count() > 0">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light"><tr><th>Document</th><th>Type</th><th>File</th><th>Uploaded</th><th class="text-end">Actions</th></tr></thead>
+                        <thead class="table-light"><tr><th>Document</th><th>Type</th><th>Status</th><th>File</th><th>Uploaded</th><th class="text-end">Actions</th></tr></thead>
                         <tbody is="dmx-repeat" dmx-bind:repeat="scDocuments.data.query">
                             <tr>
-                                <td><div class="fw-semibold" dmx-text="$value.documentName"></div><div class="small text-muted" dmx-text="$value.notes"></div></td>
+                                <td><div class="fw-semibold" dmx-text="$value.documentName"></div><div class="small text-muted" dmx-text="$value.notes"></div><div class="small text-muted" dmx-text="$value.sourceType == 'generated_contract' && $value.status == 'draft' ? 'Next issued version ' + ($value.versionNumber + 1) : 'Version ' + $value.versionNumber"></div></td>
                                 <td><span class="badge bg-light text-dark border" dmx-text="$value.documentType || 'Other'"></span></td>
+                                <td><span class="badge text-capitalize" dmx-class:bg-warning="$value.status == 'draft'" dmx-class:text-dark="$value.status == 'draft' || $value.status == 'active'" dmx-class:bg-success="$value.status == 'issued'" dmx-class:bg-primary="$value.status == 'sent'" dmx-class:bg-light="$value.status == 'active'" dmx-class:border="$value.status == 'active'" dmx-class:bg-secondary="$value.status != 'draft' && $value.status != 'issued' && $value.status != 'sent' && $value.status != 'active'" dmx-text="$value.status == 'active' ? 'Available' : $value.status.replace('_', ' ')"></span></td>
                                 <td><div dmx-text="$value.originalFileName"></div><div class="small text-muted" dmx-text="$value.fileSizeBytes + ' bytes'"></div></td>
                                 <td><div dmx-text="$value.createdDate.formatDate('dd MMM yyyy')"></div><div class="small text-muted" dmx-text="$value.uploadedBy || 'Unknown user'"></div></td>
-                                <td class="text-end"><div class="d-inline-flex gap-2"><a class="btn btn-sm btn-outline-primary" dmx-show="$value.sourceType == 'upload'" dmx-bind:href="'/api/workflows/download_document?id=' + $value.id" title="Download"><i class="fas fa-download"></i><span class="visually-hidden">Download</span></a><a class="btn btn-sm btn-outline-primary" dmx-show="$value.sourceType == 'generated_contract'" dmx-bind:href="'/contracts/generated?id=' + $value.id" title="Open generated contract"><i class="fas fa-eye"></i><span class="visually-hidden">Open generated contract</span></a><form method="post" action="/api/workflows/archive_document" dmx-show="$value.sourceType == 'upload'"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><button class="btn btn-sm btn-outline-danger" type="submit" title="Archive document"><i class="fas fa-archive"></i><span class="visually-hidden">Archive document</span></button></form></div></td>
+                                <td class="text-end"><div class="d-inline-flex gap-2"><a class="btn btn-sm btn-outline-primary" dmx-show="$value.sourceType == 'upload'" dmx-bind:href="'/api/workflows/download_document?id=' + $value.id" title="Download"><i class="fas fa-download"></i><span class="visually-hidden">Download</span></a><a class="btn btn-sm btn-outline-primary" dmx-show="$value.sourceType == 'generated_contract'" dmx-bind:href="'/contracts/generated?id=' + $value.id" title="Open generated contract"><i class="fas fa-eye"></i><span class="visually-hidden">Open generated contract</span></a><form method="post" action="/api/workflows/archive_document" dmx-show="$value.sourceType == 'upload'"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><button class="btn btn-sm btn-outline-danger" type="submit" title="Archive document"><i class="fas fa-archive"></i><span class="visually-hidden">Archive document</span></button></form><form method="post" action="/api/contracts/archive" dmx-show="$value.sourceType == 'generated_contract'"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><button class="btn btn-sm btn-outline-danger" type="submit" title="Archive contract"><i class="fas fa-archive"></i><span class="visually-hidden">Archive contract</span></button></form></div></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="text-center text-muted py-5" dmx-show="!scDocuments.state.executing && scDocuments.data.query.count() == 0"><i class="fas fa-folder-open fa-2x mb-3"></i><h3 class="h6">No documents have been added yet</h3><p class="small mb-0" dmx-text="'Use the form above to upload the first document for this ' + scTerminology.data.query[0].workflowSingular.lowercase() + '.'">Use the form above to upload the first document for this event.</p></div>
+                <div class="text-center text-muted py-5" dmx-show="!scDocuments.state.executing && scDocuments.data.query.count() == 0"><i class="fas fa-folder-open fa-2x mb-3"></i><h3 class="h6">No documents have been added yet</h3><p class="small mb-0">Use <strong>Upload document</strong> or <strong>Generate contract</strong> to add the first item.</p></div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="eventContractDetailsModal" tabindex="-1" aria-labelledby="eventContractDetailsModalLabel" aria-hidden="true" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <form method="post" action="/api/contracts/saveEventContractDetails"><%- _csrfInput() %>
+                        <input type="hidden" name="workflowId" dmx-bind:value="query.id">
+                        <div class="modal-header"><div><h2 class="modal-title h5 mb-1" id="eventContractDetailsModalLabel">Contract parties</h2><p class="small text-muted mb-0">Choose existing contacts for the roles used in this event’s contracts.</p></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body">
+                            <div class="alert alert-light border d-flex justify-content-between align-items-center gap-3"><span class="small">Missing somebody? Add them to the reusable contact directory first.</span><a class="btn btn-sm btn-outline-primary" href="/contacts/create">Add contact</a></div>
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6"><label class="form-label" for="contractPartyContactId">Legal contract party</label><select class="form-select" id="contractPartyContactId" name="contractPartyContactId" dmx-bind:options="scContactOptions.data.query" optiontext="contactLabel" optionvalue="id" dmx-bind:value="scEventContractDetails.data.details[0].contractPartyContactId"><option value="">Not selected</option></select><div class="form-text">The person or organisation entering the agreement with your contracting entity.</div></div>
+                                <div class="col-12 col-md-6"><label class="form-label" for="artistContactId">Artist or performing company</label><select class="form-select" id="artistContactId" name="artistContactId" dmx-bind:options="scContactOptions.data.query" optiontext="contactLabel" optionvalue="id" dmx-bind:value="scEventContractDetails.data.details[0].artistContactId"><option value="">Not selected</option></select></div>
+                                <div class="col-12 col-md-6"><label class="form-label" for="managerContactId">Artist manager</label><select class="form-select" id="managerContactId" name="managerContactId" dmx-bind:options="scContactOptions.data.query" optiontext="contactLabel" optionvalue="id" dmx-bind:value="scEventContractDetails.data.details[0].managerContactId"><option value="">Not selected</option></select></div>
+                                <div class="col-12 col-md-6"><label class="form-label" for="promoterContactId">Promoter</label><select class="form-select" id="promoterContactId" name="promoterContactId" dmx-bind:options="scContactOptions.data.query" optiontext="contactLabel" optionvalue="id" dmx-bind:value="scEventContractDetails.data.details[0].promoterContactId"><option value="">Not selected</option></select></div>
+                                <div class="col-12 col-md-6"><label class="form-label" for="agentContactId">Agent</label><select class="form-select" id="agentContactId" name="agentContactId" dmx-bind:options="scContactOptions.data.query" optiontext="contactLabel" optionvalue="id" dmx-bind:value="scEventContractDetails.data.details[0].agentContactId"><option value="">Not selected</option></select></div>
+                                <div class="col-12 col-md-6"><label class="form-label" for="signatoryContactId">Authorised signatory</label><select class="form-select" id="signatoryContactId" name="signatoryContactId" dmx-bind:options="scContactOptions.data.query" optiontext="contactLabel" optionvalue="id" dmx-bind:value="scEventContractDetails.data.details[0].signatoryContactId"><option value="">Not selected</option></select></div>
+                                <div class="col-12 col-md-6"><label class="form-label" for="financeContactId">Finance or accounts contact</label><select class="form-select" id="financeContactId" name="financeContactId" dmx-bind:options="scContactOptions.data.query" optiontext="contactLabel" optionvalue="id" dmx-bind:value="scEventContractDetails.data.details[0].financeContactId"><option value="">Not selected</option></select></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Save contract parties</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="uploadEventDocumentModal" tabindex="-1" aria-labelledby="uploadEventDocumentModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <form method="post" action="/api/workflows/upload_document" enctype="multipart/form-data"><%- _csrfInput() %>
+                        <input type="hidden" name="workflowId" dmx-bind:value="query.id">
+                        <div class="modal-header"><div><h2 class="modal-title h5 mb-1" id="uploadEventDocumentModalLabel">Upload supporting document</h2><p class="small text-muted mb-0">PDF, Word, Excel, JPG or PNG, up to 10 MB.</p></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body"><div class="row g-3">
+                            <div class="col-12 col-md-7"><label class="form-label" for="documentName">Document name</label><input class="form-control" id="documentName" name="documentName" maxlength="180" placeholder="e.g. Technical rider" required></div>
+                            <div class="col-12 col-md-5"><label class="form-label" for="documentType">Document type</label><select class="form-select" id="documentType" name="documentType"><option value="">Other supporting document</option><option value="Contract">Externally supplied contract</option><option value="Technical rider">Technical rider</option><option value="Ticket sales">Ticket sales</option><option value="Invoice">Invoice</option><option value="Settlement">Settlement</option><option value="Marketing">Marketing</option></select></div>
+                            <div class="col-12"><label class="form-label" for="documentFile">Choose file</label><input class="form-control" id="documentFile" name="documentFile" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" required></div>
+                            <div class="col-12"><label class="form-label" for="documentNotes">Notes</label><textarea class="form-control" id="documentNotes" name="notes" rows="3" maxlength="65535" placeholder="Optional"></textarea></div>
+                        </div></div>
+                        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit"><i class="fas fa-upload me-2"></i>Upload document</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="generateEventContractModal" tabindex="-1" aria-labelledby="generateEventContractModalLabel" aria-hidden="true" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <form method="post" action="/api/contracts/generate"><%- _csrfInput() %>
+                        <input type="hidden" name="workflowId" dmx-bind:value="query.id">
+                        <div class="modal-header"><div><h2 class="modal-title h5 mb-1" id="generateEventContractModalLabel">Generate contract</h2><p class="small text-muted mb-0">Create a new editable draft using an approved contract template.</p></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                        <div class="modal-body"><div class="row g-3">
+                            <div class="col-12"><label class="form-label" for="eventContractTemplate">Template</label><select class="form-select" id="eventContractTemplate" name="templateId" required dmx-bind:options="scContractOptions.data.templates" optiontext="templateName" optionvalue="id"><option value="">Select template</option></select></div>
+                            <div class="col-12"><label class="form-label" for="eventContractName">Contract name</label><input class="form-control" id="eventContractName" name="contractName" required dmx-bind:value="scWorkflow.data.query[0].workflowName + ' Contract'"></div>
+                            <div class="col-12"><div class="alert alert-warning mb-0" dmx-show="scContractOptions.data.templates.count() == 0">No active templates exist. An owner or admin must create one under Setup → Contract Templates.</div></div>
+                        </div></div>
+                        <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit" dmx-bind:disabled="scContractOptions.data.templates.count() == 0"><i class="fas fa-magic me-2"></i>Generate draft</button></div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

@@ -579,3 +579,20 @@
 .text-bg-primary {
   color: #000 !important;
 }
+@media (min-width: 1200px) {
+  .contract-editor-scroll-column {
+    height: calc(100vh - 14rem);
+    min-height: 32rem;
+  }
+
+  .contract-editor-scroll-column > .card {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .contract-editor-scroll-column > .card > .card-body {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+}

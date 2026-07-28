@@ -1,0 +1,47 @@
+{
+  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "workflowid"}]},
+  "exec": {
+    "steps": {
+      "name": "details",
+      "module": "dbconnector",
+      "action": "select",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "type": "SELECT",
+          "columns": [
+            {"table": "tbl_workflow_contract_details", "column": "id"},
+            {"table": "tbl_workflow_contract_details", "column": "workflowId"},
+            {"table": "tbl_workflow_contract_details", "column": "contractPartyContactId"},
+            {"table": "tbl_workflow_contract_details", "column": "artistContactId"},
+            {"table": "tbl_workflow_contract_details", "column": "managerContactId"},
+            {"table": "tbl_workflow_contract_details", "column": "promoterContactId"},
+            {"table": "tbl_workflow_contract_details", "column": "agentContactId"},
+            {"table": "tbl_workflow_contract_details", "column": "signatoryContactId"},
+            {"table": "tbl_workflow_contract_details", "column": "financeContactId"}
+          ],
+          "table": {"name": "tbl_workflow_contract_details"},
+          "primary": "id",
+          "joins": [],
+          "wheres": {
+            "condition": "AND",
+            "rules": [
+              {"id": "tbl_workflow_contract_details.tenantId", "field": "tbl_workflow_contract_details.tenantId", "type": "double", "operator": "equal", "value": "{{$_SESSION.TENANT_ID}}", "data": {"table": "tbl_workflow_contract_details", "column": "tenantId", "type": "number"}, "operation": "="},
+              {"id": "tbl_workflow_contract_details.workflowId", "field": "tbl_workflow_contract_details.workflowId", "type": "double", "operator": "equal", "value": "{{$_GET.workflowid}}", "data": {"table": "tbl_workflow_contract_details", "column": "workflowId", "type": "number"}, "operation": "="}
+            ],
+            "conditional": null,
+            "valid": true
+          },
+          "params": [
+            {"operator": "equal", "type": "expression", "name": ":P1", "value": "{{$_SESSION.TENANT_ID}}"},
+            {"operator": "equal", "type": "expression", "name": ":P2", "value": "{{$_GET.workflowid}}"}
+          ],
+          "query": "select `id`, `workflowId`, `contractPartyContactId`, `artistContactId`, `managerContactId`, `promoterContactId`, `agentContactId`, `signatoryContactId`, `financeContactId` from `tbl_workflow_contract_details` where `tenantId` = ? and `workflowId` = ?"
+        }
+      },
+      "output": true,
+      "outputType": "array"
+    }
+  }
+}

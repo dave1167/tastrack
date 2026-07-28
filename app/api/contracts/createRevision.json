@@ -1,0 +1,9 @@
+{
+  "settings":{"options":{"method":"post"}},
+  "meta":{"$_POST":[{"type":"number","name":"contractId"}]},
+  "exec":{"steps":[
+    {"name":"contractModule","module":"tenantModule","action":"require","options":{"moduleCode":"CONTRACT_GENERATION","tenantId":"{{$_SESSION.TENANT_ID}}","userId":"{{$_SESSION.USER_ID}}"},"output":false},
+    {"name":"createRevision","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_generated_contracts gc SET gc.status='draft',gc.pdfStoragePath=NULL,gc.pdfFileName=NULL,gc.pdfSha256=NULL,gc.pdfGeneratedDate=NULL,gc.issuedDate=NULL,gc.issuedByUserId=NULL,gc.draftModifiedDate=CURRENT_TIMESTAMP,gc.draftModifiedByUserId=:userId,gc.modifiedByUserId=:userId2,gc.modifiedDate=CURRENT_TIMESTAMP WHERE gc.id=:contractId AND gc.tenantId=:tenantId AND gc.status IN ('issued','sent') AND EXISTS(SELECT 1 FROM tbl_contract_versions cv WHERE cv.contractId=gc.id AND cv.tenantId=gc.tenantId AND cv.contractVersionNumber=gc.contractVersionNumber) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.roleKey IN ('owner','admin') WHERE utr.userId=:roleUser AND utr.tenantId=gc.tenantId AND utr.isActive=1)","params":[{"name":":userId","value":"{{$_SESSION.USER_ID.default(0)}}"},{"name":":userId2","value":"{{$_SESSION.USER_ID.default(0)}}"},{"name":":contractId","value":"{{$_POST.contractId.default(0)}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"},{"name":":roleUser","value":"{{$_SESSION.USER_ID.default(0)}}"}]}},"output":true},
+    {"module":"core","action":"redirect","options":{"url":"/contracts/editor?id={{$_POST.contractId}}&revision=1","status":302}}
+  ]}
+}

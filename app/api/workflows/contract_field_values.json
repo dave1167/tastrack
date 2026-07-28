@@ -1,0 +1,72 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "workflowid"
+      }
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "values",
+      "module": "dbconnector",
+      "action": "select",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "type": "SELECT",
+          "columns": [
+            { "table": "tbl_workflow_field_values", "column": "fieldKey" },
+            { "table": "tbl_workflow_field_values", "column": "valueText" },
+            { "table": "tbl_workflow_field_values", "column": "valueDate" },
+            { "table": "tbl_workflow_field_values", "column": "valueNumber" },
+            { "table": "tbl_workflow_field_values", "column": "valueMoney" }
+          ],
+          "table": {
+            "name": "tbl_workflow_field_values"
+          },
+          "primary": "id",
+          "joins": [],
+          "wheres": {
+            "condition": "AND",
+            "rules": [
+              {
+                "id": "tbl_workflow_field_values.tenantId",
+                "field": "tbl_workflow_field_values.tenantId",
+                "type": "double",
+                "operator": "equal",
+                "value": "{{$_SESSION.TENANT_ID}}",
+                "data": { "table": "tbl_workflow_field_values", "column": "tenantId", "type": "number" },
+                "operation": "="
+              },
+              {
+                "id": "tbl_workflow_field_values.workflowId",
+                "field": "tbl_workflow_field_values.workflowId",
+                "type": "double",
+                "operator": "equal",
+                "value": "{{$_GET.workflowid}}",
+                "data": { "table": "tbl_workflow_field_values", "column": "workflowId", "type": "number" },
+                "operation": "="
+              }
+            ],
+            "conditional": null,
+            "valid": true
+          },
+          "params": [
+            { "operator": "equal", "type": "expression", "name": ":P1", "value": "{{$_SESSION.TENANT_ID}}" },
+            { "operator": "equal", "type": "expression", "name": ":P2", "value": "{{$_GET.workflowid}}" }
+          ]
+        }
+      },
+      "output": true,
+      "outputType": "array"
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "settings": {"options": {"method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "number", "name": "workflowId"},
+    {"type": "number", "name": "contractPartyContactId"},
+    {"type": "number", "name": "artistContactId"},
+    {"type": "number", "name": "managerContactId"},
+    {"type": "number", "name": "promoterContactId"},
+    {"type": "number", "name": "agentContactId"},
+    {"type": "number", "name": "signatoryContactId"},
+    {"type": "number", "name": "financeContactId"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "existing",
+      "module": "dbconnector",
+      "action": "select",
+      "options": {"connection": "db", "sql": {
+        "type": "SELECT",
+        "columns": [{"table": "tbl_workflow_contract_details", "column": "id"}],
+        "table": {"name": "tbl_workflow_contract_details"},
+        "primary": "id",
+        "joins": [],
+        "wheres": {"condition": "AND", "rules": [
+          {"id": "tbl_workflow_contract_details.tenantId", "field": "tbl_workflow_contract_details.tenantId", "type": "double", "operator": "equal", "value": "{{$_SESSION.TENANT_ID}}", "data": {"table": "tbl_workflow_contract_details", "column": "tenantId", "type": "number"}, "operation": "="},
+          {"id": "tbl_workflow_contract_details.workflowId", "field": "tbl_workflow_contract_details.workflowId", "type": "double", "operator": "equal", "value": "{{$_POST.workflowId}}", "data": {"table": "tbl_workflow_contract_details", "column": "workflowId", "type": "number"}, "operation": "="}
+        ], "conditional": null, "valid": true},
+        "params": [
+          {"operator": "equal", "type": "expression", "name": ":P1", "value": "{{$_SESSION.TENANT_ID}}"},
+          {"operator": "equal", "type": "expression", "name": ":P2", "value": "{{$_POST.workflowId}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "module": "core",
+      "action": "condition",
+      "options": {
+        "if": "{{existing.count() > 0}}",
+        "then": {"steps": {
+          "name": "updateDetails",
+          "module": "dbupdater",
+          "action": "update",
+          "options": {"connection": "db", "sql": {
+            "type": "update",
+            "table": "tbl_workflow_contract_details",
+            "values": [
+              {"table": "tbl_workflow_contract_details", "column": "contractPartyContactId", "type": "number", "value": "{{$_POST.contractPartyContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "artistContactId", "type": "number", "value": "{{$_POST.artistContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "managerContactId", "type": "number", "value": "{{$_POST.managerContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "promoterContactId", "type": "number", "value": "{{$_POST.promoterContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "agentContactId", "type": "number", "value": "{{$_POST.agentContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "signatoryContactId", "type": "number", "value": "{{$_POST.signatoryContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "financeContactId", "type": "number", "value": "{{$_POST.financeContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "modifiedByUserId", "type": "number", "value": "{{$_SESSION.USER_ID}}"}
+            ],
+            "wheres": {"condition": "AND", "rules": [
+              {"id": "tbl_workflow_contract_details.id", "field": "tbl_workflow_contract_details.id", "type": "double", "operator": "equal", "value": "{{existing[0].id}}", "data": {"table": "tbl_workflow_contract_details", "column": "id", "type": "number"}, "operation": "="},
+              {"id": "tbl_workflow_contract_details.tenantId", "field": "tbl_workflow_contract_details.tenantId", "type": "double", "operator": "equal", "value": "{{$_SESSION.TENANT_ID}}", "data": {"table": "tbl_workflow_contract_details", "column": "tenantId", "type": "number"}, "operation": "="}
+            ], "conditional": null, "valid": true}
+          }}
+        }},
+        "else": {"steps": {
+          "name": "insertDetails",
+          "module": "dbupdater",
+          "action": "insert",
+          "options": {"connection": "db", "sql": {
+            "type": "insert",
+            "table": "tbl_workflow_contract_details",
+            "returning": "id",
+            "values": [
+              {"table": "tbl_workflow_contract_details", "column": "tenantId", "type": "number", "value": "{{$_SESSION.TENANT_ID}}"},
+              {"table": "tbl_workflow_contract_details", "column": "workflowId", "type": "number", "value": "{{$_POST.workflowId}}"},
+              {"table": "tbl_workflow_contract_details", "column": "contractPartyContactId", "type": "number", "value": "{{$_POST.contractPartyContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "artistContactId", "type": "number", "value": "{{$_POST.artistContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "managerContactId", "type": "number", "value": "{{$_POST.managerContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "promoterContactId", "type": "number", "value": "{{$_POST.promoterContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "agentContactId", "type": "number", "value": "{{$_POST.agentContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "signatoryContactId", "type": "number", "value": "{{$_POST.signatoryContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "financeContactId", "type": "number", "value": "{{$_POST.financeContactId.default(null)}}"},
+              {"table": "tbl_workflow_contract_details", "column": "createdByUserId", "type": "number", "value": "{{$_SESSION.USER_ID}}"},
+              {"table": "tbl_workflow_contract_details", "column": "modifiedByUserId", "type": "number", "value": "{{$_SESSION.USER_ID}}"}
+            ]
+          }}
+        }}
+      },
+      "outputType": "boolean"
+    },
+    {"module": "core", "action": "redirect", "options": {"url": "/workflows/view?id={{$_POST.workflowId}}&section=documents&contractDetailsSaved=1", "status": 302}}
+  ]}
+}
