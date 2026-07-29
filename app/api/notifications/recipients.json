@@ -1,0 +1,4 @@
+{
+  "settings":{"options":{"restrict":{"provider":"security"},"nocsrf":true,"method":"get"}},
+  "exec":{"steps":{"name":"recipients","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"SELECT u.id,u.displayName,CONCAT(u.displayName,' - ',u.email) recipientLabel FROM tbl_user_tenants ut INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 WHERE ut.tenantId=:tenantId AND ut.isActive=1 AND ut.membershipStatus='active' ORDER BY u.displayName,u.email","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true,"outputType":"array","meta":[{"name":"id","type":"number"},{"name":"displayName","type":"text"},{"name":"recipientLabel","type":"text"}]}}
+}

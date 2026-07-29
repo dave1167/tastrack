@@ -1,0 +1,4 @@
+{
+  "settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},
+  "exec":{"steps":{"name":"update","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_notifications SET status='read',readDate=COALESCE(readDate,CURRENT_TIMESTAMP),modifiedDate=CURRENT_TIMESTAMP WHERE tenantId=:tenantId AND userId=:userId AND status='unread' AND channel='in_app'","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":userId","value":"{{$_SESSION.USER_ID}}"}]}},"output":true}}
+}

@@ -1,6 +1,6 @@
 {
   "settings": {
-    "options": {
+    "options": {"restrict":{"provider":"security"},
       "nocsrf": true,
       "method": "get"
     }
@@ -13,7 +13,7 @@
       "options": {
         "connection": "db",
         "sql": {
-          "query": "SELECT DISTINCT t.id AS tenantId, t.tenantName FROM tbl_tenants t INNER JOIN tbl_user_tenant_roles utr ON utr.tenantId = t.id WHERE utr.userId = :userId AND utr.isActive = 1 ORDER BY t.tenantName ASC",
+          "query": "SELECT t.id AS tenantId,t.tenantName FROM tbl_user_tenants ut INNER JOIN tbl_tenants t ON t.id=ut.tenantId AND t.isActive=1 WHERE ut.userId=:userId AND ut.isActive=1 AND ut.membershipStatus='active' ORDER BY t.tenantName",
           "params": [
             {
               "name": ":userId",

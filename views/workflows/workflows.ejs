@@ -157,6 +157,7 @@
                 form.append('isVisible', row.querySelector('.column-visible').checked ? '1' : '0');
                 form.append('sortOrder', row.querySelector('.column-order').value || '0');
                 form.append('width', row.querySelector('.column-width').value || '160');
+                form.set('CSRFToken', document.querySelector('meta[name="csrf-token"]').content);
                 const response = await fetch('/api/board_views/setColumn', {method:'POST', body:form});
                 if (!response.ok) throw new Error('A column could not be saved.');
             }

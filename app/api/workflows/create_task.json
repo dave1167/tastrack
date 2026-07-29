@@ -1,6 +1,6 @@
 {
   "settings": {
-    "options": {
+    "options": {"restrict":{"provider":"security"},
       "method": "post"
     }
   },
@@ -13,11 +13,56 @@
       {"type": "text", "name": "priority"},
       {"type": "number", "name": "isRequired"},
       {"type": "text", "name": "assignment"},
+      {"type": "number", "name": "assignedUserId"},
       {"type": "text", "name": "dueDate"}
     ]
   },
   "exec": {
     "steps": [
+      {
+        "name": "allocationAuthority",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT CAST(CASE WHEN SUBSTRING_INDEX(:assignmentType,':',1)<>'team' THEN 1 WHEN EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 AND r.roleKey IN ('owner','admin') WHERE utr.userId=:adminUserId AND utr.tenantId=:adminTenantId AND utr.isActive=1) OR EXISTS(SELECT 1 FROM tbl_user_tenants ut INNER JOIN tbl_team_members tm ON tm.userTenantId=ut.id AND tm.tenantId=ut.tenantId AND tm.teamId=CAST(NULLIF(SUBSTRING_INDEX(:assignmentTeam,':',-1),'') AS UNSIGNED) AND tm.isActive=1 INNER JOIN tbl_team_member_roles tmr ON tmr.teamMemberId=tm.id AND tmr.isActive=1 INNER JOIN tbl_team_role_permissions trp ON trp.teamRoleId=tmr.teamRoleId INNER JOIN tbl_permissions p ON p.id=trp.permissionId AND p.permissionCode='team.tasks.assign' AND p.isActive=1 WHERE ut.userId=:userId AND ut.tenantId=:tenantId AND ut.isActive=1 AND ut.membershipStatus='active') THEN 1 ELSE 0 END AS UNSIGNED) allowed",
+            "params": [
+              {"name":":assignmentType","value":"{{$_POST.assignment.default('unassigned:')}}"},
+              {"name":":assignmentTeam","value":"{{$_POST.assignment.default('unassigned:')}}"},
+              {"name":":adminUserId","value":"{{$_SESSION.USER_ID}}"},
+              {"name":":adminTenantId","value":"{{$_SESSION.TENANT_ID}}"},
+              {"name":":userId","value":"{{$_SESSION.USER_ID}}"},
+              {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "requireAllocationAuthority",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{allocationAuthority[0].allowed != 1}}",
+          "then": {
+            "steps": {
+              "name": "allocationDenied",
+              "module": "core",
+              "action": "response",
+              "options": {
+                "status": 403,
+                "data": {
+                  "success": false,
+                  "message": "Only a tenant Owner, tenant Admin, Team Manager or Team Leader can allocate this task."
+                }
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
+      },
       {
         "name": "insertTask",
         "module": "dbupdater",
@@ -25,12 +70,13 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,sourceTemplateTaskId,taskName,description,status,priority,isRequired,assignedToUserId,assignedToTeamId,assignedToRoleId,dueDate,createdByUserId) SELECT w.tenantId,w.id,ws.id,NULL,:taskName,:description,'not_started',:priority,:isRequired,NULL,CASE WHEN SUBSTRING_INDEX(:assignment1,':',1)='team' THEN tm.id ELSE NULL END,NULL,NULLIF(:dueDate,''),:createdBy FROM tbl_workflows w INNER JOIN tbl_workflow_stages ws ON ws.workflowId=w.id AND ws.tenantId=w.tenantId LEFT JOIN tbl_teams tm ON tm.id=CAST(NULLIF(SUBSTRING_INDEX(:assignment2,':',-1),'') AS UNSIGNED) AND tm.tenantId=w.tenantId AND tm.isActive=1 WHERE w.id=:workflowId AND ws.id=:stageId AND w.tenantId=:tenantId",
+            "query": "INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,sourceTemplateTaskId,taskName,description,status,priority,isRequired,assignedToUserId,assignedToTeamId,assignedToRoleId,dueDate,createdByUserId) SELECT w.tenantId,w.id,ws.id,NULL,:taskName,:description,'not_started',:priority,:isRequired,(SELECT ut.userId FROM tbl_team_members member INNER JOIN tbl_user_tenants ut ON ut.id=member.userTenantId AND ut.tenantId=member.tenantId AND ut.isActive=1 AND ut.membershipStatus='active' INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 WHERE member.tenantId=w.tenantId AND member.teamId=tm.id AND member.isActive=1 AND ut.userId=NULLIF(:assignedUserId,'') LIMIT 1),CASE WHEN SUBSTRING_INDEX(:assignment1,':',1)='team' THEN tm.id ELSE NULL END,NULL,NULLIF(:dueDate,''),:createdBy FROM tbl_workflows w INNER JOIN tbl_workflow_stages ws ON ws.workflowId=w.id AND ws.tenantId=w.tenantId LEFT JOIN tbl_teams tm ON tm.id=CAST(NULLIF(SUBSTRING_INDEX(:assignment2,':',-1),'') AS UNSIGNED) AND tm.tenantId=w.tenantId AND tm.isActive=1 WHERE w.id=:workflowId AND ws.id=:stageId AND w.tenantId=:tenantId",
             "params": [
               {"name": ":taskName", "value": "{{$_POST.taskName}}"},
               {"name": ":description", "value": "{{$_POST.description.default('')}}"},
               {"name": ":priority", "value": "{{$_POST.priority.default('normal')}}"},
               {"name": ":isRequired", "value": "{{$_POST.isRequired.default(0)}}"},
+              {"name": ":assignedUserId", "value": "{{$_POST.assignedUserId.default('')}}"},
               {"name": ":assignment1", "value": "{{$_POST.assignment.default('unassigned:')}}"},
               {"name": ":assignment2", "value": "{{$_POST.assignment.default('unassigned:')}}"},
               {"name": ":dueDate", "value": "{{$_POST.dueDate.default('')}}"},
@@ -101,6 +147,42 @@
               {"name": ":dueDate", "value": "{{$_POST.dueDate.default('')}}"},
               {"name": ":tenantId2", "value": "{{$_SESSION.TENANT_ID}}"},
               {"name": ":taskId2", "value": "{{insertTask.insertId.default(0)}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "notifyAssignedTeam",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_notifications (tenantId,userId,workflowId,taskId,notificationType,title,message,status,channel,createdDate) SELECT t.tenantId,ut.userId,t.workflowId,t.id,'task_assigned',CONCAT('New team task: ',t.taskName),CONCAT(:actor,' assigned this task to your team.'),'unread','in_app',CURRENT_TIMESTAMP FROM tbl_tasks t INNER JOIN tbl_team_members tm ON tm.teamId=t.assignedToTeamId AND tm.tenantId=t.tenantId AND tm.isActive=1 INNER JOIN tbl_user_tenants ut ON ut.id=tm.userTenantId AND ut.tenantId=t.tenantId AND ut.isActive=1 AND ut.membershipStatus='active' WHERE t.id=:taskId AND t.tenantId=:tenantId AND ut.userId<>:actorUserId AND (t.assignedToUserId IS NULL OR ut.userId<>t.assignedToUserId)",
+            "params": [
+              {"name":":actor","value":"{{$_SESSION.DISPLAY_NAME.default('A Tastrack user')}}"},
+              {"name":":taskId","value":"{{insertTask.insertId.default(0)}}"},
+              {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},
+              {"name":":actorUserId","value":"{{$_SESSION.USER_ID}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "notifyNamedAssignee",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_notifications (tenantId,userId,workflowId,taskId,notificationType,title,message,status,channel,createdDate) SELECT t.tenantId,t.assignedToUserId,t.workflowId,t.id,'task_assigned',CONCAT('Task assigned: ',t.taskName),CONCAT(:actor,' assigned this task to you.'),'unread','in_app',CURRENT_TIMESTAMP FROM tbl_tasks t WHERE t.id=:taskId AND t.tenantId=:tenantId AND t.assignedToUserId IS NOT NULL AND t.assignedToUserId<>:actorUserId",
+            "params": [
+              {"name":":actor","value":"{{$_SESSION.DISPLAY_NAME.default('A Tastrack user')}}"},
+              {"name":":taskId","value":"{{insertTask.insertId.default(0)}}"},
+              {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},
+              {"name":":actorUserId","value":"{{$_SESSION.USER_ID}}"}
             ]
           }
         },

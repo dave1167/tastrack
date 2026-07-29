@@ -1,5 +1,5 @@
 {
-  "settings": {"options": {"method": "post"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"method": "post"}},
   "meta": {"$_POST": [
     {"type": "number", "name": "workflowId"},
     {"type": "text", "name": "documentName", "options": {"rules": {"core:required": {"param": ""}}}},

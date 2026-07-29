@@ -1,5 +1,5 @@
 {
-  "settings": {"options": {"method": "post"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"method": "post"}},
   "meta": {"$_POST": [
     {"type": "number", "name": "workflowId"}, {"type": "number", "name": "contactId"},
     {"type": "text", "name": "relationshipType", "options": {"rules": {"core:required": {"param": ""}}}},

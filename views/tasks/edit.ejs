@@ -1,26 +1,28 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="edit_task" appConnect="local" components="{dmxStateManagement:{},dmxBrowser:{}}" -->
 <dmx-browser id="browserTaskEdit"></dmx-browser>
-<dmx-serverconnect id="scTask" url="/api/tasks/get" dmx-param:id="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scTask" url="/api/tasks/get" dmx-param:id="query.id" dmx-on:success="scTeamMembers.load({teamid: scTask.data.query[0].assignedToTeamId})"></dmx-serverconnect>
 <dmx-serverconnect id="scAssignees" url="/api/tasks/assignee_options"></dmx-serverconnect>
+<dmx-serverconnect id="scTeamMembers" url="/api/tasks/team_member_options" dmx-param:teamid="taskAssignment.value.split(':')[1]"></dmx-serverconnect>
 <dmx-serverconnect id="scLocations" url="/api/locations/options" dmx-param:selectedid="scTask.data.query[0].locationId"></dmx-serverconnect>
 <dmx-serverconnect id="scSpaces" url="/api/locations/spaceOptions" dmx-param:locationid="taskLocationId.value" dmx-param:selectedid="scTask.data.query[0].spaceId"></dmx-serverconnect>
 <dmx-serverconnect id="scConfigurations" url="/api/locations/configurationOptions" dmx-param:spaceid="taskSpaceId.value" dmx-param:selectedid="scTask.data.query[0].configurationId"></dmx-serverconnect>
+<dmx-serverconnect id="scTaskNotificationRecipients" url="/api/notifications/recipients"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center gap-3">
             <div><h1 class="mb-1">Edit Task</h1><p class="text-muted mb-0"><span dmx-text="scTask.data.query[0].workflowName"></span><span> &middot; </span><span dmx-text="scTask.data.query[0].stageName"></span></p></div>
-            <a class="btn btn-outline-secondary" href="/tasks">Back to tasks</a>
+            <div class="d-flex gap-2"><button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#sendTaskNotificationModal"><i class="fas fa-bell me-2"></i>Notify people</button><a class="btn btn-outline-secondary" href="/tasks">Back to tasks</a></div>
         </div>
     </div>
     <div class="col-12 col-xl-8">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white"><h2 class="h5 mb-0">Task details</h2></div>
             <div class="card-body">
-                <div class="alert alert-warning" dmx-show="frmTaskEdit.lastError">
+                <div class="alert alert-warning" dmx-show="frmTaskEdit.lastError.status">
                     <div class="d-flex gap-2 align-items-start"><i class="fas fa-lock mt-1"></i><div><strong>Changes were not saved.</strong><div dmx-text="frmTaskEdit.lastError.response.message.default('You do not have permission to change this task.')"></div></div></div>
                 </div>
-                <form id="frmTaskEdit" is="dmx-serverconnect-form" method="post" action="/api/tasks/update" dmx-on:success="browserTaskEdit.goto('/tasks')">
+                <form id="frmTaskEdit" is="dmx-serverconnect-form" method="post" action="/api/tasks/update" dmx-on:success="browserTaskEdit.goto('/tasks?saved=1')">
                     <%- _csrfInput() %>
                     <input type="hidden" name="id" dmx-bind:value="scTask.data.query[0].id">
                     <div class="mb-3"><label class="form-label">Task name</label><input class="form-control" name="taskName" required dmx-bind:value="scTask.data.query[0].taskName"></div>
@@ -29,8 +31,9 @@
                         <div class="col-md-6"><label class="form-label">Status</label><select class="form-select" name="status" dmx-bind:value="scTask.data.query[0].status"><option value="not_started">Not started</option><option value="in_progress">In progress</option><option value="waiting">Waiting</option><option value="complete">Complete</option><option value="skipped">Skipped</option><option value="cancelled">Cancelled</option><option value="overdue">Overdue</option></select></div>
                         <div class="col-md-3"><label class="form-label">Priority</label><select class="form-select" name="priority" dmx-bind:value="scTask.data.query[0].priority"><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
                         <div class="col-md-3"><label class="form-label">Required</label><select class="form-select" name="isRequired" dmx-bind:value="scTask.data.query[0].isRequired"><option value="1">Yes</option><option value="0">No</option></select></div>
-                        <div class="col-md-6"><label class="form-label">Assigned to</label><select class="form-select" name="assignment" dmx-bind:options="scAssignees.data.query" optiontext="assignmentLabel" optionvalue="assignmentKey" dmx-bind:value="scTask.data.query[0].assignmentKey"></select></div>
-                        <div class="col-md-6"><label class="form-label">Due date and time</label><input class="form-control" name="dueDate" type="datetime-local" dmx-bind:value="scTask.data.query[0].dueDate.formatDate('yyyy-MM-ddTHH:mm')"></div>
+                        <div class="col-md-4"><label class="form-label" for="taskAssignment">Team</label><select class="form-select" id="taskAssignment" name="assignment" dmx-bind:options="scAssignees.data.query" optiontext="assignmentLabel" optionvalue="assignmentKey" dmx-bind:value="scTask.data.query[0].assignedToTeamId ? 'team:' + scTask.data.query[0].assignedToTeamId : 'unassigned:'" dmx-on:changed="taskAssignedUser.setValue(''); scTeamMembers.load({teamid: value.split(':')[1]})"></select></div>
+                        <div class="col-md-4"><label class="form-label" for="taskAssignedUser">Named person <span class="text-muted fw-normal">(optional)</span></label><select class="form-select" id="taskAssignedUser" name="assignedUserId" dmx-bind:options="scTeamMembers.data.query" optiontext="memberName" optionvalue="userId" dmx-bind:value="scTask.data.query[0].assignedToUserId" dmx-bind:disabled="taskAssignment.value.split(':')[0] != 'team'"><option value="">Team only</option></select><div class="form-text" dmx-show="taskAssignment.value.split(':')[0] == 'team' && !scTeamMembers.state.executing && scTeamMembers.data.query.count() == 0">This team has no active members. You can still allocate the task to the team.</div></div>
+                        <div class="col-md-4"><label class="form-label">Due date and time</label><input class="form-control" name="dueDate" type="datetime-local" dmx-bind:value="scTask.data.query[0].dueDate.formatDate('yyyy-MM-ddTHH:mm')"></div>
                     </div>
                     <div class="border-top mt-4 pt-3">
                         <h3 class="h6 mb-1">Task location</h3>
@@ -52,6 +55,22 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="sendTaskNotificationModal" is="dmx-bs5-modal" tabindex="-1" aria-labelledby="sendTaskNotificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form is="dmx-serverconnect-form" method="post" action="/api/notifications/send" dmx-on:success="sendTaskNotificationModal.hide();scHeaderNotifications.load()"><%- _csrfInput() %>
+                <input type="hidden" name="workflowId" dmx-bind:value="scTask.data.query[0].workflowId"><input type="hidden" name="taskId" dmx-bind:value="query.id">
+                <div class="modal-header"><div><h2 class="modal-title h5 mb-1" id="sendTaskNotificationModalLabel">Notify someone about this task</h2><p class="small text-muted mb-0" dmx-text="scTask.data.query[0].taskName"></p></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body"><div class="row g-3">
+                    <div class="col-12"><label class="form-label">Recipient</label><select class="form-select" name="recipientUserId" required dmx-bind:options="scTaskNotificationRecipients.data.recipients" optiontext="recipientLabel" optionvalue="id"><option value="">Select a user</option></select></div>
+                    <div class="col-12"><label class="form-label">Subject</label><input class="form-control" name="title" maxlength="180" required dmx-bind:value="scTask.data.query[0].taskName"></div>
+                    <div class="col-12"><label class="form-label">Message</label><textarea class="form-control" name="message" rows="4" maxlength="2000" required placeholder="What does this person need to know or do?"></textarea></div>
+                </div></div>
+                <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane me-2"></i>Send notification</button></div>
+            </form>
         </div>
     </div>
 </div>

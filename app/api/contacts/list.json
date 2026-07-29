@@ -1,5 +1,5 @@
 {
-  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"nocsrf": true, "method": "get"}},
   "exec": {"steps": {"name": "query", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
     "query": "SELECT c.id,c.contactCategoryId,COALESCE(cc.categoryName,c.contactType) AS contactType,c.organisationName,c.firstName,c.lastName,c.displayName,COALESCE(NULLIF(TRIM(CONCAT_WS(' ',c.firstName,c.lastName)),''),NULLIF(c.displayName,''),NULLIF(c.organisationName,''),'Unnamed contact') AS contactName,c.email,c.phone,c.city,c.country,c.isActive,c.createdDate,c.modifiedDate FROM tbl_contacts c LEFT JOIN tbl_contact_categories cc ON cc.contactCategoryId=c.contactCategoryId AND cc.tenantId=c.tenantId WHERE c.tenantId=:tenantId ORDER BY contactName,c.organisationName",
     "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]

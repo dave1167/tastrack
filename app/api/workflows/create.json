@@ -1,5 +1,5 @@
 {
-  "settings": {"options": {"method": "post"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"method": "post"}},
   "meta": {"$_POST": [
     {"type":"number","name":"templateId"}, {"type":"text","name":"workflowName"},
     {"type":"text","name":"referenceCode"}, {"type":"text","name":"status"},

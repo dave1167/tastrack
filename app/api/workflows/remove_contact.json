@@ -1,5 +1,5 @@
 {
-  "settings": {"options": {"method": "post"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"method": "post"}},
   "meta": {"$_POST": [{"type": "number", "name": "id"}, {"type": "number", "name": "workflowId"}]},
   "exec": {"steps": [
     {"name": "removeContact", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {

@@ -1,0 +1,208 @@
+{
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get",
+      "restrict": {
+        "provider": "security"
+      }
+    }
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "permissionGrant",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "SELECT",
+            "columns": [
+              {
+                "table": "tbl_role_permissions",
+                "column": "id",
+                "field": "grantId"
+              }
+            ],
+            "table": {
+              "name": "tbl_role_permissions"
+            },
+            "primary": "id",
+            "joins": [],
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              }
+            ],
+            "query": "select `rp`.`id` as `grantId` from `tbl_user_tenants` `ut` inner join `tbl_user_tenant_roles` `utr` on `utr`.`userId`=`ut`.`userId` and `utr`.`tenantId`=`ut`.`tenantId` and `utr`.`isActive`=1 inner join `tbl_role_permissions` `rp` on `rp`.`roleId`=`utr`.`roleId` inner join `tbl_permissions` `p` on `p`.`id`=`rp`.`permissionId` and `p`.`permissionCode`='tenant.users.view' and `p`.`isActive`=1 where `ut`.`userId`=? and `ut`.`tenantId`=? and `ut`.`isActive`=1 and `ut`.`membershipStatus`='active' limit 1"
+          }
+        },
+        "output": false,
+        "outputType": "array"
+      },
+      {
+        "name": "requirePermission",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{permissionGrant.count()==0}}",
+          "then": {
+            "steps": {
+              "name": "denied",
+              "module": "core",
+              "action": "error",
+              "options": {
+                "status": 403,
+                "message": "You do not have permission to view tenant users."
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
+      },
+      {
+        "name": "users",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "SELECT",
+            "columns": [
+              {
+                "table": "tbl_users",
+                "column": "id",
+                "field": "userId"
+              },
+              {
+                "table": "tbl_users",
+                "column": "displayName"
+              },
+              {
+                "table": "tbl_users",
+                "column": "email"
+              },
+              {
+                "table": "tbl_user_tenants",
+                "column": "membershipStatus"
+              },
+              {
+                "table": "tbl_user_tenants",
+                "column": "isActive"
+              }
+            ],
+            "table": {
+              "name": "tbl_user_tenants"
+            },
+            "primary": "id",
+            "joins": [],
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              }
+            ],
+            "query": "select `u`.`id` as `userId`,`u`.`displayName`,`u`.`email`,`ut`.`membershipStatus`,`ut`.`isActive` from `tbl_user_tenants` `ut` inner join `tbl_users` `u` on `u`.`id`=`ut`.`userId` where `ut`.`tenantId`=? order by `u`.`displayName`"
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "tenantRoles",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "SELECT",
+            "columns": [
+              {
+                "table": "tbl_user_tenant_roles",
+                "column": "userId"
+              },
+              {
+                "table": "tbl_roles",
+                "column": "id",
+                "field": "roleId"
+              },
+              {
+                "table": "tbl_roles",
+                "column": "roleName"
+              }
+            ],
+            "table": {
+              "name": "tbl_user_tenant_roles"
+            },
+            "primary": "id",
+            "joins": [],
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              }
+            ],
+            "query": "select `utr`.`userId`,`r`.`id` as `roleId`,`r`.`roleName` from `tbl_user_tenant_roles` `utr` inner join `tbl_roles` `r` on `r`.`id`=`utr`.`roleId` and `r`.`isActive`=1 where `utr`.`tenantId`=? and `utr`.`isActive`=1 order by `r`.`roleName`"
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "teamMemberships",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "SELECT",
+            "columns": [
+              {
+                "table": "tbl_user_tenants",
+                "column": "userId"
+              },
+              {
+                "table": "tbl_teams",
+                "column": "id",
+                "field": "teamId"
+              },
+              {
+                "table": "tbl_teams",
+                "column": "teamName"
+              },
+              {
+                "table": "tbl_team_roles",
+                "column": "teamRoleName"
+              }
+            ],
+            "table": {
+              "name": "tbl_team_members"
+            },
+            "primary": "id",
+            "joins": [],
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              }
+            ],
+            "query": "select `ut`.`userId`,`t`.`id` as `teamId`,`t`.`teamName`,`tr`.`teamRoleName` from `tbl_team_members` `tm` inner join `tbl_user_tenants` `ut` on `ut`.`id`=`tm`.`userTenantId` and `ut`.`tenantId`=`tm`.`tenantId` inner join `tbl_teams` `t` on `t`.`id`=`tm`.`teamId` and `t`.`tenantId`=`tm`.`tenantId` left join `tbl_team_member_roles` `tmr` on `tmr`.`teamMemberId`=`tm`.`id` and `tmr`.`isActive`=1 left join `tbl_team_roles` `tr` on `tr`.`id`=`tmr`.`teamRoleId` and `tr`.`teamId`=`tm`.`teamId` and `tr`.`tenantId`=`tm`.`tenantId` and `tr`.`isActive`=1 where `tm`.`tenantId`=? and `tm`.`isActive`=1 order by `t`.`teamName`,`tr`.`teamRoleName`"
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      }
+    ]
+  }
+}

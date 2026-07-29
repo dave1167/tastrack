@@ -1,5 +1,5 @@
 {
-  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"nocsrf": true, "method": "get"}},
   "meta": {"$_GET": [
     {"type": "text", "name": "view"}, {"type": "text", "name": "search"},
     {"type": "number", "name": "workflowid"}, {"type": "text", "name": "status"},

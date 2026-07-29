@@ -1,0 +1,8 @@
+{
+  "settings":{"options":{"nocsrf":true,"method":"get","restrict":{"provider":"security"}}},
+  "exec":{"steps":[
+    {"name":"permissionGrant","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"SELECT rp.id grantId FROM tbl_user_tenants ut INNER JOIN tbl_user_tenant_roles utr ON utr.userId=ut.userId AND utr.tenantId=ut.tenantId AND utr.isActive=1 INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='tenant.teams.members.manage' AND p.isActive=1 WHERE ut.userId=:userId AND ut.tenantId=:tenantId AND ut.isActive=1 AND ut.membershipStatus='active' LIMIT 1","params":[{"name":":userId","value":"{{$_SESSION.USER_ID.default(0)}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"}]}},"output":true,"outputType":"array"},
+    {"name":"requirePermission","module":"core","action":"condition","options":{"if":"{{permissionGrant.count()==0}}","then":{"steps":{"name":"denied","module":"core","action":"response","options":{"status":403,"data":{"success":false,"message":"You do not have permission to manage team membership."}}}}},"outputType":"boolean"},
+    {"name":"teams","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"SELECT id,teamName,description FROM tbl_teams WHERE tenantId=:tenantId AND isActive=1 ORDER BY teamName","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true,"outputType":"array"}
+  ]}
+}

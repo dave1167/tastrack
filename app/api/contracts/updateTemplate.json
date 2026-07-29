@@ -1,5 +1,5 @@
 {
-  "settings":{"options":{"method":"post"}},
+  "settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},
   "meta":{"$_POST":[{"type":"number","name":"id"},{"type":"text","name":"templateName"},{"type":"text","name":"description"},{"type":"text","name":"bodyHtml"},{"type":"number","name":"isActive"},{"type":"text","name":"clauseIds"}]},
   "exec":{"steps":[
     {"name":"saveTemplate","module":"dbupdater","action":"transaction","options":{"connection":"db","exec":{"steps":[

@@ -1,0 +1,41 @@
+{
+  "settings": {
+    "options": {
+      "restrict": {"provider": "security"},
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {"type": "number", "name": "id"}
+    ]
+  },
+  "exec": {
+    "steps": {
+      "name": "record",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {
+        "connection": "db",
+        "sql": {
+          "query": "SELECT w.id,w.rowVersion,w.modifiedDate,w.modifiedByUserId,COALESCE(u.displayName,'Unknown user') AS modifiedByUserName FROM tbl_workflows w LEFT JOIN tbl_users u ON u.id=w.modifiedByUserId WHERE w.id=:id AND w.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenants membership WHERE membership.userId=:userId AND membership.tenantId=w.tenantId AND membership.isActive=1 AND membership.membershipStatus='active') LIMIT 1",
+          "params": [
+            {"name": ":id", "value": "{{$_GET.id}}"},
+            {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+            {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}
+          ]
+        }
+      },
+      "output": true,
+      "outputType": "array",
+      "meta": [
+        {"name": "id", "type": "number"},
+        {"name": "rowVersion", "type": "number"},
+        {"name": "modifiedDate", "type": "datetime"},
+        {"name": "modifiedByUserId", "type": "number"},
+        {"name": "modifiedByUserName", "type": "text"}
+      ]
+    }
+  }
+}

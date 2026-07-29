@@ -1,6 +1,10 @@
 {
   "debug": true,
   "debugOutputAll": true,
+  "csrf": {
+    "enabled": true,
+    "exclude": "GET,HEAD,OPTIONS"
+  },
   "session": {
     "store": {
       "$type": "database",

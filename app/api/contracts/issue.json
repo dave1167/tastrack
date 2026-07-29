@@ -1,5 +1,5 @@
 {
-  "settings":{"options":{"method":"post"}},
+  "settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},
   "meta":{"$_POST":[{"type":"number","name":"contractId"}]},
   "exec":{"steps":[
     {"module":"core","action":"error","options":{"status":410,"message":"This issue action has been replaced by versioned contract issuing."}},

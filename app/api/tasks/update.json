@@ -1,6 +1,6 @@
 {
   "settings": {
-    "options": {
+    "options": {"restrict":{"provider":"security"},
       "method": "post"
     }
   },
@@ -35,6 +35,10 @@
         "name": "assignment"
       },
       {
+        "type": "number",
+        "name": "assignedUserId"
+      },
+      {
         "type": "text",
         "name": "dueDate"
       },
@@ -65,10 +69,14 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT CAST(CASE WHEN EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId WHERE utr.tenantId=:tenantId AND utr.userId=:userId AND utr.isActive=1 AND r.roleName='Owner') OR EXISTS(SELECT 1 FROM tbl_tasks t INNER JOIN tbl_user_tenant_roles utr ON utr.tenantId=t.tenantId AND utr.userId=:userId2 AND utr.isActive=1 INNER JOIN tbl_team_members tm ON tm.tenantId=t.tenantId AND tm.tenantUserId=utr.id AND tm.teamId=t.assignedToTeamId AND tm.isActive=1 WHERE t.id=:taskId AND t.tenantId=:tenantId2) OR EXISTS(SELECT 1 FROM tbl_tasks ownTask WHERE ownTask.id=:creatorTaskId AND ownTask.tenantId=:creatorTenantId AND ownTask.sourceTemplateTaskId IS NULL AND ownTask.createdByUserId=:creatorUserId) THEN 1 ELSE 0 END AS UNSIGNED) allowed",
+            "query": "SELECT CAST(CASE WHEN EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 AND r.roleKey IN ('owner','admin') WHERE utr.userId=:adminUserId AND utr.tenantId=:adminTenantId AND utr.isActive=1) OR EXISTS(SELECT 1 FROM tbl_tasks t INNER JOIN tbl_user_tenants ut ON ut.userId=:userId AND ut.tenantId=t.tenantId AND ut.isActive=1 AND ut.membershipStatus='active' INNER JOIN tbl_team_members tm ON tm.userTenantId=ut.id AND tm.tenantId=t.tenantId AND tm.teamId=CASE WHEN SUBSTRING_INDEX(:assignmentType,':',1)='team' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignmentTeam,':',-1),'') AS UNSIGNED) ELSE t.assignedToTeamId END AND tm.isActive=1 INNER JOIN tbl_team_member_roles tmr ON tmr.teamMemberId=tm.id AND tmr.isActive=1 INNER JOIN tbl_team_role_permissions trp ON trp.teamRoleId=tmr.teamRoleId INNER JOIN tbl_permissions p ON p.id=trp.permissionId AND p.permissionCode='team.tasks.assign' AND p.isActive=1 WHERE t.id=:taskId AND t.tenantId=:tenantId) THEN 1 ELSE 0 END AS UNSIGNED) allowed",
             "params": [
               {
-                "name": ":tenantId",
+                "name": ":adminUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":adminTenantId",
                 "value": "{{$_SESSION.TENANT_ID}}"
               },
               {
@@ -76,28 +84,20 @@
                 "value": "{{$_SESSION.USER_ID}}"
               },
               {
-                "name": ":userId2",
-                "value": "{{$_SESSION.USER_ID}}"
+                "name": ":assignmentType",
+                "value": "{{$_POST.assignment.default('unassigned:')}}"
+              },
+              {
+                "name": ":assignmentTeam",
+                "value": "{{$_POST.assignment.default('unassigned:')}}"
               },
               {
                 "name": ":taskId",
                 "value": "{{$_POST.id}}"
               },
               {
-                "name": ":tenantId2",
+                "name": ":tenantId",
                 "value": "{{$_SESSION.TENANT_ID}}"
-              },
-              {
-                "name": ":creatorTaskId",
-                "value": "{{$_POST.id}}"
-              },
-              {
-                "name": ":creatorTenantId",
-                "value": "{{$_SESSION.TENANT_ID}}"
-              },
-              {
-                "name": ":creatorUserId",
-                "value": "{{$_SESSION.USER_ID}}"
               }
             ]
           }
@@ -121,9 +121,13 @@
             "steps": {
               "name": "authorityError",
               "module": "core",
-              "action": "error",
+              "action": "response",
               "options": {
-                "message": "Only a member of the assigned team or the tenant Owner can change this task. Unallocated tasks can only be assigned by the Owner."
+                "status": 403,
+                "data": {
+                  "success": false,
+                  "message": "Only a tenant Owner, tenant Admin, Team Manager or Team Leader can allocate this task."
+                }
               }
             }
           }
@@ -137,7 +141,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT id,workflowId,taskName,status,priority,assignedToTeamId,dueDate,locationMode,locationId,spaceId,configurationId FROM tbl_tasks WHERE id=:id AND tenantId=:tenantId LIMIT 1",
+            "query": "SELECT id,workflowId,taskName,status,priority,assignedToUserId,assignedToTeamId,dueDate,locationMode,locationId,spaceId,configurationId FROM tbl_tasks WHERE id=:id AND tenantId=:tenantId LIMIT 1",
             "params": [
               {
                 "name": ":id",
@@ -160,7 +164,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_tasks SET taskName=:taskName,description=:description,status=:status,priority=:priority,isRequired=:isRequired,assignedToUserId=CASE WHEN SUBSTRING_INDEX(:assignment1,':',1)='user' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment2,':',-1),'') AS UNSIGNED) ELSE NULL END,assignedToTeamId=CASE WHEN SUBSTRING_INDEX(:assignment3,':',1)='team' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment4,':',-1),'') AS UNSIGNED) ELSE NULL END,assignedToRoleId=CASE WHEN SUBSTRING_INDEX(:assignment5,':',1)='role' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment6,':',-1),'') AS UNSIGNED) ELSE NULL END,dueDate=NULLIF(:dueDate,''),startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(startedDate,CURRENT_TIMESTAMP) ELSE startedDate END,completedDate=CASE WHEN :status3='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND tenantId=:tenantId",
+            "query": "UPDATE tbl_tasks t SET t.taskName=:taskName,t.description=:description,t.status=:status,t.priority=:priority,t.isRequired=:isRequired,t.assignedToUserId=CASE WHEN SUBSTRING_INDEX(:assignment1,':',1)='team' THEN (SELECT ut.userId FROM tbl_team_members tm INNER JOIN tbl_user_tenants ut ON ut.id=tm.userTenantId AND ut.tenantId=tm.tenantId AND ut.isActive=1 AND ut.membershipStatus='active' INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 WHERE tm.tenantId=t.tenantId AND tm.teamId=CAST(NULLIF(SUBSTRING_INDEX(:assignment2,':',-1),'') AS UNSIGNED) AND tm.isActive=1 AND ut.userId=NULLIF(:assignedUserId,'') LIMIT 1) ELSE NULL END,t.assignedToTeamId=CASE WHEN SUBSTRING_INDEX(:assignment3,':',1)='team' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment4,':',-1),'') AS UNSIGNED) ELSE NULL END,t.assignedToRoleId=NULL,t.dueDate=NULLIF(:dueDate,''),t.startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(t.startedDate,CURRENT_TIMESTAMP) ELSE t.startedDate END,t.completedDate=CASE WHEN :status3='complete' THEN COALESCE(t.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,t.completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,t.modifiedDate=CURRENT_TIMESTAMP WHERE t.id=:id AND t.tenantId=:tenantId",
             "params": [
               {
                 "name": ":taskName",
@@ -189,6 +193,10 @@
               {
                 "name": ":assignment2",
                 "value": "{{$_POST.assignment.default('unassigned:')}}"
+              },
+              {
+                "name": ":assignedUserId",
+                "value": "{{$_POST.assignedUserId.default('')}}"
               },
               {
                 "name": ":assignment3",
@@ -234,6 +242,44 @@
                 "name": ":tenantId",
                 "value": "{{$_SESSION.TENANT_ID}}"
               }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "notifyNewTaskAssignee",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_notifications (tenantId,userId,workflowId,taskId,notificationType,title,message,status,channel,createdDate) SELECT t.tenantId,t.assignedToUserId,t.workflowId,t.id,'task_assigned',CONCAT('Task assigned: ',t.taskName),CONCAT(:actor,' assigned this task to you.'),'unread','in_app',CURRENT_TIMESTAMP FROM tbl_tasks t WHERE t.id=:taskId AND t.tenantId=:tenantId AND t.assignedToUserId IS NOT NULL AND t.assignedToUserId<>:actorUserId AND COALESCE(t.assignedToUserId,0)<>COALESCE(:oldAssignedUserId,0)",
+            "params": [
+              {"name":":actor","value":"{{$_SESSION.DISPLAY_NAME.default('A Tastrack user')}}"},
+              {"name":":taskId","value":"{{$_POST.id}}"},
+              {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},
+              {"name":":actorUserId","value":"{{$_SESSION.USER_ID}}"},
+              {"name":":oldAssignedUserId","value":"{{taskBeforeChange[0].assignedToUserId.default(0)}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "notifyNewTaskTeam",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_notifications (tenantId,userId,workflowId,taskId,notificationType,title,message,status,channel,createdDate) SELECT t.tenantId,ut.userId,t.workflowId,t.id,'task_assigned',CONCAT('Team task assigned: ',t.taskName),CONCAT(:actor,' assigned this task to your team.'),'unread','in_app',CURRENT_TIMESTAMP FROM tbl_tasks t INNER JOIN tbl_team_members tm ON tm.teamId=t.assignedToTeamId AND tm.tenantId=t.tenantId AND tm.isActive=1 INNER JOIN tbl_user_tenants ut ON ut.id=tm.userTenantId AND ut.tenantId=t.tenantId AND ut.isActive=1 AND ut.membershipStatus='active' WHERE t.id=:taskId AND t.tenantId=:tenantId AND t.assignedToTeamId IS NOT NULL AND t.assignedToTeamId<>:oldAssignedTeamId AND ut.userId<>:actorUserId AND (t.assignedToUserId IS NULL OR ut.userId<>t.assignedToUserId)",
+            "params": [
+              {"name":":actor","value":"{{$_SESSION.DISPLAY_NAME.default('A Tastrack user')}}"},
+              {"name":":taskId","value":"{{$_POST.id}}"},
+              {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},
+              {"name":":oldAssignedTeamId","value":"{{taskBeforeChange[0].assignedToTeamId.default(0)}}"},
+              {"name":":actorUserId","value":"{{$_SESSION.USER_ID}}"}
             ]
           }
         },
@@ -470,10 +516,14 @@
       },
       {
         "module": "core",
-        "action": "redirect",
+        "action": "response",
         "options": {
-          "url": "/tasks",
-          "status": 302
+          "status": 200,
+          "data": {
+            "success": true,
+            "taskId": "{{$_POST.id}}",
+            "message": "Task changes saved."
+          }
         }
       }
     ]

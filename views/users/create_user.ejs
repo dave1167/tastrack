@@ -1,18 +1,16 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="create_user" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{},dmxBrowser:{}}" -->
 <dmx-query-manager id="query1"></dmx-query-manager>
 <dmx-browser id="browser1"></dmx-browser>
+<dmx-value id="varInviteError" value=""></dmx-value>
 
-<dmx-serverconnect id="scRoles" url="/api/roles/list_roles"></dmx-serverconnect>
-<dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
-<dmx-serverconnect id="scTeamRoles" url="/api/teams/get_team_role" noload="true"></dmx-serverconnect>
-<dmx-serverconnect id="scSessContext" url="/api/security/sessionContext"></dmx-serverconnect>
+<dmx-serverconnect id="scRoles" url="/api/tenant/users/role_options_v2"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
         <div class="d-flex align-items-center justify-content-between gap-3">
             <div>
-                <h1 class="mb-1">Create User</h1>
-                <p class="text-muted mb-0">Add a user to the current tenant, assign their security role, and place them in a team.</p>
+                <h1 class="mb-1">Invite user</h1>
+                <p class="text-muted mb-0">Invite a person to the current organisation and assign one or more permitted tenant roles.</p>
             </div>
             <a class="btn btn-outline-secondary" href="/users/all_users">Back to users</a>
         </div>
@@ -25,7 +23,17 @@
             </div>
 
             <div class="card-body">
-                <form id="frmCreateUser" is="dmx-serverconnect-form" method="post" action="/api/users/create_user" dmx-on:success="browser1.goto('/users/all_users')">
+                <form id="frmCreateUser" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/create_or_invite_v2"
+                    dmx-on:submit="varInviteError.setValue('')"
+                    dmx-on:success="frmCreateUser.data.success ? browser1.goto('/users/all_users') : varInviteError.setValue(frmCreateUser.data.message.default('The user could not be invited.'))"
+                    dmx-on:error="varInviteError.setValue(frmCreateUser.lastError.response.message.default(frmCreateUser.lastError.message.default('The user could not be invited.')))">
+                    <%- _csrfInput() %>
+
+                    <div class="alert alert-danger" role="alert" style="display: none;" dmx-show="varInviteError.value">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>User could not be invited.</strong>
+                        <span dmx-text="varInviteError.value"></span>
+                    </div>
 
                     <div class="row g-3">
 
@@ -43,70 +51,40 @@
 
                         <div class="col-12 col-md-6">
                             <div class="form-floating">
-                                <input id="inp_fName" name="fName" type="text" class="form-control" placeholder="First name">
+                                <input id="inp_fName" name="firstName" type="text" class="form-control" placeholder="First name" required>
                                 <label for="inp_fName">First name</label>
                             </div>
                         </div>
 
                         <div class="col-12 col-md-6">
                             <div class="form-floating">
-                                <input id="inp_lName" name="lName" type="text" class="form-control" placeholder="Last name">
+                                <input id="inp_lName" name="lastName" type="text" class="form-control" placeholder="Last name" required>
                                 <label for="inp_lName">Last name</label>
                             </div>
                         </div>
 
                         <div class="col-12">
-                            <div class="form-floating">
-                                <input id="inp_displayName" name="displayName" type="text" class="form-control" placeholder="Display name" required dmx-bind:value="inp_fName.value + ' ' + inp_lName.value">
-                                <label for="inp_displayName">Display name</label>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="form-floating">
-                                <input id="inp_password" name="password" type="text" class="form-control" placeholder="Temporary password" required>
-                                <label for="inp_password">Temporary password</label>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="form-floating">
-                                <select id="inp_teamId" name="teamId" class="form-select" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-on:changed="scTeamRoles.load({teamid: value, id: value})">
-                                    <option value="">Select team</option>
-                                </select>
-                                <label for="inp_teamId">Team</label>
-                            </div>
-
-                            <input id="hidTeamId" name="hidTeamId" type="hidden" dmx-bind:value="inp_teamId.value">
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="form-floating">
-                                <select id="inp_teamRole" name="teamRole" class="form-select" required dmx-bind:options="scTeamRoles.data.qryTeamRoles" optiontext="roleDesc" optionvalue="id">
-                                    <option value="">Select Role</option>
-                                </select>
-                                <label for="inp_teamRole">Team member Role</label>
-                            </div>
-
-                            <input id="hidTeamRole" name="hidTeamRole" type="hidden" dmx-bind:value="inp_teamRole.value">
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="form-floating">
-                                <select id="inp_roleId" name="roleId" class="form-select" required dmx-bind:options="scRoles.data.query" optiontext="roleName" optionvalue="id">
-                                    <option value="">Select User Access Level</option>
-                                </select>
-                                <label for="inp_roleId">User Access</label>
-                            </div>
-
-                            <input id="hidRoleId" name="hidRoleId" type="hidden" dmx-bind:value="inp_roleId.value">
+                            <fieldset>
+                                <legend class="h6 mb-2">Tenant roles</legend>
+                                <p class="text-muted small">Select all roles this person needs. Only roles you are authorised to assign are shown.</p>
+                                <div class="border rounded p-3">
+                                    <div class="form-check mb-2" is="dmx-repeat" id="repeatAssignableRoles" dmx-bind:repeat="scRoles.data.roles">
+                                        <input class="form-check-input" type="checkbox" name="roleIds[]" dmx-bind:id="'role_' + id" dmx-bind:value="id">
+                                        <label class="form-check-label" dmx-bind:for="'role_' + id">
+                                            <span class="fw-semibold" dmx-text="roleName"></span>
+                                            <span class="d-block text-muted small" dmx-text="roleDescription"></span>
+                                        </label>
+                                    </div>
+                                    <div class="text-muted small" dmx-show="!scRoles.state.executing && scRoles.data.roles.count()==0">No roles are available for you to assign.</div>
+                                </div>
+                            </fieldset>
                         </div>
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
                         <button type="submit" class="btn btn-primary" dmx-bind:disabled="frmCreateUser.state.executing">
-                            <span dmx-show="!frmCreateUser.state.executing">Create User</span>
-                            <span style="display: none;" dmx-show="frmCreateUser.state.executing">Creating...</span>
+                            <span dmx-show="!frmCreateUser.state.executing">Send invitation</span>
+                            <span style="display: none;" dmx-show="frmCreateUser.state.executing">Creating invitation...</span>
                         </button>
                         <a class="btn btn-light" href="/users/all_users">Cancel</a>
                     </div>

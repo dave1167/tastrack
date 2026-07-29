@@ -1,4 +1,4 @@
-{
+{"settings":{"options":{"restrict":{"provider":"security"}}},
   "meta": {
     "$_GET": [
       {

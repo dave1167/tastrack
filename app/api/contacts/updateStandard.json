@@ -1,5 +1,5 @@
 {
-  "settings": {"options": {"method": "post"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"method": "post"}},
   "meta": {"$_POST": [
     {"type":"number","name":"id"},{"type":"number","name":"contactCategoryId"},{"type":"text","name":"organisationName"},{"type":"text","name":"legalName"},{"type":"text","name":"tradingName"},{"type":"text","name":"firstName"},{"type":"text","name":"lastName"},{"type":"text","name":"jobTitle"},{"type":"text","name":"displayName","options":{"rules":{"core:required":{"param":""}}}},{"type":"text","name":"email"},{"type":"text","name":"phone"},{"type":"text","name":"registrationNumber"},{"type":"text","name":"vatNumber"},{"type":"text","name":"website"},{"type":"text","name":"addressLine1"},{"type":"text","name":"addressLine2"},{"type":"text","name":"city"},{"type":"text","name":"region"},{"type":"text","name":"postcode"},{"type":"text","name":"country"},{"type":"text","name":"notes"},{"type":"number","name":"isActive"}
   ]},

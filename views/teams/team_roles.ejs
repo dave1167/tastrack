@@ -22,6 +22,7 @@
             </div>
 
             <form id="frmDeleteTeamRole" is="dmx-serverconnect-form" method="post" action="/api/teams/delete_team_role" dmx-on:success="modDelconfirm.hide(); scTeamRoles.load({teamid: varSelectedTeam.value})">
+                <%- _csrfInput() %>
 
                 <div class="modal-body p-4">
 
@@ -88,6 +89,7 @@
 
             <div class="card-body">
                 <form id="frmTeamRole" is="dmx-serverconnect-form" method="post" action="/api/teams/add_team_role" dmx-on:success="scTeamRoles.load({teamid: varSelectedTeam.value}); inp_teamRoleName.setValue('')">
+                    <%- _csrfInput() %>
 
                     <div class="mb-3">
                         <label for="inp_teamId" class="form-label">Team</label>

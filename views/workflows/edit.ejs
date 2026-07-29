@@ -1,5 +1,7 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="edit_workflow" appConnect="local" components="{dmxStateManagement:{}}" -->
+<dmx-browser id="browserWorkflowEdit"></dmx-browser>
 <dmx-serverconnect id="scWorkflow" url="/api/workflows/get" dmx-param:id="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scWorkflowConcurrency" url="/api/workflows/concurrency_info" dmx-param:id="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
 <dmx-serverconnect id="scLocations" url="/api/locations/options" dmx-param:selectedid="scWorkflow.data.query[0].locationId"></dmx-serverconnect>
 <dmx-serverconnect id="scSpaces" url="/api/locations/spaceOptions" dmx-param:locationid="eventLocationId.value" dmx-param:selectedid="scWorkflow.data.query[0].spaceId" dmx-param:workflowid="query.id"></dmx-serverconnect>
@@ -28,9 +30,19 @@
         <div class="card border-0 shadow-sm" dmx-show="scWorkflow.data.query.count() > 0">
             <div class="card-header bg-white"><h2 class="h5 mb-0" dmx-text="scTerminology.data.query[0].workflowSingular + ' details'">Event details</h2></div>
             <div class="card-body">
-                <form method="post" action="/api/workflows/update">
+                <div class="alert alert-warning" dmx-show="frmWorkflowEdit.lastError.status == 409">
+                    <h3 class="h6"><i class="fas fa-exclamation-triangle me-2"></i>This event changed while you were editing it</h3>
+                    <p class="mb-2" dmx-text="frmWorkflowEdit.lastError.response.message">Your changes have not been saved.</p>
+                    <p class="small mb-3"><span dmx-show="frmWorkflowEdit.lastError.response.modifiedByUserName">Last changed by <strong dmx-text="frmWorkflowEdit.lastError.response.modifiedByUserName"></strong></span><span dmx-show="frmWorkflowEdit.lastError.response.modifiedDate"> at <span dmx-text="frmWorkflowEdit.lastError.response.modifiedDate.formatDate('dd MMM yyyy HH:mm')"></span></span>.</p>
+                    <div class="d-flex flex-wrap gap-2"><button class="btn btn-sm btn-warning" type="button" onclick="window.location.reload()">Review latest version</button><button class="btn btn-sm btn-outline-secondary" type="button" onclick="copyWorkflowDraft()">Copy my changes</button><a class="btn btn-sm btn-light" dmx-bind:href="'/workflows/view?id=' + query.id">Cancel</a></div>
+                </div>
+                <div class="alert alert-danger" dmx-show="frmWorkflowEdit.lastError.status && frmWorkflowEdit.lastError.status != 409">
+                    <strong>Changes were not saved.</strong> <span dmx-text="frmWorkflowEdit.lastError.response.message.default('Please check the form and try again.')"></span>
+                </div>
+                <form id="frmWorkflowEdit" is="dmx-serverconnect-form" method="post" action="/api/workflows/update_versioned" dmx-on:success="browserWorkflowEdit.goto('/workflows/view?id=' + query.id + '&saved=1')">
                     <%- _csrfInput() %>
                     <input type="hidden" name="id" dmx-bind:value="scWorkflow.data.query[0].id">
+                    <input type="hidden" name="rowVersion" dmx-bind:value="scWorkflowConcurrency.data.record[0].rowVersion">
 
                     <div class="mb-3">
                         <label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' name'">Event name</label>
@@ -98,4 +110,14 @@
 </div>
 
 <script src="/js/event-location-cascade.js"></script>
+<script>
+function copyWorkflowDraft() {
+    const form = document.getElementById('frmWorkflowEdit');
+    const values = [];
+    new FormData(form).forEach((value, key) => {
+        if (!key.startsWith('_') && key !== 'rowVersion' && key !== 'id') values.push(key + ': ' + value);
+    });
+    navigator.clipboard.writeText(values.join('\n'));
+}
+</script>
 <meta name="ac:route" content="/workflows/edit">

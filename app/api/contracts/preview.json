@@ -1,5 +1,5 @@
 ﻿{
-  "settings":{"options":{"nocsrf":true,"method":"get"}},
+  "settings":{"options":{"restrict":{"provider":"security"},"nocsrf":true,"method":"get"}},
   "meta":{"$_GET":[{"type":"number","name":"templateid"},{"type":"number","name":"workflowid"}]},
   "exec":{"steps":[{
     "name":"preview","module":"dbupdater","action":"custom",

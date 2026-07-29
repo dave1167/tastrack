@@ -1,5 +1,5 @@
 {
-  "settings": {"options": {"method": "post"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"method": "post"}},
   "meta": {"$_POST": [
     {"type":"text","name":"moduleCode"},{"type":"text","name":"moduleName"},{"type":"text","name":"moduleDescription"},{"type":"text","name":"moduleCategory"},
     {"type":"number","name":"isCore"},{"type":"number","name":"isBillable"},{"type":"number","name":"isActive"},

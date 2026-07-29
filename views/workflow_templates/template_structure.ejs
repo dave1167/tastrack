@@ -86,7 +86,7 @@
         button.disabled=true;button.innerHTML='<i class="fas fa-spinner fa-spin me-1"></i>Saving';error.classList.add('d-none');
         try{
             const data=new FormData(form),csrf=document.querySelector('#csrfSource input');if(csrf)data.append(csrf.name,csrf.value);
-            const response=await fetch(form.action,{method:'POST',body:data});if(!response.ok)throw new Error('The changes could not be saved.');await load();
+            data.set('CSRFToken',document.querySelector('meta[name="csrf-token"]').content);const response=await fetch(form.action,{method:'POST',body:data});if(!response.ok)throw new Error('The changes could not be saved.');await load();
         }catch(saveError){error.textContent=saveError.message;error.classList.remove('d-none');button.disabled=false;button.textContent=original;}
     });
     document.addEventListener('DOMContentLoaded',load);

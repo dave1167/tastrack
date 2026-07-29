@@ -1,6 +1,6 @@
 {
   "settings": {
-    "options": {
+    "options": {"restrict":{"provider":"security"},
       "method": "post"
     }
   },
@@ -9,6 +9,10 @@
       {
         "type": "number",
         "name": "workflowId"
+      },
+      {
+        "type": "number",
+        "name": "rowVersion"
       },
       {
         "type": "number",
@@ -40,7 +44,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT w.id,w.workflowName,w.locationId,w.spaceId,w.configurationId,l.locationName,s.spaceName,c.configurationName FROM tbl_workflows w LEFT JOIN tbl_locations l ON l.id=w.locationId AND l.tenantId=w.tenantId LEFT JOIN tbl_spaces s ON s.id=w.spaceId AND s.tenantId=w.tenantId LEFT JOIN tbl_space_configurations c ON c.id=w.configurationId AND c.tenantId=w.tenantId WHERE w.id=:workflowId AND w.tenantId=:tenantId LIMIT 1",
+            "query": "SELECT w.id,w.workflowName,w.locationId,w.spaceId,w.configurationId,w.rowVersion,l.locationName,s.spaceName,c.configurationName FROM tbl_workflows w LEFT JOIN tbl_locations l ON l.id=w.locationId AND l.tenantId=w.tenantId LEFT JOIN tbl_spaces s ON s.id=w.spaceId AND s.tenantId=w.tenantId LEFT JOIN tbl_space_configurations c ON c.id=w.configurationId AND c.tenantId=w.tenantId WHERE w.id=:workflowId AND w.tenantId=:tenantId LIMIT 1",
             "params": [
               {
                 "name": ":workflowId",
@@ -63,7 +67,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_workflows w SET w.locationId=(SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=w.tenantId LIMIT 1),w.spaceId=(SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=w.tenantId LIMIT 1),w.configurationId=(SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=w.tenantId LIMIT 1),w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:workflowId AND w.tenantId=:tenantId",
+            "query": "UPDATE tbl_workflows w SET w.locationId=(SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=w.tenantId LIMIT 1),w.spaceId=(SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=w.tenantId LIMIT 1),w.configurationId=(SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=w.tenantId LIMIT 1),w.rowVersion=w.rowVersion+1,w.modifiedByUserId=:modifiedByUserId,w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:workflowId AND w.tenantId=:tenantId AND w.rowVersion=:rowVersion",
             "params": [
               {
                 "name": ":locationId",
@@ -86,17 +90,49 @@
                 "value": "{{$_POST.spaceId.default('')}}"
               },
               {
+                "name": ":modifiedByUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
                 "name": ":workflowId",
                 "value": "{{$_POST.workflowId}}"
               },
               {
                 "name": ":tenantId",
                 "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":rowVersion",
+                "value": "{{$_POST.rowVersion}}"
               }
             ]
           }
         },
         "output": true
+      },
+      {
+        "name": "rejectLocationConflict",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{updateLocation.affectedRows != 1}}",
+          "then": {
+            "steps": {
+              "name": "locationConflictResponse",
+              "module": "core",
+              "action": "response",
+              "options": {
+                "status": 409,
+                "data": {
+                  "success": false,
+                  "conflict": true,
+                  "message": "This event was changed by another user. The location has not been saved."
+                }
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
       },
       {
         "name": "locationAfter",
@@ -128,7 +164,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "INSERT INTO tbl_activity_log (tenantId,userId,workflowId,entityType,entityId,actionType,summary,beforeJson,afterJson,createdDate) VALUES (:tenantId,:userId,:workflowId,'workflow',:entityId,'workflow.location_changed',CONCAT(:actor,' changed the location for ',:workflowName),JSON_OBJECT('locationId',:oldLocationId,'locationName',:oldLocationName,'spaceId',:oldSpaceId,'spaceName',:oldSpaceName,'configurationId',:oldConfigurationId,'configurationName',:oldConfigurationName),JSON_OBJECT('locationId',:newLocationId,'locationName',:newLocationName,'spaceId',:newSpaceId,'spaceName',:newSpaceName,'configurationId',:newConfigurationId,'configurationName',:newConfigurationName),CURRENT_TIMESTAMP)",
+            "query": "INSERT INTO tbl_activity_log (tenantId,userId,workflowId,entityType,entityId,actionType,summary,beforeJson,afterJson,createdDate) SELECT :tenantId,:userId,:workflowId,'workflow',:entityId,'workflow.location_changed',CONCAT(:actor,' changed the location for ',:workflowName),JSON_OBJECT('version',:oldVersion,'locationId',:oldLocationId,'locationName',:oldLocationName,'spaceId',:oldSpaceId,'spaceName',:oldSpaceName,'configurationId',:oldConfigurationId,'configurationName',:oldConfigurationName),JSON_OBJECT('version',:newVersion,'locationId',:newLocationId,'locationName',:newLocationName,'spaceId',:newSpaceId,'spaceName',:newSpaceName,'configurationId',:newConfigurationId,'configurationName',:newConfigurationName),CURRENT_TIMESTAMP FROM DUAL WHERE :affectedRows=1",
             "params": [
               {
                 "name": ":tenantId",
@@ -153,6 +189,14 @@
               {
                 "name": ":workflowName",
                 "value": "{{locationBefore[0].workflowName}}"
+              },
+              {
+                "name": ":oldVersion",
+                "value": "{{locationBefore[0].rowVersion}}"
+              },
+              {
+                "name": ":newVersion",
+                "value": "{{$_POST.rowVersion + 1}}"
               },
               {
                 "name": ":oldLocationId",
@@ -201,6 +245,10 @@
               {
                 "name": ":newConfigurationName",
                 "value": "{{locationAfter[0].configurationName}}"
+              },
+              {
+                "name": ":affectedRows",
+                "value": "{{updateLocation.affectedRows.default(0)}}"
               }
             ]
           }
@@ -208,12 +256,23 @@
         "output": true
       },
       {
+        "name": "redirectAfterLocationUpdate",
         "module": "core",
-        "action": "redirect",
+        "action": "condition",
         "options": {
-          "url": "/workflows/view?id={{$_POST.workflowId}}&section=info",
-          "status": 302
-        }
+          "if": "{{updateLocation.affectedRows == 1}}",
+          "then": {
+            "steps": {
+              "module": "core",
+              "action": "redirect",
+              "options": {
+                "url": "/workflows/view?id={{$_POST.workflowId}}&section=info",
+                "status": 302
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
       }
     ]
   }

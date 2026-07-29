@@ -6,12 +6,13 @@
     <script src="/dmxAppConnect/dmxAppConnect.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <%- _csrfMeta() %>
     <title>TasTrack</title>
 
     <link rel="stylesheet" href="/bootstrap/5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
     <link rel="stylesheet" href="/dmxAppConnect/dmxSummernote/summernote-bs5.min.css">
-    <link rel="stylesheet" href="/css/style.css?v=20260728-contract-scroll">
+    <link rel="stylesheet" href="/css/style.css?v=20260728-notifications">
 
     <script src="/vendor/jquery/jquery.min.js?v=3.7.1"></script>
     <script src="/dmxAppConnect/dmxSummernote/summernote-bs5.min.js" defer></script>
@@ -41,6 +42,7 @@
     <dmx-serverconnect id="scWelcome" url="/api/security/sessionContext"></dmx-serverconnect>
     <dmx-serverconnect id="scTerminology" url="/api/settings/terminology"></dmx-serverconnect>
     <dmx-serverconnect id="scTenantModules" url="/api/modules/currentTenantModules"></dmx-serverconnect>
+    <dmx-serverconnect id="scHeaderNotifications" url="/api/notifications/recent"></dmx-serverconnect>
     <header class="navbar shell-navbar sticky-top">
         <div class="container-fluid px-3 px-lg-4">
             <button class="shell-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open menu">
@@ -54,9 +56,21 @@
                 <button class="shell-icon-btn" type="button" aria-label="Search">
                     <i class="fas fa-search"></i>
                 </button>
-                <button class="shell-icon-btn" type="button" aria-label="Notifications">
-                    <i class="fas fa-bell"></i>
-                </button>
+                <div class="dropdown">
+                    <button class="shell-icon-btn position-relative" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" dmx-show="scHeaderNotifications.data.summary[0].unreadCount > 0" dmx-text="scHeaderNotifications.data.summary[0].unreadCount"></span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end shadow border-0 p-0 shell-notification-menu">
+                        <div class="d-flex justify-content-between align-items-center px-3 py-3 border-bottom"><strong>Notifications</strong><form is="dmx-serverconnect-form" method="post" action="/api/notifications/markAllRead" dmx-on:success="scHeaderNotifications.load()"><%- _csrfInput() %><button class="btn btn-sm btn-link text-decoration-none p-0" type="submit" dmx-show="scHeaderNotifications.data.summary[0].unreadCount > 0">Mark all read</button></form></div>
+                        <div class="shell-notification-list">
+                            <div class="px-3 py-3 border-bottom" is="dmx-repeat" dmx-bind:repeat="scHeaderNotifications.data.notifications" dmx-class:bg-light="$value.status == 'unread'">
+                                <div class="d-flex justify-content-between gap-3"><a class="text-reset text-decoration-none flex-grow-1" dmx-bind:href="$value.targetUrl"><div class="fw-semibold" dmx-text="$value.title"></div><div class="small text-muted mt-1" dmx-text="$value.message"></div><div class="small text-muted mt-2" dmx-text="$value.createdDate.formatDate('dd MMM yyyy HH:mm')"></div></a><form is="dmx-serverconnect-form" method="post" action="/api/notifications/markRead" dmx-show="$value.status == 'unread'" dmx-on:success="scHeaderNotifications.load()"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><button class="btn btn-sm btn-link p-0" type="submit" title="Mark as read"><i class="fas fa-check"></i><span class="visually-hidden">Mark as read</span></button></form></div>
+                            </div>
+                            <div class="text-center text-muted small px-3 py-4" dmx-show="!scHeaderNotifications.state.executing && scHeaderNotifications.data.notifications.count() == 0">You have no notifications.</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="shell-user-chip">
                     <span class="shell-user-avatar" aria-hidden="true">OP</span>
                     <span class="shell-user-name d-none d-sm-inline">Operations</span>

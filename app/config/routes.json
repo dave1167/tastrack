@@ -48,9 +48,6 @@
       "routeType": "page",
       "restrict": {
         "provider": "security",
-        "permissions": [
-          "owner"
-        ],
         "loginUrl": "/login/login",
         "forbiddenUrl": "/unauthorised"
       }
@@ -62,9 +59,6 @@
       "routeType": "page",
       "restrict": {
         "provider": "security",
-        "permissions": [
-          "owner-admin"
-        ],
         "loginUrl": "/login/login",
         "forbiddenUrl": "/unauthorised"
       }
@@ -76,9 +70,6 @@
       "routeType": "page",
       "restrict": {
         "provider": "security",
-        "permissions": [
-          "owner-admin"
-        ],
         "loginUrl": "/login/login",
         "forbiddenUrl": "/unauthorised"
       }
@@ -648,6 +639,9 @@
     "platform_shell": {
       "restrict": {
         "provider": "security",
+        "permissions": [
+          "platform-admin"
+        ],
         "loginUrl": "/platform/login",
         "forbiddenUrl": "/unauthorised"
       }

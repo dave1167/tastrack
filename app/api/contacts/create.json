@@ -1,6 +1,6 @@
 {
   "settings": {
-    "options": {
+    "options": {"restrict":{"provider":"security"},
       "method": "post"
     }
   },

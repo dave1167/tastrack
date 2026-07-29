@@ -1,5 +1,5 @@
 {
-  "settings": {"options": {"method": "post"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"method": "post"}},
   "meta": {"$_POST": [
     {"type": "text", "name": "fieldKey"}, {"type": "text", "name": "columnLabel"},
     {"type": "number", "name": "isVisible"}, {"type": "number", "name": "sortOrder"},

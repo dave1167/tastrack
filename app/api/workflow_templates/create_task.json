@@ -1,1 +1,200 @@
-{"settings":{"options":{"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"templateId"},{"type":"number","name":"templateStageId"},{"type":"text","name":"taskName"},{"type":"text","name":"description"},{"type":"text","name":"priority"},{"type":"number","name":"isRequired"},{"type":"text","name":"dueOffsetType"},{"type":"number","name":"dueOffsetDays"},{"type":"text","name":"dueRelation"},{"type":"number","name":"defaultOwnerId"}]},"exec":{"steps":[{"name":"insertTask","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"INSERT INTO tbl_template_tasks (tenantId,templateId,templateStageId,taskName,description,sortOrder,priority,status,isRequired,dueOffsetType,dueOffsetDays,dueTime,dueRelation,defaultOwnerType,defaultOwnerId) SELECT :tenantId,s.templateId,s.id,:taskName,:description,(SELECT COALESCE(MAX(t.sortOrder),0)+1 FROM tbl_template_tasks t WHERE t.templateStageId=s.id AND t.tenantId=:tenantId2),:priority,'active',:isRequired,NULLIF(:dueOffsetType,''),:dueOffsetDays,NULL,NULLIF(:dueRelation,''),CASE WHEN tm.id IS NULL THEN 'unassigned' ELSE 'team' END,tm.id FROM tbl_template_stages s LEFT JOIN tbl_teams tm ON tm.id=:teamId AND tm.tenantId=s.tenantId AND tm.isActive=1 WHERE s.id=:stageId AND s.templateId=:templateId AND s.tenantId=:tenantId3","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":taskName","value":"{{$_POST.taskName}}"},{"name":":description","value":"{{$_POST.description.default('')}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"},{"name":":priority","value":"{{$_POST.priority.default('normal')}}"},{"name":":isRequired","value":"{{$_POST.isRequired.default(1)}}"},{"name":":dueOffsetType","value":"{{$_POST.dueOffsetType.default('')}}"},{"name":":dueOffsetDays","value":"{{$_POST.dueOffsetDays.default(0)}}"},{"name":":dueRelation","value":"{{$_POST.dueRelation.default('after')}}"},{"name":":teamId","value":"{{$_POST.defaultOwnerId}}"},{"name":":stageId","value":"{{$_POST.templateStageId}}"},{"name":":templateId","value":"{{$_POST.templateId}}"},{"name":":tenantId3","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true},{"module":"core","action":"redirect","options":{"url":"/workflow_templates/template_tasks?templateId={{$_POST.templateId}}&stageId={{$_POST.templateStageId}}","status":302}}]}}
+{
+  "settings": {
+    "options": {
+      "restrict": {
+        "provider": "security"
+      },
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "number",
+        "name": "templateId"
+      },
+      {
+        "type": "number",
+        "name": "templateStageId"
+      },
+      {
+        "type": "text",
+        "name": "taskName"
+      },
+      {
+        "type": "text",
+        "name": "description"
+      },
+      {
+        "type": "text",
+        "name": "priority"
+      },
+      {
+        "type": "number",
+        "name": "isRequired"
+      },
+      {
+        "type": "text",
+        "name": "dueOffsetType"
+      },
+      {
+        "type": "number",
+        "name": "dueOffsetDays"
+      },
+      {
+        "type": "text",
+        "name": "dueRelation"
+      },
+      {
+        "type": "number",
+        "name": "defaultOwnerId"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "permissionGrant",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "SELECT",
+            "columns": [
+              {
+                "table": "tbl_role_permissions",
+                "column": "id",
+                "field": "grantId"
+              }
+            ],
+            "table": {
+              "name": "tbl_role_permissions"
+            },
+            "primary": "id",
+            "joins": [],
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "tenant.processes.edit"
+              }
+            ],
+            "query": "select `rp`.`id` as `grantId` from `tbl_user_tenants` as `ut` inner join `tbl_user_tenant_roles` as `utr` on `utr`.`tenantId`=`ut`.`tenantId` and `utr`.`userId`=`ut`.`userId` and `utr`.`isActive`=1 inner join `tbl_roles` as `r` on `r`.`id`=`utr`.`roleId` and `r`.`isActive`=1 and (`r`.`tenantId` is null or `r`.`tenantId`=`ut`.`tenantId`) inner join `tbl_role_permissions` as `rp` on `rp`.`roleId`=`r`.`id` inner join `tbl_permissions` as `p` on `p`.`id`=`rp`.`permissionId` and `p`.`isActive`=1 where `ut`.`userId`=? and `ut`.`tenantId`=? and `ut`.`isActive`=1 and `ut`.`membershipStatus`='active' and `p`.`permissionCode`=? limit 1"
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "requirePermission",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{permissionGrant.count() == 0}}",
+          "then": {
+            "steps": {
+              "name": "permissionDenied",
+              "module": "core",
+              "action": "response",
+              "options": {
+                "status": 403,
+                "data": {
+                  "success": false,
+                  "errorCode": "PERMISSION_DENIED",
+                  "message": "You do not have permission to perform this action.",
+                  "permissionCode": "tenant.processes.edit"
+                }
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
+      },
+      {
+        "name": "insertTask",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_template_tasks (tenantId,templateId,templateStageId,taskName,description,sortOrder,priority,status,isRequired,dueOffsetType,dueOffsetDays,dueTime,dueRelation,defaultOwnerType,defaultOwnerId) SELECT :tenantId,s.templateId,s.id,:taskName,:description,(SELECT COALESCE(MAX(t.sortOrder),0)+1 FROM tbl_template_tasks t WHERE t.templateStageId=s.id AND t.tenantId=:tenantId2),:priority,'active',:isRequired,NULLIF(:dueOffsetType,''),:dueOffsetDays,NULL,NULLIF(:dueRelation,''),CASE WHEN tm.id IS NULL THEN 'unassigned' ELSE 'team' END,tm.id FROM tbl_template_stages s LEFT JOIN tbl_teams tm ON tm.id=:teamId AND tm.tenantId=s.tenantId AND tm.isActive=1 WHERE s.id=:stageId AND s.templateId=:templateId AND s.tenantId=:tenantId3",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":taskName",
+                "value": "{{$_POST.taskName}}"
+              },
+              {
+                "name": ":description",
+                "value": "{{$_POST.description.default('')}}"
+              },
+              {
+                "name": ":tenantId2",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":priority",
+                "value": "{{$_POST.priority.default('normal')}}"
+              },
+              {
+                "name": ":isRequired",
+                "value": "{{$_POST.isRequired.default(1)}}"
+              },
+              {
+                "name": ":dueOffsetType",
+                "value": "{{$_POST.dueOffsetType.default('')}}"
+              },
+              {
+                "name": ":dueOffsetDays",
+                "value": "{{$_POST.dueOffsetDays.default(0)}}"
+              },
+              {
+                "name": ":dueRelation",
+                "value": "{{$_POST.dueRelation.default('after')}}"
+              },
+              {
+                "name": ":teamId",
+                "value": "{{$_POST.defaultOwnerId}}"
+              },
+              {
+                "name": ":stageId",
+                "value": "{{$_POST.templateStageId}}"
+              },
+              {
+                "name": ":templateId",
+                "value": "{{$_POST.templateId}}"
+              },
+              {
+                "name": ":tenantId3",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/workflow_templates/template_tasks?templateId={{$_POST.templateId}}&stageId={{$_POST.templateStageId}}",
+          "status": 302
+        }
+      }
+    ]
+  }
+}

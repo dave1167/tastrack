@@ -1,5 +1,5 @@
 {
-  "settings":{"options":{"method":"post"}},
+  "settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},
   "meta":{"$_GET":[{"type":"number","name":"id"}],"$_POST":[{"type":"number","name":"contractId"},{"type":"text","name":"contractName"},{"type":"text","name":"renderedHtml"}]},
   "exec":{"steps":[
     {"name":"requireContractId","module":"core","action":"condition","options":{"if":"{{!$_POST.contractId && !$_GET.id}}","then":{"steps":{"module":"core","action":"error","options":{"status":400,"message":"The contract ID was not submitted. Reopen the draft and try again."}}}},"outputType":"boolean"},

@@ -1,6 +1,6 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="all_users" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{},dmxBootstrap5Tooltips:{}}" -->
 <dmx-query-manager id="query1"></dmx-query-manager>
-<dmx-serverconnect id="scListAllUsers" url="/api/users/list"></dmx-serverconnect>
+<dmx-serverconnect id="scListAllUsers" url="/api/tenant/users/list_v2"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -21,7 +21,7 @@
             <div class="card-header bg-white d-flex align-items-center justify-content-between gap-3 py-3">
                 <h2 class="h5 mb-0">All users</h2>
 
-                <span class="badge rounded-pill bg-primary" dmx-show="!scListAllUsers.state.executing" dmx-text="scListAllUsers.data.query.count() + (scListAllUsers.data.query.count() == 1 ? ' user' : ' users')"></span>
+                <span class="badge rounded-pill bg-primary" dmx-show="!scListAllUsers.state.executing" dmx-text="scListAllUsers.data.users.count() + (scListAllUsers.data.users.count() == 1 ? ' user' : ' users')"></span>
             </div>
 
             <div class="card-body">
@@ -34,15 +34,14 @@
                         <thead>
                             <tr>
                                 <th class="sorting" dmx-on:click="query1.set('sort','displayName');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort == 'displayName' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort == 'displayName' && query1.data.dir == 'desc'">User</th>
-                                <th class="sorting" dmx-on:click="query1.set('sort','accessRole');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort == 'accessRole' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort == 'accessRole' && query1.data.dir == 'desc'">Access level</th>
-                                <th class="sorting" dmx-on:click="query1.set('sort','teamName');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort == 'teamName' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort == 'teamName' && query1.data.dir == 'desc'">Team</th>
-                                <th class="sorting" dmx-on:click="query1.set('sort','teamRoleDesc');query1.set('dir',query1.data.dir == 'desc' ? 'asc' : 'desc')" dmx-class:sorting_asc="query1.data.sort == 'teamRoleDesc' && query1.data.dir == 'asc'" dmx-class:sorting_desc="query1.data.sort == 'teamRoleDesc' && query1.data.dir == 'desc'">Team role</th>
+                                <th>Tenant roles</th>
+                                <th>Teams and team roles</th>
                                 <th>Status</th>
                                 <th class="text-end">Actions</th>
                             </tr>
                         </thead>
 
-                        <tbody is="dmx-repeat" dmx-generator="bs5table" dmx-bind:repeat="scListAllUsers.data.query" id="tableRepeat2" dmx-state="query1" dmx-sort="sort" dmx-order="dir">
+                        <tbody is="dmx-repeat" dmx-generator="bs5table" dmx-bind:repeat="scListAllUsers.data.users" id="tableRepeat2" dmx-state="query1" dmx-sort="sort" dmx-order="dir">
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-3">
@@ -56,13 +55,21 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <span class="badge bg-light text-dark border" dmx-text="accessRole"></span>
+                                    <div class="d-flex flex-wrap gap-1" is="dmx-repeat" id="repeatTenantRoles" dmx-bind:repeat="scListAllUsers.data.tenantRoles.where('userId', userId, '==')">
+                                        <span class="badge bg-light text-dark border" dmx-text="roleName"></span>
+                                    </div>
                                 </td>
-                                <td dmx-text="teamName"></td>
-                                <td dmx-text="teamRoleDesc"></td>
                                 <td>
-                                    <span class="badge bg-success" dmx-show="userActive == 1">Active</span>
-                                    <span class="badge bg-secondary" dmx-show="userActive != 1">Inactive</span>
+                                    <div class="small mb-1" is="dmx-repeat" id="repeatTeamMemberships" dmx-bind:repeat="scListAllUsers.data.teamMemberships.where('userId', userId, '==')">
+                                        <span class="fw-semibold" dmx-text="teamName"></span>
+                                        <span class="text-muted" dmx-show="teamRoleName"> — <span dmx-text="teamRoleName"></span></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success" dmx-show="membershipStatus == 'active'">Active</span>
+                                    <span class="badge bg-info text-dark" dmx-show="membershipStatus == 'invited'">Invited</span>
+                                    <span class="badge bg-warning text-dark" dmx-show="membershipStatus == 'suspended'">Suspended</span>
+                                    <span class="badge bg-secondary" dmx-show="membershipStatus != 'active' && membershipStatus != 'invited' && membershipStatus != 'suspended'" dmx-text="membershipStatus.capitalize()"></span>
                                 </td>
                                 <td class="text-end">
                                     <a class="btn btn-sm btn-outline-primary" dmx-bind:href="'/users/edit_user?userid=' + userId" dmx-bind:aria-label="'Edit ' + displayName">
@@ -74,7 +81,7 @@
                     </table>
                 </div>
 
-                <div class="text-center py-5" dmx-show="!scListAllUsers.state.executing && scListAllUsers.data.query.count() == 0">
+                <div class="text-center py-5" dmx-show="!scListAllUsers.state.executing && scListAllUsers.data.users.count() == 0">
                     <div class="rounded-circle bg-light text-muted d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px;">
                         <i class="fas fa-users fa-lg"></i>
                     </div>

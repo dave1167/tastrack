@@ -596,3 +596,5 @@
     scrollbar-gutter: stable;
   }
 }
+.shell-notification-menu{width:min(24rem,calc(100vw - 1.5rem))}
+.shell-notification-list{max-height:28rem;overflow-y:auto}

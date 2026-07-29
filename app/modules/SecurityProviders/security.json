@@ -48,6 +48,22 @@
             "value": "1"
           }
         ]
+      },
+      "platform-admin": {
+        "table": "tbl_users",
+        "identity": "id",
+        "conditions": [
+          {
+            "column": "isPlatformAdmin",
+            "operator": "=",
+            "value": "1"
+          },
+          {
+            "column": "isActive",
+            "operator": "=",
+            "value": "1"
+          }
+        ]
       }
     },
     "passwordVerify": true

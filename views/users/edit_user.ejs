@@ -1,21 +1,18 @@
-<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="edit_user" appConnect="local" components="{dmxBootstrap5TableGenerator:{},dmxStateManagement:{},dmxBrowser:{}}" -->
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="edit_user" appConnect="local" components="{dmxStateManagement:{},dmxBrowser:{}}" -->
 <dmx-query-manager id="query1"></dmx-query-manager>
 <dmx-browser id="browser1"></dmx-browser>
-
-<dmx-serverconnect id="scRoles" url="/api/roles/list_roles"></dmx-serverconnect>
-<dmx-serverconnect id="scTeams" url="/api/teams/list_teams"></dmx-serverconnect>
-<dmx-serverconnect id="scTeamRoles" url="/api/teams/get_team_role" noload="true"></dmx-serverconnect>
-<dmx-serverconnect id="scSessContext" url="/api/security/sessionContext"></dmx-serverconnect>
-
-<dmx-serverconnect id="scGetUser" url="/api/users/getUser" dmx-param:userid="query1.data.userid" dmx-on:success="scTeamRoles.load({teamid: scGetUser.data.query[0].teamId})">
-</dmx-serverconnect>
+<dmx-serverconnect id="scUser" url="/api/tenant/users/get_v2" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
+<dmx-serverconnect id="scRoles" url="/api/tenant/users/role_options_v2"></dmx-serverconnect>
+<dmx-serverconnect id="scTeamOptions" url="/api/tenant/users/team_options"></dmx-serverconnect>
+<dmx-serverconnect id="scTeamRoles" url="/api/tenant/users/team_role_options" noload="true"></dmx-serverconnect>
+<dmx-serverconnect id="scTeamAssignments" url="/api/tenant/users/team_assignments" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
         <div class="d-flex align-items-center justify-content-between gap-3">
             <div>
-                <h1 class="mb-1">Edit User</h1>
-                <p class="text-muted mb-0">Update the user details, access level, team and team member role for the current tenant.</p>
+                <h1 class="mb-1">Manage tenant roles</h1>
+                <p class="text-muted mb-0">Assign one or more permitted roles to this person within the current organisation.</p>
             </div>
             <a class="btn btn-outline-secondary" href="/users/all_users">Back to users</a>
         </div>
@@ -23,113 +20,119 @@
 
     <div class="col-12 col-xl-7">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white">
-                <h2 class="h5 mb-0">User details</h2>
+            <div class="card-header bg-white py-3">
+                <h2 class="h5 mb-1" dmx-text="scUser.data.user[0].displayName"></h2>
+                <div class="text-muted small" dmx-text="scUser.data.user[0].email"></div>
             </div>
-
             <div class="card-body">
-
-                <div class="alert alert-info" dmx-show="scGetUser.state.executing">
-                    Loading user details...
+                <div class="alert alert-info" dmx-show="scUser.state.executing || scRoles.state.executing">
+                    <i class="fas fa-circle-notch fa-spin me-2"></i>Loading role assignments...
+                </div>
+                <div class="alert alert-danger" style="display: none;" dmx-show="frmRoles.state.lastError">
+                    <strong>Roles could not be saved.</strong>
+                    <span dmx-text="frmRoles.lastError.response.message || frmRoles.lastError.message || 'Check the selections and try again.'"></span>
                 </div>
 
-                <div class="alert alert-danger" dmx-show="frmEditUser.lastError">
-                    <strong>Changes could not be saved.</strong>
-                    <span dmx-text="frmEditUser.lastError.response.message.default('Check the highlighted fields and try again.')"></span>
-                </div>
+                <form id="frmRoles" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/update_roles" dmx-on:success="browser1.goto('/users/all_users')">
+                    <%- _csrfInput() %>
+                    <input type="hidden" name="userId" dmx-bind:value="scUser.data.user[0].userId">
 
-                <form id="frmEditUser" is="dmx-serverconnect-form" method="post" action="/api/users/editUser" dmx-on:success="browser1.goto('/users/all_users')">
-
-                    <input id="hidUserId" name="userId" type="hidden" dmx-bind:value="scGetUser.data.query[0].userId">
-                    <input id="hidTenantUserRoleId" name="tenantUserRoleId" type="hidden" dmx-bind:value="scGetUser.data.query[0].tenantUserRoleId">
-                    <input id="hidTeamMemberId" name="teamMemberId" type="hidden" dmx-bind:value="scGetUser.data.query[0].teamMemberId">
-
-                    <div class="row g-3">
-
-                        <div class="col-12">
-                            <div class="form-floating">
-                                <input id="inp_email" name="email" type="email" class="form-control" placeholder="Email" required="" dmx-bind:value="scGetUser.data.query[0].email" dmx-class:is-invalid="frmEditUser.lastError.response.form.email">
-                                <label for="inp_email">Email</label>
+                    <fieldset>
+                        <legend class="h6 mb-2">Tenant roles</legend>
+                        <p class="text-muted small">The user receives the combined permissions from every selected role.</p>
+                        <div class="border rounded p-3">
+                            <div class="form-check mb-3" is="dmx-repeat" id="repeatAssignableRoles" dmx-bind:repeat="scRoles.data.roles">
+                                <input class="form-check-input" type="checkbox" name="roleIds[]" dmx-bind:id="'edit_role_' + id" dmx-bind:value="id" dmx-bind:checked="scUser.data.roles.where('roleId', id, '==').count() > 0">
+                                <label class="form-check-label" dmx-bind:for="'edit_role_' + id">
+                                    <span class="fw-semibold" dmx-text="roleName"></span>
+                                    <span class="d-block text-muted small" dmx-text="roleDescription"></span>
+                                </label>
                             </div>
-
-                            <%- await include('../partials/form_field_error', {
-                                formId: 'frmEditUser',
-                                fieldName: 'email'
-                            }) %>
+                            <div class="text-muted small" dmx-show="!scRoles.state.executing && scRoles.data.roles.count()==0">No roles are available for you to assign.</div>
                         </div>
+                    </fieldset>
 
-                        <div class="col-12 col-md-6">
-                            <div class="form-floating">
-                                <input id="inp_fName" name="fName" type="text" class="form-control" placeholder="First name" dmx-bind:value="scGetUser.data.query[0].fName">
-                                <label for="inp_fName">First name</label>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="form-floating">
-                                <input id="inp_lName" name="lName" type="text" class="form-control" placeholder="Last name" dmx-bind:value="scGetUser.data.query[0].lName">
-                                <label for="inp_lName">Last name</label>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
-                            <div class="form-floating">
-                                <input id="inp_displayName" name="displayName" type="text" class="form-control" placeholder="Display name" required dmx-bind:value="scGetUser.data.query[0].displayName">
-                                <label for="inp_displayName">Display name</label>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="form-floating">
-                                <select id="inp_isActive" name="isActive" class="form-select" required dmx-bind:value="scGetUser.data.query[0].userActive">
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
-                                </select>
-                                <label for="inp_isActive">User status</label>
-                            </div>
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="form-floating">
-                                <select id="inp_roleId" name="roleId" class="form-select" required dmx-bind:options="scRoles.data.query" optiontext="roleName" optionvalue="id" dmx-bind:value="scGetUser.data.query[0].roleId">
-                                    <option value="">Select User Access Level</option>
-                                </select>
-                                <label for="inp_roleId">User Access</label>
-                            </div>
-
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="form-floating">
-                                <select id="inp_teamId" name="teamId" class="form-select" dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id" dmx-bind:value="scGetUser.data.query[0].teamId" dmx-on:changed="scTeamRoles.load({teamid: value})">
-                                    <option value="">No team</option>
-                                </select>
-                                <label for="inp_teamId">Team</label>
-                            </div>
-
-                        </div>
-
-                        <div class="col-12 col-md-6">
-                            <div class="form-floating">
-                                <select id="inp_teamRole" name="teamRole" class="form-select" dmx-bind:disabled="!inp_teamId.value" dmx-bind:required="inp_teamId.value" dmx-bind:options="scTeamRoles.data.qryTeamRoles" optiontext="roleDesc" optionvalue="id" dmx-bind:value="scGetUser.data.query[0].teamRoleId">
-                                    <option value="">Select team role</option>
-                                </select>
-                                <label for="inp_teamRole">Team member Role</label>
-                            </div>
-
-                        </div>
-
+                    <div class="alert alert-info mt-3 mb-0">
+                        Self-assignment, final-owner protection and privilege-escalation safeguards are enforced when the roles are saved.
                     </div>
 
                     <div class="d-flex gap-2 mt-4">
-                        <button type="submit" class="btn btn-primary" dmx-bind:disabled="frmEditUser.state.executing || scGetUser.state.executing">
-                            <span dmx-show="!frmEditUser.state.executing">Save Changes</span>
-                            <span style="display: none;" dmx-show="frmEditUser.state.executing">Saving...</span>
+                        <button type="submit" class="btn btn-primary" dmx-bind:disabled="frmRoles.state.executing || scUser.state.executing || scRoles.state.executing">
+                            <span dmx-show="!frmRoles.state.executing">Save roles</span>
+                            <span style="display: none;" dmx-show="frmRoles.state.executing">Saving...</span>
                         </button>
-
                         <a class="btn btn-light" href="/users/all_users">Cancel</a>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h2 class="h5 mb-1">Teams and team roles</h2>
+                <p class="text-muted small mb-0">Add this user to a team and select one or more roles within that team.</p>
+            </div>
+            <div class="card-body">
+                <form id="frmTeamAssignment" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/save_team_assignment"
+                    dmx-on:success="scTeamAssignments.load({userid: query1.data.userid})">
+                    <%- _csrfInput() %>
+                    <input type="hidden" name="userId" dmx-bind:value="scUser.data.user[0].userId">
+
+                    <div class="alert alert-danger" style="display: none;" dmx-show="frmTeamAssignment.lastError.response.message">
+                        <span dmx-text="frmTeamAssignment.lastError.response.message"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="teamAssignmentTeam">Team</label>
+                        <select class="form-select" id="teamAssignmentTeam" name="teamId" required
+                            dmx-bind:options="scTeamOptions.data.teams" optiontext="teamName" optionvalue="id"
+                            dmx-on:changed="scTeamRoles.load({teamid: value})">
+                            <option value="">Select a team</option>
+                        </select>
+                    </div>
+
+                    <fieldset dmx-show="teamAssignmentTeam.value">
+                        <legend class="h6">Team roles</legend>
+                        <div class="border rounded p-3 mb-3">
+                            <div class="form-check mb-2" is="dmx-repeat" id="repeatTeamRoleOptions" dmx-bind:repeat="scTeamRoles.data.roles">
+                                <input class="form-check-input" type="checkbox" name="teamRoleIds[]" dmx-bind:id="'team_role_' + id" dmx-bind:value="id"
+                                    dmx-bind:checked="scTeamAssignments.data.teamRoles.where('teamId', teamAssignmentTeam.value, '==').where('teamRoleId', id, '==').count() > 0">
+                                <label class="form-check-label" dmx-bind:for="'team_role_' + id">
+                                    <span class="fw-semibold" dmx-text="teamRoleName"></span>
+                                    <span class="d-block text-muted small" dmx-text="teamRoleDescription"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <button class="btn btn-primary" type="submit" dmx-bind:disabled="frmTeamAssignment.state.executing || !teamAssignmentTeam.value">
+                        <span dmx-show="!frmTeamAssignment.state.executing">Save team assignment</span>
+                        <span style="display: none;" dmx-show="frmTeamAssignment.state.executing">Saving...</span>
+                    </button>
+                </form>
+
+                <hr class="my-4">
+                <h3 class="h6">Current team assignments</h3>
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item px-0 d-flex justify-content-between align-items-start gap-3" is="dmx-repeat" id="repeatCurrentTeams" dmx-bind:repeat="scTeamAssignments.data.teams">
+                        <div>
+                            <div class="fw-semibold" dmx-text="teamName"></div>
+                            <div class="d-flex flex-wrap gap-1 mt-1" is="dmx-repeat" id="repeatCurrentTeamRoles" dmx-bind:repeat="scTeamAssignments.data.teamRoles.where('teamId', teamId, '==')">
+                                <span class="badge bg-light text-dark border" dmx-text="teamRoleName"></span>
+                            </div>
+                        </div>
+                        <form is="dmx-serverconnect-form" method="post" action="/api/tenant/users/remove_team_assignment"
+                            dmx-on:success="scTeamAssignments.load({userid: query1.data.userid})">
+                            <%- _csrfInput() %>
+                            <input type="hidden" name="userId" dmx-bind:value="scUser.data.user[0].userId">
+                            <input type="hidden" name="teamId" dmx-bind:value="teamId">
+                            <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+                        </form>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0" dmx-show="!scTeamAssignments.state.executing && scTeamAssignments.data.teams.count()==0">This user is not assigned to any teams.</p>
             </div>
         </div>
     </div>

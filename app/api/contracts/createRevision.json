@@ -1,5 +1,5 @@
 {
-  "settings":{"options":{"method":"post"}},
+  "settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},
   "meta":{"$_POST":[{"type":"number","name":"contractId"}]},
   "exec":{"steps":[
     {"name":"contractModule","module":"tenantModule","action":"require","options":{"moduleCode":"CONTRACT_GENERATION","tenantId":"{{$_SESSION.TENANT_ID}}","userId":"{{$_SESSION.USER_ID}}"},"output":false},

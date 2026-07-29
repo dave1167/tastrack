@@ -1,5 +1,5 @@
 ﻿{
-  "settings": {"options": {"nocsrf": true, "method": "get"}},
+  "settings": {"options": {"restrict":{"provider":"security"},"nocsrf": true, "method": "get"}},
   "exec": {"steps": [{
     "name": "columns",
     "module": "dbupdater",

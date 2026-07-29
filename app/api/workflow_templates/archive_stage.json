@@ -1,1 +1,128 @@
-{"settings":{"options":{"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"id"},{"type":"number","name":"templateId"}]},"exec":{"steps":[{"name":"archiveStage","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"UPDATE tbl_template_stages SET status='archived',modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND templateId=:templateId AND tenantId=:tenantId","params":[{"name":":id","value":"{{$_POST.id}}"},{"name":":templateId","value":"{{$_POST.templateId}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true},{"module":"core","action":"redirect","options":{"url":"/workflow_templates/template_stages?id={{$_POST.templateId}}","status":302}}]}}
+{
+  "settings": {
+    "options": {
+      "restrict": {
+        "provider": "security"
+      },
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "number",
+        "name": "id"
+      },
+      {
+        "type": "number",
+        "name": "templateId"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "permissionGrant",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "SELECT",
+            "columns": [
+              {
+                "table": "tbl_role_permissions",
+                "column": "id",
+                "field": "grantId"
+              }
+            ],
+            "table": {
+              "name": "tbl_role_permissions"
+            },
+            "primary": "id",
+            "joins": [],
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":P2",
+                "type": "expression",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":P3",
+                "type": "expression",
+                "value": "tenant.processes.edit"
+              }
+            ],
+            "query": "select `rp`.`id` as `grantId` from `tbl_user_tenants` as `ut` inner join `tbl_user_tenant_roles` as `utr` on `utr`.`tenantId`=`ut`.`tenantId` and `utr`.`userId`=`ut`.`userId` and `utr`.`isActive`=1 inner join `tbl_roles` as `r` on `r`.`id`=`utr`.`roleId` and `r`.`isActive`=1 and (`r`.`tenantId` is null or `r`.`tenantId`=`ut`.`tenantId`) inner join `tbl_role_permissions` as `rp` on `rp`.`roleId`=`r`.`id` inner join `tbl_permissions` as `p` on `p`.`id`=`rp`.`permissionId` and `p`.`isActive`=1 where `ut`.`userId`=? and `ut`.`tenantId`=? and `ut`.`isActive`=1 and `ut`.`membershipStatus`='active' and `p`.`permissionCode`=? limit 1"
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "requirePermission",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{permissionGrant.count() == 0}}",
+          "then": {
+            "steps": {
+              "name": "permissionDenied",
+              "module": "core",
+              "action": "response",
+              "options": {
+                "status": 403,
+                "data": {
+                  "success": false,
+                  "errorCode": "PERMISSION_DENIED",
+                  "message": "You do not have permission to perform this action.",
+                  "permissionCode": "tenant.processes.edit"
+                }
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
+      },
+      {
+        "name": "archiveStage",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_template_stages SET status='archived',modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND templateId=:templateId AND tenantId=:tenantId",
+            "params": [
+              {
+                "name": ":id",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":templateId",
+                "value": "{{$_POST.templateId}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "module": "core",
+        "action": "redirect",
+        "options": {
+          "url": "/workflow_templates/template_stages?id={{$_POST.templateId}}",
+          "status": 302
+        }
+      }
+    ]
+  }
+}
