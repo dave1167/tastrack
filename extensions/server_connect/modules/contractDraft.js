@@ -31,10 +31,14 @@ module.exports = {
                 this.select(db.raw('1'))
                     .from('tbl_user_tenant_roles as utr')
                     .innerJoin('tbl_roles as r', 'r.id', 'utr.roleId')
+                    .innerJoin('tbl_role_permissions as rp', 'rp.roleId', 'r.id')
+                    .innerJoin('tbl_permissions as p', 'p.id', 'rp.permissionId')
                     .whereRaw('utr.userId = ?', [userId])
                     .whereRaw('utr.tenantId = gc.tenantId')
                     .where('utr.isActive', 1)
-                    .whereIn('r.roleKey', ['owner', 'admin']);
+                    .where('r.isActive', 1)
+                    .where('p.permissionCode', 'agreements.drafts.edit')
+                    .where('p.isActive', 1);
             })
             .select('gc.id', 'gc.workflowId', 'gc.contractVersionNumber')
             .first();

@@ -10,6 +10,7 @@
 <dmx-serverconnect id="scAssignedWorkflowType" url="/api/workflow_types/assigned" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scContractingEntities" url="/api/contracting_entities/options"></dmx-serverconnect>
 <dmx-serverconnect id="scAssignedContractingEntity" url="/api/contracting_entities/assigned" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scEventStatuses" url="/api/event_statuses/options" dmx-param:selectedid="scWorkflow.data.query[0].eventStatusId"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -68,15 +69,8 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Status</label>
-                            <select class="form-select" name="status" dmx-bind:value="scWorkflow.data.query[0].status">
-                                <option value="draft">Draft</option>
-                                <option value="not_started">Not started</option>
-                                <option value="active">Active</option>
-                                <option value="in_progress">In progress</option>
-                                <option value="waiting">Waiting</option>
-                                <option value="complete">Complete</option>
-                                <option value="cancelled">Cancelled</option>
-                                <option value="archived">Archived</option>
+                            <select class="form-select" name="eventStatusId" required dmx-bind:options="scEventStatuses.data.query" optiontext="statusName" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].eventStatusId">
+                                <option value="">Select status</option>
                             </select>
                         </div>
                         <div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" name="startDate" type="date" required dmx-bind:value="scWorkflow.data.query[0].startDate ? scWorkflow.data.query[0].startDate.formatDate('yyyy-MM-dd') : ''"></div>

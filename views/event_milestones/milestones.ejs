@@ -1,0 +1,51 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="event_milestones" appConnect="local" components="{dmxStateManagement:{}}" -->
+<dmx-serverconnect id="scMilestones" url="/api/event_milestones/list"></dmx-serverconnect>
+<dmx-value id="selectedMilestoneId"></dmx-value>
+<dmx-serverconnect id="scMilestoneEditor" url="/api/event_milestones/get" dmx-param:id="selectedMilestoneId.value" noload></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12"><div class="d-flex justify-content-between align-items-center"><div><h1 class="mb-1">Event milestones</h1><p class="text-muted mb-0">Create the ordered milestone choices used by your organisation.</p></div><a class="btn btn-outline-secondary" href="/configuration">Back to Configuration</a></div></div>
+    <div class="col-12" dmx-show="query.saved == 1"><div class="alert alert-success">Milestone saved.</div></div>
+
+    <div class="col-12 col-xl-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Milestone choices</h2></div>
+            <div class="card-body p-0"><div class="table-responsive"><table class="table align-middle mb-0">
+                <thead><tr><th>Milestone</th><th>When</th><th>Order</th><th>Use</th><th></th></tr></thead>
+                <tbody is="dmx-repeat" dmx-bind:repeat="scMilestones.data.query">
+                    <tr><td><div class="fw-semibold" dmx-text="milestoneName"></div><div class="small text-muted" dmx-text="milestoneGroup"></div><span class="badge bg-primary me-1" dmx-show="isDefault == 1">Default</span><span class="badge bg-secondary" dmx-show="isActive == 0">Inactive</span></td><td class="text-capitalize" dmx-text="timingCategory.replace('_',' ').replace('_',' ')"></td><td dmx-text="displayOrder"></td><td><span dmx-text="usageCount"></span><span dmx-text="usageCount == 1 ? ' event' : ' events'"></span></td><td class="text-end"><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#editMilestoneModal" dmx-on:click="selectedMilestoneId.setValue(id); scMilestoneEditor.load()">Edit</button></td></tr>
+                </tbody>
+            </table></div></div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-4"><div class="card border-0 shadow-sm"><div class="card-header bg-white"><h2 class="h5 mb-0">Add milestone</h2></div><div class="card-body"><form method="post" action="/api/event_milestones/save"><%- _csrfInput() %><div class="mb-3"><label class="form-label">Name</label><input class="form-control" name="milestoneName" required maxlength="100" placeholder="Grant awarded"></div><div class="mb-3"><label class="form-label">Group</label><input class="form-control" name="milestoneGroup" required maxlength="100" placeholder="Funding"></div><div class="mb-3"><label class="form-label">When</label><select class="form-select" name="timingCategory"><option value="before_show">Before</option><option value="during_show">During</option><option value="after_show">After</option></select></div><div class="mb-3"><label class="form-label">Order</label><input class="form-control" name="displayOrder" type="number" min="0" value="100"></div><div class="form-check"><input class="form-check-input" name="isActive" type="checkbox" value="1" checked><label class="form-check-label">Active</label></div><div class="form-check mb-3"><input class="form-check-input" name="isDefault" type="checkbox" value="1"><label class="form-check-label">Default for new events</label></div><button class="btn btn-primary" type="submit">Add milestone</button></form></div></div></div>
+</div>
+
+<div class="modal fade" id="editMilestoneModal" tabindex="-1" aria-labelledby="editMilestoneModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="/api/event_milestones/save">
+                <%- _csrfInput() %>
+                <input type="hidden" name="id" dmx-bind:value="scMilestoneEditor.data.query[0].id">
+                <div class="modal-header">
+                    <div><h2 class="modal-title h5 mb-1" id="editMilestoneModalLabel">Edit milestone</h2><p class="small text-muted mb-0" dmx-text="scMilestoneEditor.data.query[0].milestoneName"></p></div>
+                    <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center py-4" dmx-show="scMilestoneEditor.state.executing"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading</span></div></div>
+                    <div class="alert alert-danger" dmx-show="!scMilestoneEditor.state.executing && scMilestoneEditor.data.query.count() == 0">The milestone could not be loaded.</div>
+                    <div class="row g-3" dmx-show="scMilestoneEditor.data.query.count() > 0">
+                        <div class="col-md-6"><label class="form-label">Name</label><input class="form-control" name="milestoneName" required maxlength="100" dmx-bind:value="scMilestoneEditor.data.query[0].milestoneName"></div>
+                        <div class="col-md-6"><label class="form-label">Group</label><input class="form-control" name="milestoneGroup" required maxlength="100" dmx-bind:value="scMilestoneEditor.data.query[0].milestoneGroup"></div>
+                        <div class="col-md-6"><label class="form-label">When</label><select class="form-select" name="timingCategory" dmx-bind:value="scMilestoneEditor.data.query[0].timingCategory"><option value="before_show">Before</option><option value="during_show">During</option><option value="after_show">After</option></select></div>
+                        <div class="col-md-3"><label class="form-label">Order</label><input class="form-control" name="displayOrder" type="number" min="0" dmx-bind:value="scMilestoneEditor.data.query[0].displayOrder"></div>
+                        <div class="col-md-3 d-flex flex-column justify-content-end"><div class="form-check"><input class="form-check-input" name="isActive" type="checkbox" value="1" dmx-bind:checked="scMilestoneEditor.data.query[0].isActive == 1"><label class="form-check-label">Active</label></div><div class="form-check"><input class="form-check-input" name="isDefault" type="checkbox" value="1" dmx-bind:checked="scMilestoneEditor.data.query[0].isDefault == 1"><label class="form-check-label">Default</label></div></div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit" dmx-bind:disabled="scMilestoneEditor.data.query.count() == 0">Save milestone</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/event-milestones">

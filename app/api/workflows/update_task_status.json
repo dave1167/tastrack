@@ -91,7 +91,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_workflows w SET w.status=(SELECT CASE WHEN COUNT(t.id)=0 THEN 'not_started' WHEN SUM(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') THEN 1 ELSE 0 END)=0 THEN 'complete' WHEN SUM(CASE WHEN t.status NOT IN ('complete','skipped','cancelled') AND t.dueDate<CURRENT_TIMESTAMP THEN 1 ELSE 0 END)>0 THEN 'overdue' WHEN SUM(CASE WHEN t.status='external_hold' THEN 1 ELSE 0 END)>0 THEN 'external_hold' WHEN SUM(CASE WHEN t.status='internal_hold' THEN 1 ELSE 0 END)>0 THEN 'internal_hold' WHEN SUM(CASE WHEN t.status IN ('in_progress','complete') THEN 1 ELSE 0 END)>0 THEN 'in_progress' ELSE 'not_started' END FROM tbl_tasks t WHERE t.workflowId=w.id AND t.tenantId=w.tenantId),w.completedDate=CASE WHEN (SELECT COUNT(*) FROM tbl_tasks t WHERE t.workflowId=w.id AND t.tenantId=w.tenantId AND t.status NOT IN ('complete','skipped','cancelled'))=0 THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.currentStageId=(SELECT ws.id FROM tbl_workflow_stages ws WHERE ws.workflowId=w.id AND ws.tenantId=w.tenantId AND ws.status<>'complete' ORDER BY ws.sortOrder,ws.id LIMIT 1),w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:workflowId AND w.tenantId=:tenantId",
+            "query": "UPDATE tbl_workflows w SET w.currentStageId=(SELECT ws.id FROM tbl_workflow_stages ws WHERE ws.workflowId=w.id AND ws.tenantId=w.tenantId AND ws.status<>'complete' ORDER BY ws.sortOrder,ws.id LIMIT 1),w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:workflowId AND w.tenantId=:tenantId",
             "params": [
               { "name": ":workflowId", "value": "{{$_POST.workflowId}}" },
               { "name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}" }

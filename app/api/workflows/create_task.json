@@ -114,7 +114,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_workflows SET status=CASE WHEN status='complete' THEN 'in_progress' ELSE status END,completedDate=NULL,modifiedDate=CURRENT_TIMESTAMP WHERE id=:workflowId AND tenantId=:tenantId AND :taskId>0",
+            "query": "UPDATE tbl_workflows SET modifiedDate=CURRENT_TIMESTAMP WHERE id=:workflowId AND tenantId=:tenantId AND :taskId>0",
             "params": [
               {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
               {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},

@@ -1,0 +1,54 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="tenant_configuration" appConnect="local" -->
+<div class="row g-4">
+    <div class="col-12">
+        <div><h1 class="mb-1">Configuration</h1><p class="text-muted mb-0">Define how this organisation uses Tastrack.</p></div>
+    </div>
+
+    <div class="col-12">
+        <h2 class="h5 mb-3">Workflow</h2>
+        <div class="row g-3">
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-layer-group text-primary fa-lg mb-3"></i><h3 class="h6">Workflow templates</h3><p class="small text-muted">Create reusable stages, tasks, dependencies and deadlines.</p><a class="stretched-link" href="/workflow_templates"><span class="visually-hidden">Manage workflow templates</span></a></div></div></div>
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-list-alt text-primary fa-lg mb-3"></i><h3 class="h6" dmx-text="scTerminology.data.query[0].performanceTypePlural">Performance types</h3><p class="small text-muted">Manage the tenant-specific types used to classify work.</p><a class="stretched-link" href="/workflow-types"><span class="visually-hidden">Manage workflow types</span></a></div></div></div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <h2 class="h5 mb-3">Events and Operations</h2>
+        <div class="row g-3">
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-tags text-primary fa-lg mb-3"></i><h3 class="h6">Event statuses</h3><p class="small text-muted">Configure the overall statuses available on each event.</p><a class="stretched-link" href="/event-statuses"><span class="visually-hidden">Manage event statuses</span></a></div></div></div>
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-flag-checkered text-primary fa-lg mb-3"></i><h3 class="h6">Event milestones</h3><p class="small text-muted">Define the ordered milestone choices used by this organisation.</p><a class="stretched-link" href="/event-milestones"><span class="visually-hidden">Manage event milestones</span></a></div></div></div>
+            <div class="col-md-6 col-xl-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-map-marked-alt text-primary fa-lg mb-3"></i><h3 class="h6" dmx-text="scTerminology.data.query[0].locationPlural">Locations</h3><p class="small text-muted">Manage locations, spaces and their available configurations.</p><a class="stretched-link" href="/locations"><span class="visually-hidden">Manage locations</span></a></div></div></div>
+        </div>
+    </div>
+
+    <div class="col-12" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1">
+        <h2 class="h5 mb-3">Contracts</h2>
+        <div class="row g-3">
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-paragraph text-primary fa-lg mb-3"></i><h3 class="h6">Clause library</h3><p class="small text-muted">Maintain approved reusable contract wording.</p><a class="stretched-link" href="/contract-clauses"><span class="visually-hidden">Manage contract clauses</span></a></div></div></div>
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-file-contract text-primary fa-lg mb-3"></i><h3 class="h6">Contract templates</h3><p class="small text-muted">Assemble and order clauses into reusable templates.</p><a class="stretched-link" href="/contract-templates"><span class="visually-hidden">Manage contract templates</span></a></div></div></div>
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-building text-primary fa-lg mb-3"></i><h3 class="h6">Contracting entities</h3><p class="small text-muted">Manage the legal organisations that issue contracts.</p><a class="stretched-link" href="/contracting-entities"><span class="visually-hidden">Manage contracting entities</span></a></div></div></div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <h2 class="h5 mb-3">People and Teams</h2>
+        <div class="row g-3">
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-sitemap text-primary fa-lg mb-3"></i><h3 class="h6">Teams</h3><p class="small text-muted">Configure operational teams and membership.</p><a class="stretched-link" href="/teams/teams"><span class="visually-hidden">Manage teams</span></a></div></div></div>
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-user-tag text-primary fa-lg mb-3"></i><h3 class="h6">Team roles</h3><p class="small text-muted">Define team-level responsibilities and capabilities.</p><a class="stretched-link" href="/teams/team_roles"><span class="visually-hidden">Manage team roles</span></a></div></div></div>
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-address-card text-primary fa-lg mb-3"></i><h3 class="h6">Contact categories</h3><p class="small text-muted">Configure categories used to organise contacts.</p><a class="stretched-link" href="/contacts/categories"><span class="visually-hidden">Manage contact categories</span></a></div></div></div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <h2 class="h5 mb-3">Appearance and Terminology</h2>
+        <div class="row g-3">
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-language text-primary fa-lg mb-3"></i><h3 class="h6">Terminology</h3><p class="small text-muted">Choose the labels your organisation uses throughout Tastrack.</p><a class="stretched-link" href="/settings"><span class="visually-hidden">Manage terminology</span></a></div></div></div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <h2 class="h5 mb-3">Notifications and Automation</h2>
+        <div class="alert alert-light border mb-0"><i class="fas fa-bell text-primary me-2"></i><strong>Tenant controls are not yet available.</strong> Event notifications currently remain available from individual events; no broken configuration link is shown.</div>
+    </div>
+</div>
+<meta name="ac:route" content="/configuration">

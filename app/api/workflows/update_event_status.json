@@ -1,0 +1,71 @@
+{
+  "settings": {
+    "options": {
+      "restrict": {"provider": "security"},
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {"type": "number", "name": "workflowId"},
+      {"type": "number", "name": "eventStatusId"},
+      {"type": "number", "name": "rowVersion"}
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "updateStatus",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_workflows w INNER JOIN tbl_event_statuses es ON es.id=:eventStatusId AND es.tenantId=w.tenantId AND (es.isActive=1 OR es.id=w.eventStatusId) SET w.eventStatusId=es.id,w.completedDate=CASE WHEN es.systemCategory='completed' THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.rowVersion=w.rowVersion+1,w.modifiedByUserId=:userId,w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:workflowId AND w.tenantId=:tenantId AND w.rowVersion=:rowVersion AND EXISTS(SELECT 1 FROM tbl_user_tenants membership WHERE membership.userId=:authorisedUser AND membership.tenantId=w.tenantId AND membership.isActive=1 AND membership.membershipStatus='active')",
+            "params": [
+              {"name": ":eventStatusId", "value": "{{$_POST.eventStatusId}}"},
+              {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"},
+              {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+              {"name": ":rowVersion", "value": "{{$_POST.rowVersion}}"},
+              {"name": ":authorisedUser", "value": "{{$_SESSION.USER_ID}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "saveRejected",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{updateStatus.affectedRows != 1}}",
+          "then": {
+            "steps": {
+              "module": "core",
+              "action": "response",
+              "options": {
+                "status": 409,
+                "data": {
+                  "message": "The event changed, or that status is not available. Refresh the page and try again."
+                }
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
+      },
+      {
+        "module": "core",
+        "action": "response",
+        "options": {
+          "status": 200,
+          "data": {
+            "success": true,
+            "workflowId": "{{$_POST.workflowId}}"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -6,6 +6,7 @@
 <dmx-serverconnect id="scConfigurations" url="/api/locations/configurationOptions" dmx-param:spaceid="spaceId.value"></dmx-serverconnect>
 <dmx-serverconnect id="scWorkflowTypes" url="/api/workflow_types/options"></dmx-serverconnect>
 <dmx-serverconnect id="scContractingEntities" url="/api/contracting_entities/options"></dmx-serverconnect>
+<dmx-serverconnect id="scEventStatuses" url="/api/event_statuses/options"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -36,7 +37,7 @@
                     <div class="row g-3">
                         <div class="col-12" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1"><label class="form-label">Contracting entity</label><select class="form-select" name="contractingEntityId" dmx-bind:options="scContractingEntities.data.query" optiontext="entityLabel" optionvalue="id" dmx-bind:value="scContractingEntities.data.query[0].id"><option value="">Use default contracting entity</option></select><div class="form-text">The legal organisation that will issue this event's contracts.</div></div>
                         <div class="col-md-6"><label class="form-label">Owner team</label><select class="form-select" name="ownerTeamId" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id"><option value="">Select team</option></select></div>
-                        <div class="col-md-6"><label class="form-label">Status</label><div class="form-control bg-light">Not started</div><div class="form-text" dmx-text="'Calculated automatically from ' + scTerminology.data.query[0].taskPlural.lowercase() + '.'">Calculated automatically.</div></div>
+                        <div class="col-md-6"><label class="form-label">Status</label><select class="form-select" name="eventStatusId" required dmx-bind:options="scEventStatuses.data.query" optiontext="statusName" optionvalue="id" dmx-bind:value="scEventStatuses.data.query.where('isDefault', 1, '==')[0].id"><option value="">Select status</option></select></div>
                         <div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" name="startDate" type="date" required></div>
                         <div class="col-md-6"><label class="form-label">Show date</label><input class="form-control" name="targetDate" type="date" required><div class="form-text">The public performance or event date.</div></div>
                         <div class="col-12" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><hr class="my-1"><h3 class="h6 mb-0">Location</h3></div>
