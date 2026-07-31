@@ -1,0 +1,49 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="tenant_branding" appConnect="local" -->
+<dmx-serverconnect id="scBrandingPage" url="/api/branding/current"></dmx-serverconnect>
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-start gap-3">
+            <div><h1 class="mb-1">Branding and Appearance</h1><p class="text-muted mb-0">Control how this organisation’s Tastrack workspace looks.</p></div>
+            <a class="btn btn-light" href="/configuration">Back to Configuration</a>
+        </div>
+    </div>
+    <div class="col-12" dmx-show="scBrandingPage.data.branding[0].canManage == 1">
+        <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>These settings affect the whole organisation. Platform administrators control the Tastrack defaults and access to advanced white-label options.</div>
+    </div>
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Application colours</h2></div>
+            <div class="card-body">
+                <form id="frmTenantBranding" is="dmx-serverconnect-form" method="post" action="/api/branding/save" class="row g-3" dmx-on:success="scBrandingPage.load();scBranding.load()"><%- _csrfInput() %>
+                    <div class="col-12"><div class="alert alert-success py-2 mb-0" dmx-show="frmTenantBranding.data.success == true"><span dmx-text="frmTenantBranding.data.message"></span></div><div class="alert alert-danger py-2 mb-0" dmx-show="frmTenantBranding.lastError && frmTenantBranding.lastError.status"><span dmx-text="frmTenantBranding.lastError.response.message.default('Branding could not be saved.')"></span></div></div>
+                    <div class="col-md-6"><label class="form-label" for="brandPrimary">Primary colour</label><input class="form-control form-control-color w-100" id="brandPrimary" name="primaryColour" type="color" dmx-bind:value="scBrandingPage.data.branding[0].primaryColour"></div>
+                    <div class="col-md-6"><label class="form-label" for="brandAccent">Accent colour</label><input class="form-control form-control-color w-100" id="brandAccent" name="accentColour" type="color" dmx-bind:value="scBrandingPage.data.branding[0].accentColour"></div>
+                    <div class="col-md-6"><label class="form-label" for="brandHeader">Header colour</label><input class="form-control form-control-color w-100" id="brandHeader" name="headerColour" type="color" dmx-bind:value="scBrandingPage.data.branding[0].headerColour"></div>
+                    <div class="col-md-6"><label class="form-label" for="brandSidebar">Sidebar colour</label><input class="form-control form-control-color w-100" id="brandSidebar" name="sidebarColour" type="color" dmx-bind:value="scBrandingPage.data.branding[0].sidebarColour"></div>
+                    <div class="col-md-6"><label class="form-label" for="brandMode">Default appearance</label><select class="form-select" id="brandMode" name="defaultColourMode" dmx-bind:value="scBrandingPage.data.branding[0].defaultColourMode"><option value="light">Light</option><option value="dark">Dark</option><option value="system">Use device setting</option></select></div>
+                    <div class="col-12 d-flex flex-wrap gap-2"><button class="btn btn-primary" type="submit"><i class="fas fa-save me-2"></i>Save appearance</button><button class="btn btn-outline-secondary" type="button" dmx-on:click="brandPrimary.setValue('#18B99A');brandAccent.setValue('#00D7A3');brandHeader.setValue('#073F3C');brandSidebar.setValue('#092F2D');brandMode.setValue('light')">Reset colour choices</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Organisation logo</h2></div>
+            <div class="card-body">
+                <div class="border rounded p-3 text-center mb-3"><img class="img-fluid branding-logo-preview" dmx-bind:src="scBrandingPage.data.branding[0].logoPath" alt="Current organisation logo"></div>
+                <form id="frmBrandLogo" is="dmx-serverconnect-form" method="post" action="/api/branding/uploadLogo" enctype="multipart/form-data" dmx-on:success="scBrandingPage.load();scBranding.load();reset()"><%- _csrfInput() %>
+                    <div class="alert alert-success py-2" dmx-show="frmBrandLogo.data.success == true"><span dmx-text="frmBrandLogo.data.message"></span></div>
+                    <div class="alert alert-danger py-2" dmx-show="frmBrandLogo.lastError && frmBrandLogo.lastError.status"><span dmx-text="frmBrandLogo.lastError.response.message.default('The logo could not be uploaded.')"></span></div>
+                    <label class="form-label" for="brandLogoFile">Logo file</label><input class="form-control" id="brandLogoFile" name="logoFile" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" required>
+                    <div class="form-text mb-3">PNG or JPG; maximum 2 MB. A wide logo with a transparent background works best.</div>
+                    <button class="btn btn-outline-primary" type="submit"><i class="fas fa-upload me-2"></i>Upload logo</button>
+                </form>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm branding-live-preview" dmx-bind:style="'--preview-primary:' + brandPrimary.value + ';--preview-accent:' + brandAccent.value + ';--preview-header:' + brandHeader.value + ';--preview-sidebar:' + brandSidebar.value">
+            <div class="branding-preview-header"><img dmx-bind:src="scBrandingPage.data.branding[0].logoPath" alt=""><span>Application preview</span></div>
+            <div class="d-flex"><div class="branding-preview-sidebar"><span></span><span></span><span></span></div><div class="branding-preview-content"><div class="branding-preview-card"></div><button type="button">Primary action</button></div></div>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/branding">

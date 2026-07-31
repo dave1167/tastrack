@@ -1,0 +1,56 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "number", "name": "workflowId"},
+    {"type": "text", "name": "priceLabel"},
+    {"type": "text", "name": "calculationType"},
+    {"type": "number", "name": "amount"},
+    {"type": "text", "name": "eligibility"},
+    {"type": "number", "name": "displayOrder"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "insertPrice",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "INSERT INTO tbl_workflow_price_entries (tenantId,workflowId,priceLabel,calculationType,amount,eligibility,displayOrder,isActive,createdByUserId,modifiedByUserId) SELECT :tenantId,:workflowId,COALESCE(NULLIF(TRIM(:priceLabel),''),'Standard price'),:calculationType,CASE WHEN :calculationType2 IN ('free','informational') THEN NULL ELSE :amount2 END,NULLIF(TRIM(:eligibility),''),COALESCE(:displayOrder,100),1,:userId,:modifiedUserId FROM tbl_workflows w WHERE w.id=:workflowCheck AND w.tenantId=:workflowTenant AND :calculationType3 IN ('fixed_amount','percentage_discount','fixed_discount','free','informational') AND (:calculationType4 IN ('free','informational') OR :amount IS NOT NULL) AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='COMMERCIAL_DETAILS' AND m.isActive=1 WHERE tm.tenantId=:moduleTenant AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP)))) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 INNER JOIN tbl_role_permissions rp ON rp.roleId=r.id INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='commercial.manage' AND p.isActive=1 WHERE utr.userId=:permissionUser AND utr.tenantId=:permissionTenant AND utr.isActive=1)",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":workflowId", "value": "{{$_POST.workflowId.default(0)}}"},
+          {"name": ":priceLabel", "value": "{{$_POST.priceLabel.default('')}}"},
+          {"name": ":calculationType", "value": "{{$_POST.calculationType.default('fixed_amount')}}"},
+          {"name": ":calculationType2", "value": "{{$_POST.calculationType.default('fixed_amount')}}"},
+          {"name": ":amount", "value": "{{$_POST.amount.default(null)}}"},
+          {"name": ":amount2", "value": "{{$_POST.amount.default(null)}}"},
+          {"name": ":eligibility", "value": "{{$_POST.eligibility.default('')}}"},
+          {"name": ":displayOrder", "value": "{{$_POST.displayOrder.default(100)}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":modifiedUserId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":workflowCheck", "value": "{{$_POST.workflowId.default(0)}}"},
+          {"name": ":workflowTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":calculationType3", "value": "{{$_POST.calculationType.default('fixed_amount')}}"},
+          {"name": ":calculationType4", "value": "{{$_POST.calculationType.default('fixed_amount')}}"},
+          {"name": ":moduleTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":permissionUser", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":permissionTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+        ]
+      }},
+      "output": true
+    },
+    {
+      "name": "requireInserted",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{insertPrice.affectedRows.default(0) == 0}}", "then": {"steps": {"name": "notInserted", "module": "core", "action": "response", "options": {"status": 422, "data": {"success": false, "message": "The ticket price could not be saved. Enter an amount for a fixed price or discount."}}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "confirmInserted",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{insertPrice.affectedRows.default(0) > 0}}", "then": {"steps": {"name": "insertedResponse", "module": "core", "action": "response", "options": {"status": 200, "data": {"success": true, "message": "Price or value added."}}}}},
+      "outputType": "boolean"
+    }
+  ]}
+}

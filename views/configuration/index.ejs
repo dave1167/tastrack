@@ -18,6 +18,7 @@
             <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-tags text-primary fa-lg mb-3"></i><h3 class="h6">Event statuses</h3><p class="small text-muted">Configure the overall statuses available on each event.</p><a class="stretched-link" href="/event-statuses"><span class="visually-hidden">Manage event statuses</span></a></div></div></div>
             <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-flag-checkered text-primary fa-lg mb-3"></i><h3 class="h6">Event milestones</h3><p class="small text-muted">Define the ordered milestone choices used by this organisation.</p><a class="stretched-link" href="/event-milestones"><span class="visually-hidden">Manage event milestones</span></a></div></div></div>
             <div class="col-md-6 col-xl-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-map-marked-alt text-primary fa-lg mb-3"></i><h3 class="h6" dmx-text="scTerminology.data.query[0].locationPlural">Locations</h3><p class="small text-muted">Manage locations, spaces and their available configurations.</p><a class="stretched-link" href="/locations"><span class="visually-hidden">Manage locations</span></a></div></div></div>
+            <div class="col-md-6 col-xl-4" dmx-show="scTenantModules.data.commercialAccess[0].hasAccess == 1"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-tags text-primary fa-lg mb-3"></i><h3 class="h6" dmx-text="scTerminology.data.query[0].commercialSingular">Commercial Details</h3><p class="small text-muted">Rename the pricing or funding section to suit this organisation.</p><a class="stretched-link" href="/settings"><span class="visually-hidden">Manage commercial terminology</span></a></div></div></div>
         </div>
     </div>
 
@@ -42,6 +43,7 @@
     <div class="col-12">
         <h2 class="h5 mb-3">Appearance and Terminology</h2>
         <div class="row g-3">
+            <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-palette text-primary fa-lg mb-3"></i><h3 class="h6">Branding and appearance</h3><p class="small text-muted">Choose the organisation logo and application colours.</p><a class="stretched-link" href="/branding"><span class="visually-hidden">Manage branding and appearance</span></a></div></div></div>
             <div class="col-md-6 col-xl-4"><div class="card border-0 shadow-sm h-100"><div class="card-body"><i class="fas fa-language text-primary fa-lg mb-3"></i><h3 class="h6">Terminology</h3><p class="small text-muted">Choose the labels your organisation uses throughout Tastrack.</p><a class="stretched-link" href="/settings"><span class="visually-hidden">Manage terminology</span></a></div></div></div>
         </div>
     </div>

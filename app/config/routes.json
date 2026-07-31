@@ -84,9 +84,6 @@
       "routeType": "page",
       "restrict": {
         "provider": "security",
-        "permissions": [
-          "owner-admin"
-        ],
         "loginUrl": "/login/login",
         "forbiddenUrl": "/unauthorised"
       }
@@ -221,6 +218,13 @@
     {
       "path": "/configuration",
       "page": "configuration/index",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/branding",
+      "page": "branding/index",
       "layout": "main_shell",
       "routeType": "page",
       "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
@@ -362,9 +366,6 @@
       "routeType": "page",
       "restrict": {
         "provider": "security",
-        "permissions": [
-          "owner-admin"
-        ],
         "loginUrl": "/login/login",
         "forbiddenUrl": "/unauthorised"
       }
@@ -376,9 +377,6 @@
       "routeType": "page",
       "restrict": {
         "provider": "security",
-        "permissions": [
-          "owner-admin"
-        ],
         "loginUrl": "/login/login",
         "forbiddenUrl": "/unauthorised"
       }
@@ -390,9 +388,6 @@
       "routeType": "page",
       "restrict": {
         "provider": "security",
-        "permissions": [
-          "owner-admin"
-        ],
         "loginUrl": "/login/login",
         "forbiddenUrl": "/unauthorised"
       }
@@ -514,49 +509,49 @@
       "page": "contracts/templates",
       "layout": "main_shell",
       "routeType": "page",
-      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
       "path": "/contracting-entities",
       "page": "contracting_entities/list",
       "layout": "main_shell",
       "routeType": "page",
-      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
       "path": "/contracting-entities/editor",
       "page": "contracting_entities/editor",
       "layout": "main_shell",
       "routeType": "page",
-      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
       "path": "/contract-templates/editor",
       "page": "contracts/editor",
       "layout": "main_shell",
       "routeType": "page",
-      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
       "path": "/contract-clauses",
       "page": "contracts/clauses",
       "layout": "main_shell",
       "routeType": "page",
-      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
       "path": "/contract-clauses/editor",
       "page": "contracts/clause_editor",
       "layout": "main_shell",
       "routeType": "page",
-      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
       "path": "/contracts/preview",
       "page": "contracts/preview",
       "layout": "main_shell",
       "routeType": "page",
-      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
       "path": "/contracts/generated",
@@ -570,7 +565,7 @@
       "page": "contracts/contract_editor",
       "layout": "main_shell",
       "routeType": "page",
-      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
       "path": "/platform/login",

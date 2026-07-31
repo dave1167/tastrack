@@ -21,10 +21,12 @@
             <div class="card-body">
                 <div class="alert alert-warning" dmx-show="frmTaskEdit.lastError.status">
                     <div class="d-flex gap-2 align-items-start"><i class="fas fa-lock mt-1"></i><div><strong>Changes were not saved.</strong><div dmx-text="frmTaskEdit.lastError.response.message.default('You do not have permission to change this task.')"></div></div></div>
+                    <button class="btn btn-sm btn-warning mt-3" type="button" dmx-show="frmTaskEdit.lastError.status == 409" onclick="window.location.reload()">Reload latest task</button>
                 </div>
                 <form id="frmTaskEdit" is="dmx-serverconnect-form" method="post" action="/api/tasks/update" dmx-on:success="browserTaskEdit.goto('/tasks?saved=1')">
                     <%- _csrfInput() %>
                     <input type="hidden" name="id" dmx-bind:value="scTask.data.query[0].id">
+                    <input type="hidden" name="rowVersion" dmx-bind:value="scTask.data.query[0].rowVersion">
                     <div class="mb-3"><label class="form-label">Task name</label><input class="form-control" name="taskName" required dmx-bind:value="scTask.data.query[0].taskName"></div>
                     <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="4" dmx-bind:value="scTask.data.query[0].description"></textarea></div>
                     <div class="row g-3">

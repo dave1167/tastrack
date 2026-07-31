@@ -1,0 +1,51 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "workflowid"}]},
+  "exec": {"steps": [
+    {
+      "name": "access",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT CAST(EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr WHERE utr.userId=:userId AND utr.tenantId=:tenantId AND utr.isActive=1) AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='COMMERCIAL_DETAILS' AND m.isActive=1 WHERE tm.tenantId=:moduleTenant AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP)))) AS UNSIGNED) hasAccess,CAST(EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 INNER JOIN tbl_role_permissions rp ON rp.roleId=r.id INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='commercial.manage' AND p.isActive=1 WHERE utr.userId=:permissionUser AND utr.tenantId=:permissionTenant AND utr.isActive=1) AS UNSIGNED) canManage",
+        "params": [
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":moduleTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":permissionUser", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":permissionTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "details",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT cd.id,cd.workflowId,cd.onSaleDateTime,cd.currencyCode,cd.capacity,cd.salesTarget,cd.taxNotes,cd.notes FROM tbl_workflow_commercial_details cd INNER JOIN tbl_workflows w ON w.id=cd.workflowId AND w.tenantId=cd.tenantId WHERE cd.tenantId=:tenantId AND cd.workflowId=:workflowId AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='COMMERCIAL_DETAILS' AND m.isActive=1 WHERE tm.tenantId=cd.tenantId AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP))))",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":workflowId", "value": "{{$_GET.workflowid.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "prices",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT pe.id,pe.priceLabel,pe.calculationType,pe.amount,pe.eligibility,pe.validFrom,pe.validUntil,pe.displayOrder FROM tbl_workflow_price_entries pe INNER JOIN tbl_workflows w ON w.id=pe.workflowId AND w.tenantId=pe.tenantId WHERE pe.tenantId=:tenantId AND pe.workflowId=:workflowId AND pe.isActive=1 AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='COMMERCIAL_DETAILS' AND m.isActive=1 WHERE tm.tenantId=pe.tenantId AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP)))) ORDER BY pe.displayOrder,pe.id",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":workflowId", "value": "{{$_GET.workflowid.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    }
+  ]}
+}

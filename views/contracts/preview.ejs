@@ -2,7 +2,7 @@
 <dmx-serverconnect id="scContractPreview" url="/api/contracts/preview" dmx-param:templateid="query.templateId" dmx-param:workflowid="query.workflowId"></dmx-serverconnect>
 <div class="row g-4">
     <div class="col-12"><div class="d-flex justify-content-between align-items-center gap-3"><div><h1 class="mb-1">Contract Preview</h1><p class="text-muted mb-0"><span dmx-text="scContractPreview.data.preview[0].templateName"></span> · <span dmx-text="scContractPreview.data.preview[0].workflowName"></span></p></div><a class="btn btn-outline-secondary" dmx-bind:href="'/contract-templates/editor?id=' + query.templateId">Back to editor</a></div></div>
-    <div class="col-12"><div class="card border-0 shadow-sm"><div class="card-body p-0"><iframe class="w-100 border-0 contract-preview-frame" title="Contract preview" sandbox="" dmx-bind:srcdoc="scContractPreview.data.entityPreview[0].renderedHtml"></iframe></div></div></div>
+    <div class="col-12"><div class="card border-0 shadow-sm"><div class="card-body p-0"><iframe class="w-100 border-0 contract-preview-frame" title="Contract preview" sandbox="" dmx-bind:srcdoc="scContractPreview.data.commercialPreview[0].renderedHtml"></iframe></div></div></div>
 </div>
 <style>.contract-preview-frame{min-height:75vh;background:#fff}</style>
 <meta name="ac:route" content="/contracts/preview">

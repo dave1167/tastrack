@@ -1,0 +1,123 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "number", "name": "workflowId"},
+    {"type": "datetime", "name": "onSaleDateTime"},
+    {"type": "text", "name": "currencyCode"},
+    {"type": "number", "name": "capacity"},
+    {"type": "number", "name": "salesTarget"},
+    {"type": "text", "name": "taxNotes"},
+    {"type": "text", "name": "notes"},
+    {"type": "text", "name": "priceLabel"},
+    {"type": "text", "name": "calculationType"},
+    {"type": "number", "name": "amount"},
+    {"type": "text", "name": "eligibility"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "permissionGrant",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT p.id FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 INNER JOIN tbl_role_permissions rp ON rp.roleId=r.id INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='commercial.manage' AND p.isActive=1 INNER JOIN tbl_workflows w ON w.id=:workflowId AND w.tenantId=utr.tenantId INNER JOIN tbl_tenant_modules tm ON tm.tenantId=utr.tenantId INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='COMMERCIAL_DETAILS' AND m.isActive=1 WHERE utr.userId=:userId AND utr.tenantId=:tenantId AND utr.isActive=1 AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP))) LIMIT 1",
+        "params": [
+          {"name": ":workflowId", "value": "{{$_POST.workflowId.default(0)}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "requirePermission",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{permissionGrant.count() == 0}}", "then": {"steps": {"name": "notAllowed", "module": "core", "action": "response", "options": {"status": 403, "data": {"success": false, "message": "You do not have permission to change these commercial details."}}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "save",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "INSERT INTO tbl_workflow_commercial_details (tenantId,workflowId,onSaleDateTime,currencyCode,capacity,salesTarget,taxNotes,notes,createdByUserId,modifiedByUserId) SELECT :tenantId,:workflowId,NULLIF(:onSaleDateTime,''),UPPER(COALESCE(NULLIF(TRIM(:currencyCode),''),'GBP')),:capacity,:salesTarget,NULLIF(TRIM(:taxNotes),''),NULLIF(TRIM(:notes),''),:userId,:modifiedUserId FROM tbl_workflows w WHERE w.id=:workflowCheck AND w.tenantId=:workflowTenant AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='COMMERCIAL_DETAILS' AND m.isActive=1 WHERE tm.tenantId=:moduleTenant AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP)))) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 INNER JOIN tbl_role_permissions rp ON rp.roleId=r.id INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='commercial.manage' AND p.isActive=1 WHERE utr.userId=:permissionUser AND utr.tenantId=:permissionTenant AND utr.isActive=1) ON DUPLICATE KEY UPDATE onSaleDateTime=VALUES(onSaleDateTime),currencyCode=VALUES(currencyCode),capacity=VALUES(capacity),salesTarget=VALUES(salesTarget),taxNotes=VALUES(taxNotes),notes=VALUES(notes),modifiedByUserId=VALUES(modifiedByUserId),modifiedDate=CURRENT_TIMESTAMP",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":workflowId", "value": "{{$_POST.workflowId.default(0)}}"},
+          {"name": ":onSaleDateTime", "value": "{{$_POST.onSaleDateTime.default('')}}"},
+          {"name": ":currencyCode", "value": "{{$_POST.currencyCode.default('GBP')}}"},
+          {"name": ":capacity", "value": "{{$_POST.capacity.default(null)}}"},
+          {"name": ":salesTarget", "value": "{{$_POST.salesTarget.default(null)}}"},
+          {"name": ":taxNotes", "value": "{{$_POST.taxNotes.default('')}}"},
+          {"name": ":notes", "value": "{{$_POST.notes.default('')}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":modifiedUserId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":workflowCheck", "value": "{{$_POST.workflowId.default(0)}}"},
+          {"name": ":workflowTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":moduleTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":permissionUser", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":permissionTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+        ]
+      }},
+      "output": true
+    },
+    {
+      "name": "savePrice",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "INSERT INTO tbl_workflow_price_entries (tenantId,workflowId,priceLabel,calculationType,amount,eligibility,displayOrder,isActive,createdByUserId,modifiedByUserId) SELECT :tenantId,:workflowId,COALESCE(NULLIF(TRIM(:priceLabel),''),'Standard price'),:calculationType,CASE WHEN :calculationType2 IN ('free','informational') THEN NULL ELSE :amount END,NULLIF(TRIM(:eligibility),''),100,1,:userId,:modifiedUserId FROM tbl_workflows w WHERE w.id=:workflowCheck AND w.tenantId=:workflowTenant AND :calculationType3 IN ('fixed_amount','percentage_discount','fixed_discount','free','informational') AND (NULLIF(TRIM(:priceLabel2),'') IS NOT NULL OR :amount2 IS NOT NULL OR NULLIF(TRIM(:eligibility2),'') IS NOT NULL OR :calculationType4 IN ('free','informational')) AND (:calculationType5 IN ('free','informational') OR :amount3 IS NOT NULL)",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":workflowId", "value": "{{$_POST.workflowId.default(0)}}"},
+          {"name": ":priceLabel", "value": "{{$_POST.priceLabel.default('')}}"},
+          {"name": ":calculationType", "value": "{{$_POST.calculationType.default('fixed_amount')}}"},
+          {"name": ":calculationType2", "value": "{{$_POST.calculationType.default('fixed_amount')}}"},
+          {"name": ":amount", "value": "{{$_POST.amount.default(null)}}"},
+          {"name": ":eligibility", "value": "{{$_POST.eligibility.default('')}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":modifiedUserId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":workflowCheck", "value": "{{$_POST.workflowId.default(0)}}"},
+          {"name": ":workflowTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":priceLabel2", "value": "{{$_POST.priceLabel.default('')}}"},
+          {"name": ":amount2", "value": "{{$_POST.amount.default(null)}}"},
+          {"name": ":eligibility2", "value": "{{$_POST.eligibility.default('')}}"},
+          {"name": ":calculationType3", "value": "{{$_POST.calculationType.default('fixed_amount')}}"},
+          {"name": ":calculationType4", "value": "{{$_POST.calculationType.default('fixed_amount')}}"},
+          {"name": ":calculationType5", "value": "{{$_POST.calculationType.default('fixed_amount')}}"},
+          {"name": ":amount3", "value": "{{$_POST.amount.default(null)}}"}
+        ]
+      }},
+      "output": true
+    },
+    {
+      "name": "savedRecord",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT id FROM tbl_workflow_commercial_details WHERE tenantId=:tenantId AND workflowId=:workflowId LIMIT 1",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":workflowId", "value": "{{$_POST.workflowId.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "saveFailed",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{permissionGrant.count() == 0 || savedRecord.count() == 0}}", "then": {"steps": {"name": "failedResponse", "module": "core", "action": "response", "options": {"status": 422, "data": {"success": false, "message": "Commercial details were not saved. Please check the entries and try again."}}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "confirmSaved",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{permissionGrant.count() > 0 && savedRecord.count() > 0}}", "then": {"steps": {"name": "savedResponse", "module": "core", "action": "response", "options": {"status": 200, "data": {"success": true, "message": "Commercial details and ticket pricing saved."}}}}},
+      "outputType": "boolean"
+    }
+  ]}
+}

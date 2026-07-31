@@ -9,7 +9,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT COALESCE(MAX(CASE WHEN termKey='workflow' THEN singularLabel END),'Workflow') AS workflowSingular,COALESCE(MAX(CASE WHEN termKey='workflow' THEN pluralLabel END),'Workflows') AS workflowPlural,COALESCE(MAX(CASE WHEN termKey='performance_type' THEN singularLabel END),'Performance Type') AS performanceTypeSingular,COALESCE(MAX(CASE WHEN termKey='performance_type' THEN pluralLabel END),'Performance Types') AS performanceTypePlural,COALESCE(MAX(CASE WHEN termKey='stage' THEN singularLabel END),'Stage') AS stageSingular,COALESCE(MAX(CASE WHEN termKey='stage' THEN pluralLabel END),'Stages') AS stagePlural,COALESCE(MAX(CASE WHEN termKey='task' THEN singularLabel END),'Task') AS taskSingular,COALESCE(MAX(CASE WHEN termKey='task' THEN pluralLabel END),'Tasks') AS taskPlural,COALESCE(MAX(CASE WHEN termKey='location' THEN singularLabel END),'Location') AS locationSingular,COALESCE(MAX(CASE WHEN termKey='location' THEN pluralLabel END),'Locations') AS locationPlural,COALESCE(MAX(CASE WHEN termKey='space' THEN singularLabel END),'Space') AS spaceSingular,COALESCE(MAX(CASE WHEN termKey='space' THEN pluralLabel END),'Spaces') AS spacePlural,COALESCE(MAX(CASE WHEN termKey='configuration' THEN singularLabel END),'Configuration') AS configurationSingular,COALESCE(MAX(CASE WHEN termKey='configuration' THEN pluralLabel END),'Configurations') AS configurationPlural FROM tbl_tenant_terminology WHERE tenantId=:tenantId",
+            "query": "SELECT COALESCE(MAX(CASE WHEN termKey='workflow' THEN singularLabel END),'Workflow') AS workflowSingular,COALESCE(MAX(CASE WHEN termKey='workflow' THEN pluralLabel END),'Workflows') AS workflowPlural,COALESCE(MAX(CASE WHEN termKey='performance_type' THEN singularLabel END),'Performance Type') AS performanceTypeSingular,COALESCE(MAX(CASE WHEN termKey='performance_type' THEN pluralLabel END),'Performance Types') AS performanceTypePlural,COALESCE(MAX(CASE WHEN termKey='stage' THEN singularLabel END),'Stage') AS stageSingular,COALESCE(MAX(CASE WHEN termKey='stage' THEN pluralLabel END),'Stages') AS stagePlural,COALESCE(MAX(CASE WHEN termKey='task' THEN singularLabel END),'Task') AS taskSingular,COALESCE(MAX(CASE WHEN termKey='task' THEN pluralLabel END),'Tasks') AS taskPlural,COALESCE(MAX(CASE WHEN termKey='location' THEN singularLabel END),'Location') AS locationSingular,COALESCE(MAX(CASE WHEN termKey='location' THEN pluralLabel END),'Locations') AS locationPlural,COALESCE(MAX(CASE WHEN termKey='space' THEN singularLabel END),'Space') AS spaceSingular,COALESCE(MAX(CASE WHEN termKey='space' THEN pluralLabel END),'Spaces') AS spacePlural,COALESCE(MAX(CASE WHEN termKey='configuration' THEN singularLabel END),'Configuration') AS configurationSingular,COALESCE(MAX(CASE WHEN termKey='configuration' THEN pluralLabel END),'Configurations') AS configurationPlural,COALESCE(MAX(CASE WHEN termKey='commercial' THEN singularLabel END),'Commercial Details') AS commercialSingular,COALESCE(MAX(CASE WHEN termKey='commercial' THEN pluralLabel END),'Commercial Details') AS commercialPlural,COALESCE(MAX(CASE WHEN termKey='commercial_date' THEN singularLabel END),'Available From') AS commercialDateLabel,COALESCE(MAX(CASE WHEN termKey='commercial_capacity' THEN singularLabel END),'Capacity / Quantity') AS commercialCapacityLabel,COALESCE(MAX(CASE WHEN termKey='commercial_target' THEN singularLabel END),'Sales / Income Target') AS commercialTargetLabel,COALESCE(MAX(CASE WHEN termKey='commercial_price' THEN singularLabel END),'Price / Value') AS commercialPriceSingular,COALESCE(MAX(CASE WHEN termKey='commercial_price' THEN pluralLabel END),'Prices / Values') AS commercialPricePlural,COALESCE(MAX(CASE WHEN termKey='commercial_eligibility' THEN singularLabel END),'Eligibility') AS commercialEligibilityLabel,COALESCE(MAX(CASE WHEN termKey='commercial_tax' THEN singularLabel END),'Tax / Charging Notes') AS commercialTaxLabel FROM tbl_tenant_terminology WHERE tenantId=:tenantId",
             "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}]
           },
           "output": true,
@@ -28,7 +28,16 @@
             {"name": "spaceSingular", "type": "text"},
             {"name": "spacePlural", "type": "text"},
             {"name": "configurationSingular", "type": "text"},
-            {"name": "configurationPlural", "type": "text"}
+            {"name": "configurationPlural", "type": "text"},
+            {"name": "commercialSingular", "type": "text"},
+            {"name": "commercialPlural", "type": "text"},
+            {"name": "commercialDateLabel", "type": "text"},
+            {"name": "commercialCapacityLabel", "type": "text"},
+            {"name": "commercialTargetLabel", "type": "text"},
+            {"name": "commercialPriceSingular", "type": "text"},
+            {"name": "commercialPricePlural", "type": "text"},
+            {"name": "commercialEligibilityLabel", "type": "text"},
+            {"name": "commercialTaxLabel", "type": "text"}
           ]
         }
       }

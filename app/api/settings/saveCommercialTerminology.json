@@ -1,0 +1,70 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "text", "name": "commercialSingular"},
+    {"type": "text", "name": "commercialPlural"},
+    {"type": "text", "name": "commercialDateLabel"},
+    {"type": "text", "name": "commercialCapacityLabel"},
+    {"type": "text", "name": "commercialTargetLabel"},
+    {"type": "text", "name": "commercialPriceSingular"},
+    {"type": "text", "name": "commercialPricePlural"},
+    {"type": "text", "name": "commercialEligibilityLabel"},
+    {"type": "text", "name": "commercialTaxLabel"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "permissionGrant",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT p.id FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 INNER JOIN tbl_role_permissions rp ON rp.roleId=r.id INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='tenant.terminology.manage' AND p.isActive=1 WHERE utr.userId=:userId AND utr.tenantId=:tenantId AND utr.isActive=1 LIMIT 1",
+        "params": [
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "requirePermission",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{permissionGrant.count() == 0}}", "then": {"steps": {"name": "notAllowed", "module": "core", "action": "response", "options": {"status": 403, "data": {"success": false, "message": "You do not have permission to change terminology."}}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "saveTerm",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "INSERT INTO tbl_tenant_terminology (tenantId,termKey,singularLabel,pluralLabel) SELECT :tenantId,'commercial',TRIM(:commercialSingular),TRIM(:commercialPlural) UNION ALL SELECT :tenantId2,'commercial_date',TRIM(:dateLabel),TRIM(:dateLabel2) UNION ALL SELECT :tenantId3,'commercial_capacity',TRIM(:capacityLabel),TRIM(:capacityLabel2) UNION ALL SELECT :tenantId4,'commercial_target',TRIM(:targetLabel),TRIM(:targetLabel2) UNION ALL SELECT :tenantId5,'commercial_price',TRIM(:priceSingular),TRIM(:pricePlural) UNION ALL SELECT :tenantId6,'commercial_eligibility',TRIM(:eligibilityLabel),TRIM(:eligibilityLabel2) UNION ALL SELECT :tenantId7,'commercial_tax',TRIM(:taxLabel),TRIM(:taxLabel2) ON DUPLICATE KEY UPDATE singularLabel=VALUES(singularLabel),pluralLabel=VALUES(pluralLabel),modifiedDate=CURRENT_TIMESTAMP",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":commercialSingular", "value": "{{$_POST.commercialSingular.default('Commercial Details')}}"},
+          {"name": ":commercialPlural", "value": "{{$_POST.commercialPlural.default('Commercial Details')}}"},
+          {"name": ":tenantId2", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":dateLabel", "value": "{{$_POST.commercialDateLabel.default('Available From')}}"},
+          {"name": ":dateLabel2", "value": "{{$_POST.commercialDateLabel.default('Available From')}}"},
+          {"name": ":tenantId3", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":capacityLabel", "value": "{{$_POST.commercialCapacityLabel.default('Capacity / Quantity')}}"},
+          {"name": ":capacityLabel2", "value": "{{$_POST.commercialCapacityLabel.default('Capacity / Quantity')}}"},
+          {"name": ":tenantId4", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":targetLabel", "value": "{{$_POST.commercialTargetLabel.default('Sales / Income Target')}}"},
+          {"name": ":targetLabel2", "value": "{{$_POST.commercialTargetLabel.default('Sales / Income Targets')}}"},
+          {"name": ":tenantId5", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":priceSingular", "value": "{{$_POST.commercialPriceSingular.default('Price / Value')}}"},
+          {"name": ":pricePlural", "value": "{{$_POST.commercialPricePlural.default('Prices / Values')}}"},
+          {"name": ":tenantId6", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":eligibilityLabel", "value": "{{$_POST.commercialEligibilityLabel.default('Eligibility')}}"},
+          {"name": ":eligibilityLabel2", "value": "{{$_POST.commercialEligibilityLabel.default('Eligibility')}}"},
+          {"name": ":tenantId7", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":taxLabel", "value": "{{$_POST.commercialTaxLabel.default('Tax / Charging Notes')}}"},
+          {"name": ":taxLabel2", "value": "{{$_POST.commercialTaxLabel.default('Tax / Charging Notes')}}"}
+        ]
+      }},
+      "output": true
+    },
+    {"module": "core", "action": "redirect", "options": {"url": "/settings?commercial_saved=1", "status": 302}}
+  ]}
+}

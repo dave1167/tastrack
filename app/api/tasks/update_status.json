@@ -200,7 +200,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_tasks SET status=:status,startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(startedDate,CURRENT_TIMESTAMP) ELSE startedDate END,completedDate=CASE WHEN :status3='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND workflowId=:workflowId AND tenantId=:tenantId",
+            "query": "UPDATE tbl_tasks SET status=:status,startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(startedDate,CURRENT_TIMESTAMP) ELSE startedDate END,completedDate=CASE WHEN :status3='complete' THEN COALESCE(completedDate,CURRENT_TIMESTAMP) ELSE NULL END,completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,modifiedDate=CURRENT_TIMESTAMP,rowVersion=rowVersion+1 WHERE id=:id AND workflowId=:workflowId AND tenantId=:tenantId",
             "params": [
               {
                 "name": ":status",

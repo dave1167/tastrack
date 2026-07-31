@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/bootstrap/5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
     <link rel="stylesheet" href="/dmxAppConnect/dmxSummernote/summernote-bs5.min.css">
-    <link rel="stylesheet" href="/css/style.css?v=20260728-notifications">
+    <link rel="stylesheet" href="/css/style.css?v=20260731-branding">
 
     <script src="/vendor/jquery/jquery.min.js?v=3.7.1"></script>
     <script src="/dmxAppConnect/dmxSummernote/summernote-bs5.min.js" defer></script>
@@ -37,9 +37,10 @@
     <script src="/js/contract-draft-editor.js?v=20260728-5" defer></script>
 </head>
 
-<body is="dmx-app" id="main_shell" class="shell-app">
+<body is="dmx-app" id="main_shell" class="shell-app" dmx-bind:data-bs-theme="scBranding.data.branding[0].defaultColourMode == 'dark' ? 'dark' : 'light'" dmx-bind:style="'--tastrack-primary:' + scBranding.data.branding[0].primaryColour.default('#18B99A') + ';--tastrack-accent:' + scBranding.data.branding[0].accentColour.default('#00D7A3') + ';--shell-topbar:' + scBranding.data.branding[0].headerColour.default('#073F3C') + ';--shell-topbar-2:' + scBranding.data.branding[0].headerColour.default('#073F3C') + ';--shell-sidebar-bg:' + scBranding.data.branding[0].sidebarColour.default('#092F2D') + ';--shell-sidebar-bg-2:' + scBranding.data.branding[0].sidebarColour.default('#092F2D')">
     <div is="dmx-browser" id="browser1"></div>
     <dmx-serverconnect id="scWelcome" url="/api/security/sessionContext"></dmx-serverconnect>
+    <dmx-serverconnect id="scBranding" url="/api/branding/current"></dmx-serverconnect>
     <dmx-serverconnect id="scTerminology" url="/api/settings/terminology"></dmx-serverconnect>
     <dmx-serverconnect id="scTenantModules" url="/api/modules/currentTenantModules"></dmx-serverconnect>
     <dmx-serverconnect id="scHeaderNotifications" url="/api/notifications/recent"></dmx-serverconnect>
@@ -48,7 +49,7 @@
             <button class="shell-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open menu">
                 <i class="fas fa-bars"></i>
             </button>
-            <img src="/assets/images/tastrack_logo.png" width="150" class="img-fluid">
+            <img src="/assets/images/tastrack_logo.png" dmx-bind:src="scBranding.data.branding[0].logoPath.default('/assets/images/tastrack_logo.png')" width="150" class="img-fluid shell-tenant-logo" alt="Organisation logo">
 
 
             <div class="shell-actions ms-auto">

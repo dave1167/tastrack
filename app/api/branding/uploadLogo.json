@@ -1,0 +1,79 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "method": "post"}},
+  "exec": {"steps": [
+    {
+      "name": "permission",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT utr.userId FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='branding.manage' AND p.isActive=1 WHERE utr.userId=:userId AND utr.tenantId=:tenantId AND utr.isActive=1 LIMIT 1",
+        "params": [
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "requirePermission",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{permission.count() == 0}}", "then": {"steps": {"name": "forbidden", "module": "core", "action": "response", "options": {"status": 403, "data": {"success": false, "message": "You do not have permission to change branding."}}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "uploadLogo",
+      "module": "upload",
+      "action": "upload",
+      "options": {
+        "fields": "logoFile",
+        "path": "/public/uploads/branding/{{$_SESSION.TENANT_ID}}",
+        "template": "logo_{guid}{ext}",
+        "overwrite": false,
+        "createPath": true,
+        "throwErrors": true,
+        "replaceSpace": true,
+        "asciiOnly": true,
+        "replaceDiacritics": true
+      },
+      "output": true
+    },
+    {
+      "name": "validateLogo",
+      "module": "core",
+      "action": "condition",
+      "options": {
+        "if": "{{uploadLogo && uploadLogo.size <= 2097152 && (uploadLogo.type == 'image/png' || uploadLogo.type == 'image/jpeg')}}",
+        "then": {"steps": {
+          "name": "saveLogo",
+          "module": "dbupdater",
+          "action": "custom",
+          "options": {"connection": "db", "sql": {
+            "query": "INSERT INTO tbl_tenant_branding (tenantId,logoPath,contractLogoPath,createdByUserId,modifiedByUserId) VALUES (:tenantId,:logoPath,:contractLogoPath,:userId,:modifiedUserId) ON DUPLICATE KEY UPDATE logoPath=VALUES(logoPath),contractLogoPath=COALESCE(contractLogoPath,VALUES(contractLogoPath)),rowVersion=rowVersion+1,modifiedByUserId=VALUES(modifiedByUserId),modifiedDate=CURRENT_TIMESTAMP",
+            "params": [
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+              {"name": ":logoPath", "value": "{{uploadLogo.path.replace('/public','')}}"},
+              {"name": ":contractLogoPath", "value": "{{uploadLogo.path.replace('/public','')}}"},
+              {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+              {"name": ":modifiedUserId", "value": "{{$_SESSION.USER_ID.default(0)}}"}
+            ]
+          }},
+          "output": true
+        }},
+        "else": {"steps": [
+          {"module": "fs", "action": "remove", "options": {"path": "{{uploadLogo.path}}"}},
+          {"name": "invalidLogo", "module": "core", "action": "response", "options": {"status": 422, "data": {"success": false, "message": "Choose a PNG or JPG logo no larger than 2 MB."}}}
+        ]}
+      },
+      "outputType": "boolean"
+    },
+    {
+      "name": "uploaded",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{uploadLogo && uploadLogo.size <= 2097152 && (uploadLogo.type == 'image/png' || uploadLogo.type == 'image/jpeg')}}", "then": {"steps": {"name": "uploadedResponse", "module": "core", "action": "response", "options": {"status": 200, "data": {"success": true, "message": "Organisation logo uploaded."}}}}},
+      "outputType": "boolean"
+    }
+  ]}
+}

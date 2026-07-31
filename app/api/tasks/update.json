@@ -11,6 +11,10 @@
         "name": "id"
       },
       {
+        "type": "number",
+        "name": "rowVersion"
+      },
+      {
         "type": "text",
         "name": "taskName"
       },
@@ -164,7 +168,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_tasks t SET t.taskName=:taskName,t.description=:description,t.status=:status,t.priority=:priority,t.isRequired=:isRequired,t.assignedToUserId=CASE WHEN SUBSTRING_INDEX(:assignment1,':',1)='team' THEN (SELECT ut.userId FROM tbl_team_members tm INNER JOIN tbl_user_tenants ut ON ut.id=tm.userTenantId AND ut.tenantId=tm.tenantId AND ut.isActive=1 AND ut.membershipStatus='active' INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 WHERE tm.tenantId=t.tenantId AND tm.teamId=CAST(NULLIF(SUBSTRING_INDEX(:assignment2,':',-1),'') AS UNSIGNED) AND tm.isActive=1 AND ut.userId=NULLIF(:assignedUserId,'') LIMIT 1) ELSE NULL END,t.assignedToTeamId=CASE WHEN SUBSTRING_INDEX(:assignment3,':',1)='team' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment4,':',-1),'') AS UNSIGNED) ELSE NULL END,t.assignedToRoleId=NULL,t.dueDate=NULLIF(:dueDate,''),t.startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(t.startedDate,CURRENT_TIMESTAMP) ELSE t.startedDate END,t.completedDate=CASE WHEN :status3='complete' THEN COALESCE(t.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,t.completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,t.modifiedDate=CURRENT_TIMESTAMP WHERE t.id=:id AND t.tenantId=:tenantId",
+            "query": "UPDATE tbl_tasks t SET t.taskName=:taskName,t.description=:description,t.status=:status,t.priority=:priority,t.isRequired=:isRequired,t.assignedToUserId=CASE WHEN SUBSTRING_INDEX(:assignment1,':',1)='team' THEN (SELECT ut.userId FROM tbl_team_members tm INNER JOIN tbl_user_tenants ut ON ut.id=tm.userTenantId AND ut.tenantId=tm.tenantId AND ut.isActive=1 AND ut.membershipStatus='active' INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 WHERE tm.tenantId=t.tenantId AND tm.teamId=CAST(NULLIF(SUBSTRING_INDEX(:assignment2,':',-1),'') AS UNSIGNED) AND tm.isActive=1 AND ut.userId=NULLIF(:assignedUserId,'') LIMIT 1) ELSE NULL END,t.assignedToTeamId=CASE WHEN SUBSTRING_INDEX(:assignment3,':',1)='team' THEN CAST(NULLIF(SUBSTRING_INDEX(:assignment4,':',-1),'') AS UNSIGNED) ELSE NULL END,t.assignedToRoleId=NULL,t.dueDate=NULLIF(:dueDate,''),t.startedDate=CASE WHEN :status2='in_progress' THEN COALESCE(t.startedDate,CURRENT_TIMESTAMP) ELSE t.startedDate END,t.completedDate=CASE WHEN :status3='complete' THEN COALESCE(t.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,t.completedByUserId=CASE WHEN :status4='complete' THEN :userId ELSE NULL END,t.modifiedDate=CURRENT_TIMESTAMP,t.rowVersion=t.rowVersion+1 WHERE t.id=:id AND t.tenantId=:tenantId AND t.rowVersion=:rowVersion",
             "params": [
               {
                 "name": ":taskName",
@@ -241,11 +245,38 @@
               {
                 "name": ":tenantId",
                 "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":rowVersion",
+                "value": "{{$_POST.rowVersion.default(0)}}"
               }
             ]
           }
         },
         "output": true
+      },
+      {
+        "name": "rejectConcurrentTaskChange",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{updateTask.affectedRows != 1}}",
+          "then": {
+            "steps": {
+              "name": "concurrentTaskChange",
+              "module": "core",
+              "action": "response",
+              "options": {
+                "status": 409,
+                "data": {
+                  "success": false,
+                  "message": "Another user changed this task after you opened it. Your changes were not saved. Reload the latest task and try again."
+                }
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
       },
       {
         "name": "notifyNewTaskAssignee",

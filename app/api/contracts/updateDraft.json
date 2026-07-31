@@ -16,8 +16,8 @@
           "options":{"connection":"db","sql":{"query":"SELECT gc.id,gc.status,gc.rowVersion,gc.draftModifiedDate,COALESCE(u.displayName,'Unknown user') draftModifiedByUserName FROM tbl_generated_contracts gc LEFT JOIN tbl_users u ON u.id=gc.draftModifiedByUserId WHERE gc.id=:contractId AND gc.tenantId=:tenantId LIMIT 1","params":[{"name":":contractId","value":"{{$_POST.contractId.default($_GET.id).default(0)}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"}]}},"output":true,"outputType":"array"
         },
         {
-          "module":"core","action":"response",
-          "options":{"status":409,"data":{"message":"This draft was changed by another user after you opened it. Your wording has not been saved.","currentRowVersion":"{{currentDraft[0].rowVersion}}","currentStatus":"{{currentDraft[0].status}}","modifiedDate":"{{currentDraft[0].draftModifiedDate}}","modifiedByUserName":"{{currentDraft[0].draftModifiedByUserName}}"}}
+          "module":"core","action":"redirect",
+          "options":{"url":"/contracts/editor?id={{$_POST.contractId.default($_GET.id)}}&conflict=1","status":302}
         }
       ]}},
       "outputType":"boolean"

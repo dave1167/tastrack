@@ -27,6 +27,7 @@
                     <div class="mb-3"><label class="form-label">Template</label><select class="form-select" name="templateId" required dmx-bind:options="scTemplates.data.query" optiontext="templateName" optionvalue="id"><option value="">Select published template</option></select></div>
                     <div class="mb-3"><label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' name'">Name</label><input class="form-control" name="workflowName" required></div>
                     <div class="mb-3"><label class="form-label">Reference code</label><input class="form-control" name="referenceCode" required></div>
+                    <div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="5" maxlength="65535" placeholder="Add useful information about this event"></textarea></div>
                     <div class="mb-3">
                         <label class="form-label" dmx-text="scTerminology.data.query[0].performanceTypeSingular">Performance Type</label>
                         <select class="form-select" name="workflowTypeId" dmx-bind:options="scWorkflowTypes.data.query" optiontext="typeName" optionvalue="id">

@@ -2,7 +2,7 @@
 <dmx-query-manager id="query1"></dmx-query-manager>
 <dmx-browser id="browser1"></dmx-browser>
 <dmx-serverconnect id="scUser" url="/api/tenant/users/get_v2" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
-<dmx-serverconnect id="scRoles" url="/api/tenant/users/role_options_v2"></dmx-serverconnect>
+<dmx-serverconnect id="scRoles" url="/api/tenant/users/role_options_v2" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
 <dmx-serverconnect id="scTeamOptions" url="/api/tenant/users/team_options"></dmx-serverconnect>
 <dmx-serverconnect id="scTeamRoles" url="/api/tenant/users/team_role_options" noload="true"></dmx-serverconnect>
 <dmx-serverconnect id="scTeamAssignments" url="/api/tenant/users/team_assignments" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
@@ -33,7 +33,7 @@
                     <span dmx-text="frmRoles.lastError.response.message || frmRoles.lastError.message || 'Check the selections and try again.'"></span>
                 </div>
 
-                <form id="frmRoles" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/update_roles" dmx-on:success="browser1.goto('/users/all_users')">
+                <form id="frmRoles" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/update_roles" dmx-on:success="browser1.goto('/users/all_users?roles_updated=1')">
                     <%- _csrfInput() %>
                     <input type="hidden" name="userId" dmx-bind:value="scUser.data.user[0].userId">
 
@@ -41,11 +41,20 @@
                         <legend class="h6 mb-2">Tenant roles</legend>
                         <p class="text-muted small">The user receives the combined permissions from every selected role.</p>
                         <div class="border rounded p-3">
-                            <div class="form-check mb-3" is="dmx-repeat" id="repeatAssignableRoles" dmx-bind:repeat="scRoles.data.roles">
-                                <input class="form-check-input" type="checkbox" name="roleIds[]" dmx-bind:id="'edit_role_' + id" dmx-bind:value="id" dmx-bind:checked="scUser.data.roles.where('roleId', id, '==').count() > 0">
-                                <label class="form-check-label" dmx-bind:for="'edit_role_' + id">
-                                    <span class="fw-semibold" dmx-text="roleName"></span>
-                                    <span class="d-block text-muted small" dmx-text="roleDescription"></span>
+                            <div class="small fw-semibold text-uppercase text-muted mb-2" dmx-show="scRoles.data.roles.where('isAssigned', 1, '==').count() > 0">Assigned roles</div>
+                            <div class="form-check mb-3" is="dmx-repeat" id="repeatAssignedRoles" dmx-bind:repeat="scRoles.data.roles.where('isAssigned', 1, '==')">
+                                <input class="form-check-input" type="checkbox" name="roleIds[]" checked dmx-bind:id="'assigned_role_' + $value.id" dmx-bind:value="$value.id">
+                                <label class="form-check-label" dmx-bind:for="'assigned_role_' + $value.id">
+                                    <span class="fw-semibold" dmx-text="$value.roleName"></span>
+                                    <span class="d-block text-muted small" dmx-text="$value.roleDescription"></span>
+                                </label>
+                            </div>
+                            <div class="small fw-semibold text-uppercase text-muted mb-2 mt-3" dmx-show="scRoles.data.roles.where('isAssigned', 0, '==').count() > 0">Available roles</div>
+                            <div class="form-check mb-3" is="dmx-repeat" id="repeatAvailableRoles" dmx-bind:repeat="scRoles.data.roles.where('isAssigned', 0, '==')">
+                                <input class="form-check-input" type="checkbox" name="roleIds[]" dmx-bind:id="'available_role_' + $value.id" dmx-bind:value="$value.id">
+                                <label class="form-check-label" dmx-bind:for="'available_role_' + $value.id">
+                                    <span class="fw-semibold" dmx-text="$value.roleName"></span>
+                                    <span class="d-block text-muted small" dmx-text="$value.roleDescription"></span>
                                 </label>
                             </div>
                             <div class="text-muted small" dmx-show="!scRoles.state.executing && scRoles.data.roles.count()==0">No roles are available for you to assign.</div>
