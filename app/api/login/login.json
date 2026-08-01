@@ -8,6 +8,42 @@
   "exec": {
     "steps": [
       {
+        "name": "activeAccount",
+        "module": "dbconnector",
+        "action": "select",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "type": "SELECT",
+            "columns": [
+              {
+                "table": "tbl_users",
+                "column": "id"
+              },
+              {
+                "table": "tbl_users",
+                "column": "email"
+              }
+            ],
+            "table": {
+              "name": "tbl_users"
+            },
+            "primary": "id",
+            "joins": [],
+            "params": [
+              {
+                "name": ":P1",
+                "type": "expression",
+                "value": "{{$_POST.username}}"
+              }
+            ],
+            "query": "select `id`, `email` from `tbl_users` where `email` = ? and `isActive` = 1 limit 1"
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
         "name": "identity",
         "module": "auth",
         "action": "login",
@@ -61,6 +97,25 @@
         "outputType": "array",
         "meta": [],
         "collapsed": true
+      },
+      {
+        "name": "rejectInactiveOrUnassignedAccount",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{userAccess.count()==0}}",
+          "then": {
+            "steps": {
+              "name": "clearRejectedLogin",
+              "module": "auth",
+              "action": "logout",
+              "options": {
+                "provider": "security"
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
       },
       {
         "name": "USER_ID",
@@ -143,15 +198,15 @@
           "sql": {
             "query": "INSERT INTO tbl_activity_log (tenantId,userId,entityType,entityId,actionType,summary,afterJson,createdDate) SELECT :tenantId,:userId,'user',:userId2,'user.login',CONCAT(:displayName,' logged in to ',:tenantName),JSON_OBJECT('tenantId',:tenantId2,'role',:roleName),CURRENT_TIMESTAMP FROM tbl_activity_types at WHERE :tenantCount=1 AND at.tenantId=:tenantId3 AND at.activityKey='user.login' AND at.isActive=1 LIMIT 1",
             "params": [
-              {"name": ":tenantId", "value": "{{userAccess[0].tenantId}}"},
-              {"name": ":userId", "value": "{{userAccess[0].userId}}"},
-              {"name": ":userId2", "value": "{{userAccess[0].userId}}"},
-              {"name": ":displayName", "value": "{{userAccess[0].displayName}}"},
-              {"name": ":tenantName", "value": "{{userAccess[0].tenantName}}"},
-              {"name": ":tenantId2", "value": "{{userAccess[0].tenantId}}"},
-              {"name": ":roleName", "value": "{{userAccess[0].roleName}}"},
+              {"name": ":tenantId", "value": "{{userAccess[0].tenantId.default(0)}}"},
+              {"name": ":userId", "value": "{{userAccess[0].userId.default(0)}}"},
+              {"name": ":userId2", "value": "{{userAccess[0].userId.default(0)}}"},
+              {"name": ":displayName", "value": "{{userAccess[0].displayName.default('')}}"},
+              {"name": ":tenantName", "value": "{{userAccess[0].tenantName.default('')}}"},
+              {"name": ":tenantId2", "value": "{{userAccess[0].tenantId.default(0)}}"},
+              {"name": ":roleName", "value": "{{userAccess[0].roleName.default('')}}"},
               {"name": ":tenantCount", "value": "{{loginRoute[0].tenantCount}}"},
-              {"name": ":tenantId3", "value": "{{userAccess[0].tenantId}}"}
+              {"name": ":tenantId3", "value": "{{userAccess[0].tenantId.default(0)}}"}
             ]
           }
         },

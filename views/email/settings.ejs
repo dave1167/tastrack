@@ -1,0 +1,61 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="tenant_email_settings" appConnect="local" -->
+<dmx-serverconnect id="scEmailSettings" url="/api/email/settings"></dmx-serverconnect>
+<dmx-serverconnect id="scEmailLog" url="/api/email/log"></dmx-serverconnect>
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-start gap-3">
+            <div><h1 class="mb-1">Email and Delivery</h1><p class="text-muted mb-0">Configure transactional email behaviour for this organisation.</p></div>
+            <a class="btn btn-light" href="/configuration">Back to Configuration</a>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="alert alert-warning" dmx-show="scEmailSettings.data.settings[0].emailEnabled != 'true'"><i class="fas fa-shield-alt me-2"></i><strong>Safe preview mode is active.</strong> Emails are recorded in the audit log but are not delivered. This is correct until a final sending domain and Resend key are configured.</div>
+        <div class="alert alert-success" dmx-show="scEmailSettings.data.settings[0].emailEnabled == 'true'"><i class="fas fa-check-circle me-2"></i>Resend delivery is enabled. Sender: <strong dmx-text="scEmailSettings.data.settings[0].environmentFromAddress"></strong></div>
+    </div>
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Tenant email options</h2></div>
+            <div class="card-body">
+                <form id="frmTenantEmailSettings" is="dmx-serverconnect-form" method="post" action="/api/email/saveSettings" class="row g-3" dmx-on:success="scEmailSettings.load()"><%- _csrfInput() %>
+                    <div class="col-12"><div class="alert alert-success py-2 mb-0" dmx-show="frmTenantEmailSettings.data.success == true"><span dmx-text="frmTenantEmailSettings.data.message"></span></div><div class="alert alert-danger py-2 mb-0" dmx-show="frmTenantEmailSettings.lastError && frmTenantEmailSettings.lastError.status"><span dmx-text="frmTenantEmailSettings.lastError.response.message.default('Email settings could not be saved.')"></span></div></div>
+                    <div class="col-md-6"><label class="form-label" for="tenantReplyTo">Reply-to address</label><input class="form-control" id="tenantReplyTo" name="replyToAddress" type="email" dmx-bind:value="scEmailSettings.data.settings[0].replyToAddress"><div class="form-text">Replies from recipients will be sent here.</div></div>
+                    <div class="col-md-6"><label class="form-label" for="tenantArchiveBcc">Archive BCC address</label><input class="form-control" id="tenantArchiveBcc" name="archiveBccAddress" type="email" dmx-bind:value="scEmailSettings.data.settings[0].archiveBccAddress"><div class="form-text">Optional mailbox receiving a hidden copy for the organisation.</div></div>
+                    <div class="col-md-6"><div class="form-check"><input class="form-check-input" id="copyInitiatingUser" name="copyInitiatingUser" type="checkbox" value="1" dmx-bind:checked="scEmailSettings.data.settings[0].copyInitiatingUser == 1"><label class="form-check-label" for="copyInitiatingUser">Copy the user who initiated the email</label></div></div>
+                    <div class="col-md-6"><div class="form-check"><input class="form-check-input" id="copyWorkflowOwner" name="copyWorkflowOwner" type="checkbox" value="1" dmx-bind:checked="scEmailSettings.data.settings[0].copyWorkflowOwner == 1"><label class="form-check-label" for="copyWorkflowOwner">Copy the workflow owner</label></div></div>
+                    <div class="col-12"><label class="form-label" for="tenantEmailFooter">Tenant email footer</label><textarea class="form-control" id="tenantEmailFooter" name="emailFooterHtml" rows="4" dmx-bind:value="scEmailSettings.data.settings[0].emailFooterHtml" placeholder="Organisation address, contact details or legal wording"></textarea></div>
+                    <div class="col-12"><button class="btn btn-primary" type="submit"><i class="fas fa-save me-2"></i>Save email options</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Queue a test email</h2></div>
+            <div class="card-body">
+                <p class="small text-muted">In preview mode this tests the complete queue and audit process without contacting Resend.</p>
+                <form id="frmEmailTest" is="dmx-serverconnect-form" method="post" action="/api/email/queueTest" class="row g-3" dmx-on:success="scEmailLog.load()"><%- _csrfInput() %>
+                    <div class="col-12"><div class="alert alert-success py-2 mb-0" dmx-show="frmEmailTest.data.success == true"><span dmx-text="frmEmailTest.data.message"></span></div><div class="alert alert-danger py-2 mb-0" dmx-show="frmEmailTest.lastError && frmEmailTest.lastError.status"><span dmx-text="frmEmailTest.lastError.response.message.default('The test email could not be queued.')"></span></div></div>
+                    <div class="col-12"><label class="form-label" for="testRecipientName">Recipient name</label><input class="form-control" id="testRecipientName" name="recipientName" maxlength="180"></div>
+                    <div class="col-12"><label class="form-label" for="testRecipientEmail">Recipient email</label><input class="form-control" id="testRecipientEmail" name="recipientEmail" type="email" required></div>
+                    <div class="col-12"><label class="form-label" for="testEmailSubject">Subject</label><input class="form-control" id="testEmailSubject" name="subject" required value="Transactional email test"></div>
+                    <div class="col-12"><label class="form-label" for="testEmailMessage">Message</label><textarea class="form-control" id="testEmailMessage" name="message" rows="5" required>This is a safe transactional email test.</textarea></div>
+                    <div class="col-12"><button class="btn btn-outline-primary" type="submit"><i class="fas fa-paper-plane me-2"></i><span dmx-text="scEmailSettings.data.settings[0].emailEnabled == 'true' ? 'Send test email' : 'Queue safe preview'">Queue safe preview</span></button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center"><h2 class="h5 mb-0">Email templates</h2><a class="btn btn-sm btn-outline-primary" href="/document-templates">Manage templates</a></div>
+            <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Template</th><th>Key</th><th>Subject</th><th>Status</th></tr></thead><tbody is="dmx-repeat" dmx-bind:repeat="scEmailSettings.data.templates"><tr><td class="fw-semibold" dmx-text="$value.templateName"></td><td><code dmx-text="$value.templateKey"></code></td><td dmx-text="$value.subjectTemplate"></td><td><span class="badge" dmx-class:bg-success="$value.isActive == 1" dmx-class:bg-secondary="$value.isActive != 1" dmx-text="$value.isActive == 1 ? 'Active' : 'Inactive'"></span></td></tr></tbody></table></div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Recent email audit</h2></div>
+            <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead class="table-light"><tr><th>Date</th><th>Recipient</th><th>Subject</th><th>Status</th><th>Initiated by</th><th></th></tr></thead><tbody is="dmx-repeat" dmx-bind:repeat="scEmailLog.data.emails"><tr><td class="text-nowrap" dmx-text="$value.queuedDate.formatDate('dd MMM yyyy HH:mm')"></td><td><div dmx-text="$value.recipientName"></div><div class="small text-muted" dmx-text="$value.recipientEmail"></div></td><td dmx-text="$value.subjectSnapshot"></td><td><span class="badge text-capitalize" dmx-class:bg-secondary="$value.status == 'preview' || $value.status == 'queued'" dmx-class:bg-success="$value.status == 'sent' || $value.status == 'delivered'" dmx-class:bg-danger="$value.status == 'failed' || $value.status == 'bounced' || $value.status == 'complained'" dmx-text="$value.status"></span></td><td dmx-text="$value.initiatedBy"></td><td class="text-end"><a class="btn btn-sm btn-outline-primary" dmx-bind:href="'/email-preview?id=' + $value.id"><i class="fas fa-eye me-1"></i>Preview</a></td></tr></tbody></table></div>
+            <div class="text-center text-muted py-4" dmx-show="!scEmailLog.state.executing && scEmailLog.data.emails.count() == 0">No transactional emails have been queued yet.</div>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/email-settings">

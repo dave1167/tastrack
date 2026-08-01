@@ -1,0 +1,21 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "nocsrf": true, "method": "get"}},
+  "meta": {"$_GET": [{"type": "number", "name": "id"}]},
+  "exec": {"steps": [
+    {
+      "name": "email",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT q.id,q.recipientName,q.recipientEmail,q.ccAddresses,q.bccAddresses,q.replyToAddress,q.fromAddressSnapshot,q.fromNameSnapshot,q.subjectSnapshot,q.htmlSnapshot,q.textSnapshot,q.status,q.queuedDate,q.sentDate,COALESCE(u.displayName,'Unknown') initiatedBy FROM tbl_email_queue q LEFT JOIN tbl_users u ON u.id=q.initiatedByUserId WHERE q.id=:id AND q.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode IN ('email.send','email.configure') AND p.isActive=1 WHERE utr.userId=:userId AND utr.tenantId=q.tenantId AND utr.isActive=1) LIMIT 1",
+        "params": [
+          {"name": ":id", "value": "{{$_GET.id.default(0)}}"},
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    }
+  ]}
+}

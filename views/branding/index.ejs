@@ -3,12 +3,12 @@
 <div class="row g-4">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-start gap-3">
-            <div><h1 class="mb-1">Branding and Appearance</h1><p class="text-muted mb-0">Control how this organisation’s Tastrack workspace looks.</p></div>
+            <div><h1 class="mb-1">Branding and Appearance</h1><p class="text-muted mb-0">Control how this organisation’s Meldren workspace looks.</p></div>
             <a class="btn btn-light" href="/configuration">Back to Configuration</a>
         </div>
     </div>
     <div class="col-12" dmx-show="scBrandingPage.data.branding[0].canManage == 1">
-        <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>These settings affect the whole organisation. Platform administrators control the Tastrack defaults and access to advanced white-label options.</div>
+        <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>These settings affect the whole organisation. Platform administrators control the Meldren defaults and access to advanced white-label options.</div>
     </div>
     <div class="col-12 col-xl-7">
         <div class="card border-0 shadow-sm">
@@ -21,7 +21,7 @@
                     <div class="col-md-6"><label class="form-label" for="brandHeader">Header colour</label><input class="form-control form-control-color w-100" id="brandHeader" name="headerColour" type="color" dmx-bind:value="scBrandingPage.data.branding[0].headerColour"></div>
                     <div class="col-md-6"><label class="form-label" for="brandSidebar">Sidebar colour</label><input class="form-control form-control-color w-100" id="brandSidebar" name="sidebarColour" type="color" dmx-bind:value="scBrandingPage.data.branding[0].sidebarColour"></div>
                     <div class="col-md-6"><label class="form-label" for="brandMode">Default appearance</label><select class="form-select" id="brandMode" name="defaultColourMode" dmx-bind:value="scBrandingPage.data.branding[0].defaultColourMode"><option value="light">Light</option><option value="dark">Dark</option><option value="system">Use device setting</option></select></div>
-                    <div class="col-12 d-flex flex-wrap gap-2"><button class="btn btn-primary" type="submit"><i class="fas fa-save me-2"></i>Save appearance</button><button class="btn btn-outline-secondary" type="button" dmx-on:click="brandPrimary.setValue('#18B99A');brandAccent.setValue('#00D7A3');brandHeader.setValue('#073F3C');brandSidebar.setValue('#092F2D');brandMode.setValue('light')">Reset colour choices</button></div>
+                    <div class="col-12 d-flex flex-wrap gap-2"><button class="btn btn-primary" type="submit"><i class="fas fa-save me-2"></i>Save appearance</button><button class="btn btn-outline-secondary" type="button" dmx-on:click="brandPrimary.setValue('#14B8A6');brandAccent.setValue('#2563EB');brandHeader.setValue('#0D1B2A');brandSidebar.setValue('#0D1B2A');brandMode.setValue('light')">Reset colour choices</button></div>
                 </form>
             </div>
         </div>

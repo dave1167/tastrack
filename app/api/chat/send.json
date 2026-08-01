@@ -1,0 +1,428 @@
+{
+  "settings": {
+    "options": {
+      "restrict": {
+        "provider": "security"
+      },
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "text",
+        "name": "contextType"
+      },
+      {
+        "type": "number",
+        "name": "contextId"
+      },
+      {
+        "type": "text",
+        "name": "messageText"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "context",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT :contextType contextType,CASE WHEN :contextType2='workflow' THEN w.id ELSE t.id END contextId,CASE WHEN :contextType3='workflow' THEN w.workflowName ELSE t.teamName END contextName FROM (SELECT 1 singleton) seed LEFT JOIN tbl_workflows w ON :contextType4='workflow' AND w.id=:contextId AND w.tenantId=:tenantId LEFT JOIN tbl_teams t ON :contextType5='team' AND t.id=:contextId2 AND t.tenantId=:tenantId2 AND t.isActive=1 WHERE :contextType6 IN ('workflow','team') AND CASE WHEN :contextType7='workflow' THEN w.id ELSE t.id END IS NOT NULL AND NULLIF(TRIM(:messageText),'') IS NOT NULL AND CHAR_LENGTH(TRIM(:messageText2))<=4000 AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='TEAM_CHAT' AND m.isActive=1 WHERE tm.tenantId=:moduleTenant AND tm.status IN ('ACTIVE','TRIAL')) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='chat.send' AND p.isActive=1 WHERE utr.userId=:userId AND utr.tenantId=:permissionTenant AND utr.isActive=1) AND (:contextType8='workflow' OR EXISTS(SELECT 1 FROM tbl_user_tenant_roles adminRole INNER JOIN tbl_roles r ON r.id=adminRole.roleId AND r.roleKey IN ('owner','admin') AND r.isActive=1 WHERE adminRole.userId=:adminUser AND adminRole.tenantId=:adminTenant AND adminRole.isActive=1) OR EXISTS(SELECT 1 FROM tbl_user_tenants ut INNER JOIN tbl_team_members member ON member.userTenantId=ut.id AND member.tenantId=ut.tenantId AND member.teamId=t.id AND member.isActive=1 WHERE ut.userId=:memberUser AND ut.tenantId=:memberTenant AND ut.isActive=1 AND ut.membershipStatus='active')) LIMIT 1",
+            "params": [
+              {
+                "name": ":contextType",
+                "value": "{{$_POST.contextType.default('')}}"
+              },
+              {
+                "name": ":contextType2",
+                "value": "{{$_POST.contextType.default('')}}"
+              },
+              {
+                "name": ":contextType3",
+                "value": "{{$_POST.contextType.default('')}}"
+              },
+              {
+                "name": ":contextType4",
+                "value": "{{$_POST.contextType.default('')}}"
+              },
+              {
+                "name": ":contextId",
+                "value": "{{$_POST.contextId.default(0)}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":contextType5",
+                "value": "{{$_POST.contextType.default('')}}"
+              },
+              {
+                "name": ":contextId2",
+                "value": "{{$_POST.contextId.default(0)}}"
+              },
+              {
+                "name": ":tenantId2",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":contextType6",
+                "value": "{{$_POST.contextType.default('')}}"
+              },
+              {
+                "name": ":contextType7",
+                "value": "{{$_POST.contextType.default('')}}"
+              },
+              {
+                "name": ":messageText",
+                "value": "{{$_POST.messageText.default('')}}"
+              },
+              {
+                "name": ":messageText2",
+                "value": "{{$_POST.messageText.default('')}}"
+              },
+              {
+                "name": ":moduleTenant",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":permissionTenant",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":contextType8",
+                "value": "{{$_POST.contextType.default('')}}"
+              },
+              {
+                "name": ":adminUser",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":adminTenant",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":memberUser",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":memberTenant",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "requireContext",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{context.count() == 0}}",
+          "then": {
+            "steps": {
+              "module": "core",
+              "action": "error",
+              "options": {
+                "status": 403,
+                "message": "This conversation is unavailable, or you cannot send messages to it."
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
+      },
+      {
+        "name": "ensureConversation",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT IGNORE INTO tbl_chat_conversations (tenantId,conversationType,workflowId,teamId,conversationName,createdByUserId,modifiedByUserId) VALUES (:tenantId,:contextType,CASE WHEN :contextType2='workflow' THEN :contextId ELSE NULL END,CASE WHEN :contextType3='team' THEN :contextId2 ELSE NULL END,:contextName,:userId,:userId2)",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":contextType",
+                "value": "{{context[0].contextType}}"
+              },
+              {
+                "name": ":contextType2",
+                "value": "{{context[0].contextType}}"
+              },
+              {
+                "name": ":contextId",
+                "value": "{{context[0].contextId}}"
+              },
+              {
+                "name": ":contextType3",
+                "value": "{{context[0].contextType}}"
+              },
+              {
+                "name": ":contextId2",
+                "value": "{{context[0].contextId}}"
+              },
+              {
+                "name": ":contextName",
+                "value": "{{context[0].contextName}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":userId2",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "conversation",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT id FROM tbl_chat_conversations WHERE tenantId=:tenantId AND conversationType=:contextType AND ((conversationType='workflow' AND workflowId=:contextId) OR (conversationType='team' AND teamId=:contextId2)) AND isActive=1 LIMIT 1",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":contextType",
+                "value": "{{context[0].contextType}}"
+              },
+              {
+                "name": ":contextId",
+                "value": "{{context[0].contextId}}"
+              },
+              {
+                "name": ":contextId2",
+                "value": "{{context[0].contextId}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "encryptedMessage",
+        "module": "chatCrypto",
+        "action": "encrypt",
+        "options": {
+          "plaintext": "{{$_POST.messageText.trim()}}",
+          "tenantId": "{{$_SESSION.TENANT_ID.default(0)}}",
+          "conversationId": "{{conversation[0].id.default(0)}}"
+        },
+        "output": false
+      },
+      {
+        "name": "insertMessage",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_chat_messages (tenantId,conversationId,senderUserId,messageText,messageCiphertext,messageIv,messageAuthTag,messageKeyVersion) VALUES (:tenantId,:conversationId,:userId,NULL,:ciphertext,:iv,:authTag,:keyVersion)",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":conversationId",
+                "value": "{{conversation[0].id.default(0)}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":ciphertext",
+                "value": "{{encryptedMessage.ciphertext}}"
+              },
+              {
+                "name": ":iv",
+                "value": "{{encryptedMessage.iv}}"
+              },
+              {
+                "name": ":authTag",
+                "value": "{{encryptedMessage.authTag}}"
+              },
+              {
+                "name": ":keyVersion",
+                "value": "{{encryptedMessage.keyVersion}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "encryptedRows",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT msg.id,msg.conversationId,msg.messageCiphertext,msg.messageIv,msg.messageAuthTag,msg.messageKeyVersion,msg.conversationId messageConversationId,msg.createdDate,msg.senderUserId,COALESCE(u.displayName,CONCAT_WS(' ',u.fName,u.lName),u.email) senderName FROM tbl_chat_messages msg INNER JOIN tbl_users u ON u.id=msg.senderUserId WHERE msg.id=:messageId AND msg.tenantId=:tenantId LIMIT 1",
+            "params": [
+              {
+                "name": ":messageId",
+                "value": "{{insertMessage.identity.default(insertMessage.insertId).default(0)}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": false,
+        "outputType": "array"
+      },
+      {
+        "name": "message",
+        "module": "chatCrypto",
+        "action": "decryptRows",
+        "options": {
+          "rows": "{{encryptedRows}}",
+          "tenantId": "{{$_SESSION.TENANT_ID.default(0)}}"
+        },
+        "output": true
+      },
+      {
+        "name": "participant",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_chat_participants (tenantId,conversationId,userId,lastReadMessageId,lastReadDate) VALUES (:tenantId,:conversationId,:userId,:messageId,CURRENT_TIMESTAMP) ON DUPLICATE KEY UPDATE lastReadMessageId=VALUES(lastReadMessageId),lastReadDate=CURRENT_TIMESTAMP,isActive=1",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":conversationId",
+                "value": "{{conversation[0].id.default(0)}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":messageId",
+                "value": "{{message[0].id.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "notifyRecipients",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_notifications (tenantId,userId,workflowId,notificationType,title,message,status,channel,createdDate) SELECT :tenantId,ut.userId,CASE WHEN :contextType='workflow' THEN :contextId ELSE NULL END,'chat_message',CONCAT('New message in ',:contextName),'You have a new chat message.','unread','in_app',CURRENT_TIMESTAMP FROM tbl_user_tenants ut WHERE ut.tenantId=:tenantId2 AND ut.isActive=1 AND ut.membershipStatus='active' AND ut.userId<>:senderUser AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='chat.view' AND p.isActive=1 WHERE utr.userId=ut.userId AND utr.tenantId=ut.tenantId AND utr.isActive=1) AND (:contextType2='workflow' OR EXISTS(SELECT 1 FROM tbl_team_members member WHERE member.userTenantId=ut.id AND member.tenantId=ut.tenantId AND member.teamId=:contextId2 AND member.isActive=1))",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":contextType",
+                "value": "{{context[0].contextType}}"
+              },
+              {
+                "name": ":contextId",
+                "value": "{{context[0].contextId}}"
+              },
+              {
+                "name": ":contextName",
+                "value": "{{context[0].contextName}}"
+              },
+              {
+                "name": ":sender",
+                "value": "{{$_SESSION.DISPLAY_NAME.default('A user')}}"
+              },
+              {
+                "name": ":tenantId2",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":senderUser",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":contextType2",
+                "value": "{{context[0].contextType}}"
+              },
+              {
+                "name": ":contextId2",
+                "value": "{{context[0].contextId}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "broadcast",
+        "module": "sockets",
+        "action": "emit",
+        "options": {
+          "namespace": "/",
+          "room": "tenant:{{$_SESSION.TENANT_ID.default(0)}}",
+          "eventName": "chat:message",
+          "params": {
+            "conversationId": "{{conversation[0].id}}",
+            "contextType": "{{context[0].contextType}}",
+            "contextId": "{{context[0].contextId}}",
+            "messageId": "{{message[0].id}}",
+            "senderUserId": "{{$_SESSION.USER_ID}}",
+            "senderName": "{{$_SESSION.DISPLAY_NAME}}",
+            "messageText": "{{message[0].messageText}}",
+            "createdDate": "{{message[0].createdDate}}"
+          }
+        }
+      },
+      {
+        "name": "response",
+        "module": "core",
+        "action": "response",
+        "options": {
+          "status": 201,
+          "data": {
+            "success": true,
+            "messageId": "{{message[0].id}}",
+            "message": "Message sent."
+          }
+        }
+      }
+    ]
+  }
+}

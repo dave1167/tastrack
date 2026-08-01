@@ -1,0 +1,7 @@
+{
+  "settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},
+  "meta":{"$_POST":[{"type":"number","name":"conversationId"}]},
+  "exec":{"steps":[
+    {"name":"saveRead","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"INSERT INTO tbl_chat_participants (tenantId,conversationId,userId,lastReadMessageId,lastReadDate) SELECT c.tenantId,c.id,:userId,COALESCE(MAX(msg.id),0),CURRENT_TIMESTAMP FROM tbl_chat_conversations c LEFT JOIN tbl_chat_messages msg ON msg.conversationId=c.id AND msg.tenantId=c.tenantId WHERE c.id=:conversationId AND c.tenantId=:tenantId AND c.isActive=1 AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='chat.view' AND p.isActive=1 WHERE utr.userId=:userId2 AND utr.tenantId=c.tenantId AND utr.isActive=1) GROUP BY c.tenantId,c.id ON DUPLICATE KEY UPDATE lastReadMessageId=VALUES(lastReadMessageId),lastReadDate=CURRENT_TIMESTAMP,isActive=1","params":[{"name":":userId","value":"{{$_SESSION.USER_ID.default(0)}}"},{"name":":conversationId","value":"{{$_POST.conversationId.default(0)}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"},{"name":":userId2","value":"{{$_SESSION.USER_ID.default(0)}}"}]}},"output":true}
+  ]}
+}

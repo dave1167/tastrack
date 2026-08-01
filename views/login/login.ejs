@@ -10,7 +10,7 @@
                     <div class="row g-0">
                         <div class="col-lg-5 d-none d-lg-flex">
                             <div class="login-brand-panel p-5 w-100 d-flex flex-column justify-content-between">
-                                <div><img src="/assets/images/tastrack_logo.png" alt="TasTrack" class="img-fluid login-brand-logo"></div>
+                                <div><img src="/assets/images/meldren_logo_dark.png" alt="Meldren — Bring every strand together." class="img-fluid login-brand-logo"></div>
                                 <div class="text-white">
                                     <h2 class="h3 fw-bold mb-3">Welcome back</h2>
                                     <p class="mb-0 text-white-50">Sign in to continue tracking tasks, deadlines, and team progress.</p>
@@ -25,17 +25,17 @@
                                     <p class="text-body-secondary mb-0">Use your account credentials to access your workspace.</p>
                                 </div>
 
-                                <form id="login_form" class="needs-validation" method="post" action="/api/login/login" novalidate="">
+                                <form id="login_form" class="needs-validation" method="post" action="/api/login/login" novalidate="" data-testid="login-form">
                                     <div class="alert alert-danger" role="alert" dmx-show="login_form.state.lastError">
                                         <i class="fas fa-exclamation-circle me-2"></i>
-                                        <span dmx-text="login_form.lastError.message.default('Login failed. Please check your credentials and try again.')"></span>
+                                        <span dmx-text="login_form.lastError.response.message.default('Login failed. Please check your credentials and try again.')"></span>
                                     </div>
 
                                     <div class="form-group mb-3">
                                         <label for="inp_username" class="form-label">Username</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                            <input type="text" class="form-control" id="inp_username" name="username" placeholder="Enter your username" required data-msg-required="Please enter your username">
+                                            <input type="text" class="form-control" id="inp_username" name="username" placeholder="Enter your username" required data-msg-required="Please enter your username" data-testid="login-email">
                                         </div>
                                     </div>
 
@@ -46,7 +46,7 @@
                                         </div>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                            <input type="password" class="form-control" id="inp_password" name="password" placeholder="Enter your password" required data-msg-required="Please enter your password">
+                                            <input type="password" class="form-control" id="inp_password" name="password" placeholder="Enter your password" required data-msg-required="Please enter your password" data-testid="login-password">
                                         </div>
                                     </div>
 

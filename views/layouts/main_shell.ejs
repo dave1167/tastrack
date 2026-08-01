@@ -7,7 +7,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <%- _csrfMeta() %>
-    <title>TasTrack</title>
+    <title>Meldren</title>
+    <link rel="icon" type="image/png" href="/assets/images/meldren_logo_dark.png">
+    <link rel="icon" type="image/png" href="/assets/images/meldren_logo_dark.png">
 
     <link rel="stylesheet" href="/bootstrap/5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
@@ -35,27 +37,36 @@
     <script src="/js/contract-template-editor.js?v=20260725-layout-5" defer></script>
     <script src="/js/contract-clause-editor.js?v=20260725" defer></script>
     <script src="/js/contract-draft-editor.js?v=20260728-5" defer></script>
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="/js/chat-live.js?v=20260801-2" defer></script>
 </head>
 
-<body is="dmx-app" id="main_shell" class="shell-app" dmx-bind:data-bs-theme="scBranding.data.branding[0].defaultColourMode == 'dark' ? 'dark' : 'light'" dmx-bind:style="'--tastrack-primary:' + scBranding.data.branding[0].primaryColour.default('#18B99A') + ';--tastrack-accent:' + scBranding.data.branding[0].accentColour.default('#00D7A3') + ';--shell-topbar:' + scBranding.data.branding[0].headerColour.default('#073F3C') + ';--shell-topbar-2:' + scBranding.data.branding[0].headerColour.default('#073F3C') + ';--shell-sidebar-bg:' + scBranding.data.branding[0].sidebarColour.default('#092F2D') + ';--shell-sidebar-bg-2:' + scBranding.data.branding[0].sidebarColour.default('#092F2D')">
+<body is="dmx-app" id="main_shell" class="shell-app" dmx-bind:data-bs-theme="scBranding.data.branding[0].defaultColourMode == 'dark' ? 'dark' : 'light'" dmx-bind:style="'--meldren-primary:' + scBranding.data.branding[0].primaryColour.default('#14B8A6') + ';--meldren-accent:' + scBranding.data.branding[0].accentColour.default('#2563EB') + ';--shell-topbar:' + scBranding.data.branding[0].headerColour.default('#0D1B2A') + ';--shell-topbar-2:' + scBranding.data.branding[0].headerColour.default('#0D1B2A') + ';--shell-sidebar-bg:' + scBranding.data.branding[0].sidebarColour.default('#0D1B2A') + ';--shell-sidebar-bg-2:' + scBranding.data.branding[0].sidebarColour.default('#0D1B2A')">
     <div is="dmx-browser" id="browser1"></div>
     <dmx-serverconnect id="scWelcome" url="/api/security/sessionContext"></dmx-serverconnect>
     <dmx-serverconnect id="scBranding" url="/api/branding/current"></dmx-serverconnect>
     <dmx-serverconnect id="scTerminology" url="/api/settings/terminology"></dmx-serverconnect>
     <dmx-serverconnect id="scTenantModules" url="/api/modules/currentTenantModules"></dmx-serverconnect>
     <dmx-serverconnect id="scHeaderNotifications" url="/api/notifications/recent"></dmx-serverconnect>
+    <dmx-serverconnect id="scHeaderChat" url="/api/chat/summary"></dmx-serverconnect>
+    <dmx-serverconnect id="scChatDrawerUsers" url="/api/chat/users"></dmx-serverconnect>
+    <dmx-serverconnect id="scChatDrawerMessages" url="/api/chat/directMessages" dmx-param:userid="chatDrawerRecipient.value" dmx-on:success="scChatDrawerMessages.data.conversation[0].id && frmChatDrawerMarkRead.submit()"></dmx-serverconnect>
     <header class="navbar shell-navbar sticky-top">
         <div class="container-fluid px-3 px-lg-4">
             <button class="shell-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open menu">
                 <i class="fas fa-bars"></i>
             </button>
-            <img src="/assets/images/tastrack_logo.png" dmx-bind:src="scBranding.data.branding[0].logoPath.default('/assets/images/tastrack_logo.png')" width="150" class="img-fluid shell-tenant-logo" alt="Organisation logo">
+            <img src="/assets/images/meldren_logo_dark.png" dmx-bind:src="scBranding.data.branding[0].logoPath.default('/assets/images/meldren_logo_dark.png')" width="220" class="img-fluid shell-tenant-logo" alt="Meldren or organisation logo">
 
 
             <div class="shell-actions ms-auto">
-                <span class="small me-2 text-white">Welcome, {{scWelcome.data.FNAME}}</span>
+                <span class="small me-2 text-white" data-testid="authenticated-user">Welcome, {{scWelcome.data.FNAME}}</span>
                 <button class="shell-icon-btn" type="button" aria-label="Search">
                     <i class="fas fa-search"></i>
+                </button>
+                <button class="shell-icon-btn position-relative" type="button" data-bs-toggle="offcanvas" data-bs-target="#chatDrawer" aria-controls="chatDrawer" aria-label="Messages" title="Messages" dmx-show="scHeaderChat.data.summary[0].hasAccess == 1">
+                    <i class="fas fa-comments"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" dmx-show="scHeaderChat.data.summary[0].unreadCount > 0" dmx-text="scHeaderChat.data.summary[0].unreadCount"></span>
                 </button>
                 <div class="dropdown">
                     <button class="shell-icon-btn position-relative" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Notifications">
@@ -154,7 +165,7 @@
                     </div>
 
                     <div class="shell-sidebar-footer">
-                        <a class="shell-nav-link shell-nav-link-muted" href="/login/login">
+                        <a class="shell-nav-link shell-nav-link-muted" href="/api/login/logout" data-testid="sign-out">
                             <i class="fas fa-sign-out-alt"></i>
                             <span>Sign out</span>
                         </a>
@@ -168,6 +179,84 @@
                 <%- await include(content, locals); %>
             </div>
         </main>
+    </div>
+
+    <div class="offcanvas offcanvas-end shell-chat-drawer" tabindex="-1" id="chatDrawer" aria-labelledby="chatDrawerLabel">
+        <div class="offcanvas-header border-bottom">
+            <div>
+                <h2 class="offcanvas-title h5 mb-0" id="chatDrawerLabel">Messages</h2>
+                <div class="small text-muted">Private conversations with colleagues</div>
+            </div>
+            <div class="dropdown ms-auto">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" aria-label="Change your availability">
+                    <i class="fas fa-circle me-1" dmx-class:text-success="scHeaderChat.data.summary[0].chatAvailability == 'available'" dmx-class:text-warning="scHeaderChat.data.summary[0].chatAvailability == 'do_not_disturb'" dmx-class:text-secondary="scHeaderChat.data.summary[0].chatAvailability == 'unavailable'"></i>
+                    <span dmx-text="scHeaderChat.data.summary[0].chatAvailability == 'do_not_disturb' ? 'Do not disturb' : (scHeaderChat.data.summary[0].chatAvailability == 'unavailable' ? 'Unavailable' : 'Available')"></span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow border-0 p-3" style="width:19rem">
+                    <form id="frmChatAvailability" is="dmx-serverconnect-form" method="post" action="/api/chat/updateAvailability" dmx-on:success="scHeaderChat.load();scChatDrawerUsers.load()">
+                        <%- _csrfInput() %>
+                        <label class="form-label fw-semibold" for="drawerChatAvailability">Your status</label>
+                        <select class="form-select mb-3" id="drawerChatAvailability" name="chatAvailability" dmx-bind:value="scHeaderChat.data.summary[0].chatAvailability">
+                            <option value="available">Available</option><option value="do_not_disturb">Do not disturb</option><option value="unavailable">Unavailable</option>
+                        </select>
+                        <label class="form-label" for="drawerChatStatusMessage">Status message <span class="text-muted">(optional)</span></label>
+                        <input class="form-control mb-3" id="drawerChatStatusMessage" name="chatStatusMessage" maxlength="120" placeholder="For example, back Monday" dmx-bind:value="scHeaderChat.data.summary[0].chatStatusMessage">
+                        <button class="btn btn-primary w-100" type="submit" dmx-bind:disabled="frmChatAvailability.state.executing">Save status</button>
+                        <div class="small text-success mt-2" dmx-show="frmChatAvailability.data.success">Status updated.</div>
+                        <div class="small text-danger mt-2" dmx-show="frmChatAvailability.lastError && frmChatAvailability.lastError.status" dmx-text="frmChatAvailability.lastError.response.message.default('Status could not be updated.')"></div>
+                    </form>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close messages"></button>
+        </div>
+        <div class="offcanvas-body p-0 d-flex flex-column">
+            <select class="d-none" id="chatDrawerRecipient" dmx-bind:options="scChatDrawerUsers.data.users" optiontext="userName" optionvalue="userId" dmx-on:changed="scChatDrawerMessages.load()"><option value=""></option></select>
+            <div class="shell-chat-list flex-grow-1" dmx-show="!chatDrawerRecipient.value">
+                <div class="px-3 py-2 small text-muted border-bottom">Recent conversations</div>
+                <div is="dmx-repeat" dmx-bind:repeat="scChatDrawerUsers.data.users">
+                    <button class="shell-chat-list-item btn w-100 rounded-0 border-bottom text-start p-3" type="button" dmx-on:click="chatDrawerRecipient.setValue($value.userId);scChatDrawerMessages.load({userid:$value.userId})">
+                        <span class="d-flex align-items-start gap-3">
+                            <span class="shell-chat-avatar flex-shrink-0"><i class="fas fa-user"></i><i class="fas fa-circle shell-chat-presence" dmx-class:text-success="$value.chatAvailability == 'available'" dmx-class:text-warning="$value.chatAvailability == 'do_not_disturb'" dmx-class:text-secondary="$value.chatAvailability == 'unavailable'"></i></span>
+                            <span class="min-w-0 flex-grow-1"><span class="d-flex justify-content-between gap-2"><strong class="text-truncate" dmx-text="$value.userName"></strong><small class="text-muted flex-shrink-0" dmx-show="$value.lastMessageDate" dmx-text="$value.lastMessageDate.formatDate('dd MMM')"></small></span><span class="d-flex justify-content-between gap-2 mt-1"><span class="small text-muted text-truncate" dmx-text="$value.lastMessageText.default('Start a conversation')"></span><span class="badge rounded-pill bg-danger flex-shrink-0" dmx-show="$value.unreadCount > 0" dmx-text="$value.unreadCount"></span></span></span>
+                        </span>
+                    </button>
+                </div>
+                <div class="text-center text-muted py-5" dmx-show="!scChatDrawerUsers.state.executing && scChatDrawerUsers.data.users.count() == 0">No colleagues are available.</div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom bg-white" dmx-show="chatDrawerRecipient.value"><button class="btn btn-sm btn-link text-reset p-1" type="button" aria-label="Back to conversations" dmx-on:click="chatDrawerRecipient.setValue('');scChatDrawerUsers.load()"><i class="fas fa-arrow-left"></i></button><div class="min-w-0 flex-grow-1"><div class="fw-semibold text-truncate" dmx-text="scChatDrawerMessages.data.recipient[0].userName.default('Conversation')"></div><div class="small text-muted text-truncate" dmx-text="scChatDrawerMessages.data.recipient[0].chatStatusMessage"></div></div><form id="frmArchiveChat" is="dmx-serverconnect-form" method="post" action="/api/chat/archive" dmx-on:success="chatDrawerRecipient.setValue('');scChatDrawerUsers.load();scHeaderChat.load()"><%- _csrfInput() %><input type="hidden" name="conversationId" dmx-bind:value="scChatDrawerMessages.data.conversation[0].id"><button class="btn btn-sm btn-outline-secondary" type="submit" title="Archive conversation" dmx-bind:disabled="!scChatDrawerMessages.data.conversation[0].id || frmArchiveChat.state.executing"><i class="fas fa-archive"></i><span class="visually-hidden">Archive conversation</span></button></form></div>
+
+            <div class="shell-chat-messages flex-grow-1 p-3 bg-light" dmx-show="chatDrawerRecipient.value">
+                <div class="text-center text-muted py-5" dmx-show="chatDrawerRecipient.value && !scChatDrawerMessages.state.executing && scChatDrawerMessages.data.messages.count() == 0">
+                    <i class="far fa-comment-dots fa-2x mb-3"></i>
+                    <p class="mb-0">No messages yet.</p>
+                </div>
+                <div is="dmx-repeat" dmx-bind:repeat="scChatDrawerMessages.data.messages">
+                    <div class="shell-chat-message-row mb-2" dmx-class:justify-content-end="$value.isMine == 1">
+                        <div class="shell-chat-bubble px-3 py-2" dmx-class:shell-chat-bubble-mine="$value.isMine == 1" dmx-class:shell-chat-bubble-other="$value.isMine != 1">
+                            <div class="text-break" style="white-space:pre-wrap" dmx-text="$value.messageText"></div>
+                            <div class="shell-chat-time mt-1" dmx-text="$value.createdDate.formatDate('HH:mm')"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 border-top bg-white" dmx-show="chatDrawerRecipient.value">
+                <form id="frmChatDrawerMessage" is="dmx-serverconnect-form" method="post" action="/api/chat/directSend" dmx-on:success="reset();scChatDrawerMessages.load();scChatDrawerUsers.load();scHeaderChat.load();scHeaderNotifications.load()">
+                    <%- _csrfInput() %>
+                    <input type="hidden" name="recipientUserId" dmx-bind:value="chatDrawerRecipient.value">
+                    <label class="visually-hidden" for="chatDrawerMessageText">Message</label>
+                    <div class="input-group">
+                        <textarea class="form-control" id="chatDrawerMessageText" name="messageText" rows="2" maxlength="4000" required placeholder="Write a message…" dmx-bind:disabled="!chatDrawerRecipient.value"></textarea>
+                        <button class="btn btn-primary px-3" type="submit" dmx-bind:disabled="frmChatDrawerMessage.state.executing || !chatDrawerRecipient.value" title="Send message"><i class="fas fa-paper-plane"></i><span class="visually-hidden">Send</span></button>
+                    </div>
+                    <div class="small text-danger mt-2" dmx-show="frmChatDrawerMessage.lastError && frmChatDrawerMessage.lastError.status" dmx-text="frmChatDrawerMessage.lastError.response.message.default('The message could not be sent.')"></div>
+                </form>
+                <form id="frmChatDrawerMarkRead" is="dmx-serverconnect-form" method="post" action="/api/chat/directMarkRead" class="d-none" dmx-on:success="scChatDrawerUsers.load();scHeaderChat.load()">
+                    <%- _csrfInput() %><input type="hidden" name="conversationId" dmx-bind:value="scChatDrawerMessages.data.conversation[0].id">
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="/bootstrap/5/js/bootstrap.bundle.min.js"></script>

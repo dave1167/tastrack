@@ -1,0 +1,138 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "text", "name": "recipientName"},
+    {"type": "text", "name": "recipientEmail"},
+    {"type": "text", "name": "subject"},
+    {"type": "text", "name": "message"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "emailContext",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT t.tenantName,s.replyToAddress,s.archiveBccAddress FROM tbl_tenants t LEFT JOIN tbl_tenant_email_settings s ON s.tenantId=t.id WHERE t.id=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='email.send' AND p.isActive=1 WHERE utr.userId=:userId AND utr.tenantId=t.id AND utr.isActive=1) LIMIT 1",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "insertQueue",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "INSERT INTO tbl_email_queue (tenantId,relatedEntityType,recipientName,recipientEmail,bccAddresses,replyToAddress,fromAddressSnapshot,fromNameSnapshot,subjectSnapshot,htmlSnapshot,textSnapshot,status,initiatedByUserId) SELECT :tenantId,'email_test',NULLIF(TRIM(:recipientName),''),LOWER(TRIM(:recipientEmail)),NULLIF(COALESCE(:tenantBcc,:environmentBcc),''),NULLIF(COALESCE(:tenantReplyTo,:environmentReplyTo),''),NULLIF(:fromAddress,''),NULLIF(:fromName,''),TRIM(:subject),CONCAT('<p>',REPLACE(REPLACE(:message,'&','&amp;'),CHAR(10),'</p><p>'),'</p>'),:textMessage,CASE WHEN :emailEnabled='true' THEN 'queued' ELSE 'preview' END,:userId FROM DUAL WHERE :recipientEmail2 REGEXP '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$' AND NULLIF(TRIM(:subject2),'') IS NOT NULL AND NULLIF(TRIM(:message2),'') IS NOT NULL AND :contextCount>0",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":recipientName", "value": "{{$_POST.recipientName.default('')}}"},
+          {"name": ":recipientEmail", "value": "{{$_POST.recipientEmail.default('')}}"},
+          {"name": ":tenantBcc", "value": "{{emailContext[0].archiveBccAddress}}"},
+          {"name": ":environmentBcc", "value": "{{$_ENV.EMAIL_ARCHIVE_BCC.default('')}}"},
+          {"name": ":tenantReplyTo", "value": "{{emailContext[0].replyToAddress}}"},
+          {"name": ":environmentReplyTo", "value": "{{$_ENV.EMAIL_REPLY_TO.default('')}}"},
+          {"name": ":fromAddress", "value": "{{$_ENV.EMAIL_FROM_ADDRESS.default('')}}"},
+          {"name": ":fromName", "value": "{{$_ENV.EMAIL_FROM_NAME.default('')}}"},
+          {"name": ":subject", "value": "{{$_POST.subject.default('')}}"},
+          {"name": ":message", "value": "{{$_POST.message.default('')}}"},
+          {"name": ":textMessage", "value": "{{$_POST.message.default('')}}"},
+          {"name": ":emailEnabled", "value": "{{$_ENV.EMAIL_ENABLED.default('false')}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":recipientEmail2", "value": "{{$_POST.recipientEmail.default('')}}"},
+          {"name": ":subject2", "value": "{{$_POST.subject.default('')}}"},
+          {"name": ":message2", "value": "{{$_POST.message.default('')}}"},
+          {"name": ":contextCount", "value": "{{emailContext.count()}}"}
+        ]
+      }},
+      "output": true
+    },
+    {
+      "name": "queuedEmail",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT id,recipientName,recipientEmail,bccAddresses,replyToAddress,subjectSnapshot,htmlSnapshot,textSnapshot,status FROM tbl_email_queue WHERE tenantId=:tenantId AND initiatedByUserId=:userId AND recipientEmail=LOWER(TRIM(:recipientEmail)) AND subjectSnapshot=TRIM(:subject) ORDER BY id DESC LIMIT 1",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":recipientEmail", "value": "{{$_POST.recipientEmail.default('')}}"},
+          {"name": ":subject", "value": "{{$_POST.subject.default('')}}"}
+        ]
+      }},
+      "output": true,
+      "outputType": "array"
+    },
+    {
+      "name": "requireQueued",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{queuedEmail.count() == 0}}", "then": {"steps": {"name": "invalid", "module": "core", "action": "response", "options": {"status": 422, "data": {"success": false, "message": "The email could not be queued. Check the recipient, subject and message."}}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "sendEnabled",
+      "module": "core",
+      "action": "condition",
+      "options": {
+        "if": "{{queuedEmail.count() > 0 && $_ENV.EMAIL_ENABLED == 'true'}}",
+        "then": {"steps": [
+          {
+            "name": "sendEmail",
+            "module": "resend",
+            "action": "send",
+            "options": {
+              "from": "{{$_ENV.EMAIL_FROM_ADDRESS}}",
+              "fromName": "{{$_ENV.EMAIL_FROM_NAME.default(emailContext[0].tenantName)}}",
+              "replyTo": "{{queuedEmail[0].replyToAddress}}",
+              "to": "{{queuedEmail[0].recipientEmail}}",
+              "toName": "{{queuedEmail[0].recipientName}}",
+              "bcc": "{{queuedEmail[0].bccAddresses}}",
+              "subject": "{{queuedEmail[0].subjectSnapshot}}",
+              "html": "{{queuedEmail[0].htmlSnapshot}}",
+              "text": "{{queuedEmail[0].textSnapshot}}"
+            },
+            "output": true
+          },
+          {
+            "name": "markSent",
+            "module": "dbupdater",
+            "action": "custom",
+            "options": {"connection": "db", "sql": {
+              "query": "UPDATE tbl_email_queue SET status='sent',providerMessageId=:providerId,attemptCount=attemptCount+1,sentDate=CURRENT_TIMESTAMP,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND tenantId=:tenantId",
+              "params": [
+                {"name": ":providerId", "value": "{{sendEmail.id}}"},
+                {"name": ":id", "value": "{{queuedEmail[0].id}}"},
+                {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+              ]
+            }},
+            "output": true
+          }
+        ]},
+        "else": {"steps": {
+          "name": "previewEvent",
+          "module": "dbupdater",
+          "action": "custom",
+          "options": {"connection": "db", "sql": {
+            "query": "INSERT INTO tbl_email_events (tenantId,emailQueueId,eventType,eventPayloadJson) VALUES (:tenantId,:emailId,'preview.created',JSON_OBJECT('emailEnabled',false))",
+            "params": [
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+              {"name": ":emailId", "value": "{{queuedEmail[0].id}}"}
+            ]
+          }},
+          "output": true
+        }}
+      },
+      "outputType": "boolean"
+    },
+    {
+      "name": "response",
+      "module": "core",
+      "action": "response",
+      "options": {"status": 200, "data": {"success": true, "emailId": "{{queuedEmail[0].id}}", "status": "{{$_ENV.EMAIL_ENABLED == 'true' ? 'sent' : 'preview'}}", "message": "{{$_ENV.EMAIL_ENABLED == 'true' ? 'Test email sent through Resend.' : 'Email preview queued safely; delivery is disabled.'}}"}}
+    }
+  ]}
+}

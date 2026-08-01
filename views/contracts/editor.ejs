@@ -5,27 +5,30 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center gap-3">
             <div>
-                <h1 class="mb-1" dmx-text="query.id ? 'Edit Contract Template' : 'Add Contract Template'">Contract Template</h1>
-                <p class="text-muted mb-0">Use Insert field to add approved information from an event.</p>
-            </div><a class="btn btn-outline-secondary" href="/contract-templates">Back to templates</a>
+                <h1 class="mb-1" dmx-text="query.id ? 'Edit Document Template' : 'Add Document Template'">Document Template</h1>
+                <p class="text-muted mb-0">One editor and one set of merge fields for every document type.</p>
+            </div><a class="btn btn-outline-secondary" href="/document-templates">Back to templates</a>
         </div>
     </div>
     <div class="col-12">
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4">
-                <form id="contractTemplateForm" method="post" dmx-bind:action="query.id ? '/api/contracts/updateTemplate' : '/api/contracts/createTemplate'">
+                <form id="contractTemplateForm" method="post" dmx-bind:action="query.id ? '/api/documents/updateTemplate' : '/api/documents/createTemplate'">
                     <%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="query.id">
                     <div class="row g-3 mb-3">
-                        <div class="col-md-7"><label class="form-label">Template name</label><input class="form-control" name="templateName" required maxlength="180" dmx-bind:value="scContractTemplate.data.template[0].templateName"></div>
+                        <div class="col-md-5"><label class="form-label">Template name</label><input class="form-control" name="templateName" required maxlength="180" dmx-bind:value="scContractTemplate.data.template[0].templateName"></div>
+                        <div class="col-md-2"><label class="form-label">Output</label><select class="form-select" id="templateOutputType" name="outputType" dmx-bind:value="scContractTemplate.data.template[0].outputType.default('contract')" dmx-bind:disabled="query.id"><option value="contract">Contract</option><option value="email">Email</option><option value="letter">Letter / PDF</option><option value="report">Report</option></select><input type="hidden" name="outputType" dmx-bind:disabled="!query.id" dmx-bind:value="scContractTemplate.data.template[0].outputType"></div>
                         <div class="col-md-3"><label class="form-label">Status</label><select class="form-select" name="isActive" dmx-bind:value="scContractTemplate.data.template[0].isActive.default(1)">
                                 <option value="1">Active</option>
                                 <option value="0">Inactive</option>
                             </select></div>
                         <div class="col-md-2"><label class="form-label">Version</label><input class="form-control" readonly dmx-bind:value="scContractTemplate.data.template[0].versionNumber.default(1)"></div>
                         <div class="col-12"><label class="form-label">Description</label><input class="form-control" name="description" dmx-bind:value="scContractTemplate.data.template[0].description"></div>
+                        <div class="col-md-5"><label class="form-label">Template key <span class="text-muted fw-normal">(optional)</span></label><input class="form-control" name="templateKey" maxlength="100" dmx-bind:value="scContractTemplate.data.template[0].templateKey"></div>
+                        <div class="col-md-7" dmx-show="templateOutputType.value == 'email'"><label class="form-label">Email subject</label><input class="form-control" name="subjectTemplate" maxlength="255" dmx-bind:required="templateOutputType.value == 'email'" dmx-bind:value="scContractTemplate.data.template[0].subjectTemplate"></div>
                     </div>
                     <input type="hidden" id="contractClauseIds" name="clauseIds">
-                    <div class="row g-2 align-items-end mb-3">
+                    <div class="row g-2 align-items-end mb-3" dmx-show="templateOutputType.value == 'contract'">
                         <div class="col-12 col-md-7 col-lg-5"><label class="form-label small fw-semibold" for="contractClauseSelect">Insert reusable clause</label><select class="form-select" id="contractClauseSelect">
                                 <option value="">Select a clause</option>
                             </select></div>
@@ -42,7 +45,7 @@
                                     <option value="">Select event</option>
                                 </select></div><button class="btn btn-outline-primary" type="button" id="previewContractButton" dmx-bind:data-template-id="query.id">Preview</button>
                         </div>
-                        <div class="d-flex gap-2 ms-lg-auto"><a class="btn btn-light" href="/contract-templates">Cancel</a><button class="btn btn-primary" type="submit">Save template</button></div>
+                        <div class="d-flex gap-2 ms-lg-auto"><a class="btn btn-light" href="/document-templates">Cancel</a><button class="btn btn-primary" type="submit">Save template</button></div>
                     </div>
                 </form>
             </div>
@@ -59,4 +62,4 @@
         </div>
     </div>
 </div>
-<meta name="ac:route" content="/contract-templates/editor">
+<meta name="ac:route" content="/document-templates/editor">

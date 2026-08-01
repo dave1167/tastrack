@@ -1,0 +1,30 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="email_preview" appConnect="local" -->
+<dmx-serverconnect id="scEmailPreview" url="/api/email/preview" dmx-param:id="query.id"></dmx-serverconnect>
+<div class="row g-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-start gap-3">
+            <div><h1 class="mb-1">Email Preview</h1><p class="text-muted mb-0">This shows the exact wording stored in the email audit record.</p></div>
+            <a class="btn btn-outline-secondary" href="/email-settings">Back to Email and Delivery</a>
+        </div>
+    </div>
+    <div class="col-12" dmx-show="!scEmailPreview.state.executing && scEmailPreview.data.email.count() == 0">
+        <div class="alert alert-warning mb-0">This email could not be found, or you do not have permission to view it.</div>
+    </div>
+    <div class="col-12" dmx-show="scEmailPreview.data.email.count() > 0">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6"><div class="small text-muted">To</div><div><span dmx-text="scEmailPreview.data.email[0].recipientName"></span><span dmx-show="scEmailPreview.data.email[0].recipientName"> &lt;</span><span dmx-text="scEmailPreview.data.email[0].recipientEmail"></span><span dmx-show="scEmailPreview.data.email[0].recipientName">&gt;</span></div></div>
+                    <div class="col-md-3"><div class="small text-muted">Status</div><span class="badge bg-secondary text-capitalize" dmx-text="scEmailPreview.data.email[0].status"></span></div>
+                    <div class="col-md-3"><div class="small text-muted">Queued</div><div dmx-text="scEmailPreview.data.email[0].queuedDate.formatDate('dd MMM yyyy HH:mm')"></div></div>
+                    <div class="col-12"><div class="small text-muted">Subject</div><div class="fw-semibold" dmx-text="scEmailPreview.data.email[0].subjectSnapshot"></div></div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white"><h2 class="h5 mb-0">Message</h2></div>
+            <div class="card-body p-4" dmx-html="scEmailPreview.data.email[0].htmlSnapshot"></div>
+        </div>
+    </div>
+</div>
+<meta name="ac:route" content="/email-preview">

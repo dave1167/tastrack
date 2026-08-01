@@ -1,0 +1,7 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "nocsrf": true, "method": "get"}},
+  "exec": {"steps": [
+    {"module": "auth", "action": "logout", "options": {"provider": "security"}},
+    {"module": "core", "action": "redirect", "options": {"url": "/login/login", "status": 302}}
+  ]}
+}

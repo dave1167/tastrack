@@ -38,6 +38,22 @@
           }
         ]
       },
+      "workflow-edit": {
+        "table": "tbl_user_tenant_roles",
+        "identity": "userId",
+        "conditions": [
+          {
+            "column": "roleId",
+            "operator": "in",
+            "value": [1, 2, 3, 5, 34, 35, 36]
+          },
+          {
+            "column": "isActive",
+            "operator": "=",
+            "value": "1"
+          }
+        ]
+      },
       "owner": {
         "table": "tbl_user_tenant_roles",
         "identity": "userId",

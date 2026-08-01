@@ -230,6 +230,13 @@
       "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
+      "path": "/email-settings",
+      "page": "email/settings",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
       "path": "/administration",
       "page": "administration/index",
       "layout": "main_shell",
@@ -255,7 +262,7 @@
       "page": "workflows/edit",
       "layout": "main_shell",
       "routeType": "page",
-      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+      "restrict": {"provider":"security","permissions":["workflow-edit"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
       "path": "/tasks",
@@ -407,6 +414,28 @@
       }
     },
     {
+      "path": "/email-preview",
+      "page": "email/preview",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/chat",
+      "page": "chat/index",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
       "path": "/contacts/edit_category",
       "page": "contacts/edit_category",
       "layout": "main_shell",
@@ -512,6 +541,13 @@
       "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
+      "path": "/document-templates",
+      "page": "contracts/templates",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
       "path": "/contracting-entities",
       "page": "contracting_entities/list",
       "layout": "main_shell",
@@ -527,6 +563,13 @@
     },
     {
       "path": "/contract-templates/editor",
+      "page": "contracts/editor",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/document-templates/editor",
       "page": "contracts/editor",
       "layout": "main_shell",
       "routeType": "page",

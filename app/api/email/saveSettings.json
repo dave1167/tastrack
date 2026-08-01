@@ -1,0 +1,51 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "method": "post"}},
+  "meta": {"$_POST": [
+    {"type": "text", "name": "replyToAddress"},
+    {"type": "text", "name": "archiveBccAddress"},
+    {"type": "number", "name": "copyInitiatingUser"},
+    {"type": "number", "name": "copyWorkflowOwner"},
+    {"type": "text", "name": "emailFooterHtml"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "save",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "INSERT INTO tbl_tenant_email_settings (tenantId,replyToAddress,archiveBccAddress,copyInitiatingUser,copyWorkflowOwner,emailFooterHtml,createdByUserId,modifiedByUserId) SELECT :tenantId,NULLIF(LOWER(TRIM(:replyTo)),''),NULLIF(LOWER(TRIM(:archiveBcc)),''),:copyUser,:copyOwner,NULLIF(:footer,''),:userId,:modifiedUserId FROM DUAL WHERE (:replyTo2='' OR :replyTo3 REGEXP '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$') AND (:archiveBcc2='' OR :archiveBcc3 REGEXP '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$') AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='email.configure' AND p.isActive=1 WHERE utr.userId=:permissionUser AND utr.tenantId=:permissionTenant AND utr.isActive=1) ON DUPLICATE KEY UPDATE replyToAddress=VALUES(replyToAddress),archiveBccAddress=VALUES(archiveBccAddress),copyInitiatingUser=VALUES(copyInitiatingUser),copyWorkflowOwner=VALUES(copyWorkflowOwner),emailFooterHtml=VALUES(emailFooterHtml),rowVersion=rowVersion+1,modifiedByUserId=VALUES(modifiedByUserId),modifiedDate=CURRENT_TIMESTAMP",
+        "params": [
+          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+          {"name": ":replyTo", "value": "{{$_POST.replyToAddress.default('')}}"},
+          {"name": ":archiveBcc", "value": "{{$_POST.archiveBccAddress.default('')}}"},
+          {"name": ":copyUser", "value": "{{$_POST.copyInitiatingUser.default(0)}}"},
+          {"name": ":copyOwner", "value": "{{$_POST.copyWorkflowOwner.default(0)}}"},
+          {"name": ":footer", "value": "{{$_POST.emailFooterHtml.default('')}}"},
+          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":modifiedUserId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":replyTo2", "value": "{{$_POST.replyToAddress.default('')}}"},
+          {"name": ":replyTo3", "value": "{{$_POST.replyToAddress.default('')}}"},
+          {"name": ":archiveBcc2", "value": "{{$_POST.archiveBccAddress.default('')}}"},
+          {"name": ":archiveBcc3", "value": "{{$_POST.archiveBccAddress.default('')}}"},
+          {"name": ":permissionUser", "value": "{{$_SESSION.USER_ID.default(0)}}"},
+          {"name": ":permissionTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+        ]
+      }},
+      "output": true
+    },
+    {
+      "name": "requireSaved",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{save.affectedRows.default(0) == 0}}", "then": {"steps": {"name": "failed", "module": "core", "action": "response", "options": {"status": 422, "data": {"success": false, "message": "Email settings were not saved. Check the addresses and your permission."}}}}},
+      "outputType": "boolean"
+    },
+    {
+      "name": "confirm",
+      "module": "core",
+      "action": "condition",
+      "options": {"if": "{{save.affectedRows.default(0) > 0}}", "then": {"steps": {"name": "saved", "module": "core", "action": "response", "options": {"status": 200, "data": {"success": true, "message": "Email settings saved."}}}}},
+      "outputType": "boolean"
+    }
+  ]}
+}

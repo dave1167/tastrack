@@ -1,23 +1,69 @@
 {
-  "settings":{"options":{"nocsrf":true,"method":"get","restrict":{"provider":"security"}}},
-  "meta":{"$_GET":[{"type":"number","name":"userid"}]},
-  "exec":{"steps":{
-    "name":"roles",
-    "module":"dbupdater",
-    "action":"custom",
-    "options":{"connection":"db","sql":{
-      "query":"SELECT r.id,r.roleCode,r.roleName,r.roleDescription,r.isOwnerRole,EXISTS(SELECT 1 FROM tbl_user_tenant_roles targetMap WHERE targetMap.userId=:targetUserId AND targetMap.tenantId=:targetTenantId AND targetMap.roleId=r.id AND targetMap.isActive=1) isAssigned FROM tbl_roles r WHERE r.isActive=1 AND (r.tenantId=:tenantId OR (r.tenantId IS NULL AND r.isProtected=1)) AND (r.isAssignable=1 OR (r.isOwnerRole=1 AND EXISTS (SELECT 1 FROM tbl_user_tenant_roles ownerMap INNER JOIN tbl_roles ownerRole ON ownerRole.id=ownerMap.roleId AND ownerRole.isOwnerRole=1 AND ownerRole.isActive=1 WHERE ownerMap.userId=:ownerUserId AND ownerMap.tenantId=:ownerTenantId AND ownerMap.isActive=1))) AND NOT EXISTS (SELECT 1 FROM tbl_role_permissions targetRp WHERE targetRp.roleId=r.id AND NOT EXISTS (SELECT 1 FROM tbl_user_tenant_roles actorMap INNER JOIN tbl_role_permissions actorRp ON actorRp.roleId=actorMap.roleId AND actorRp.permissionId=targetRp.permissionId WHERE actorMap.userId=:actorUserId AND actorMap.tenantId=:actorTenantId AND actorMap.isActive=1)) ORDER BY r.isOwnerRole,r.roleName",
-      "params":[
-        {"name":":targetUserId","value":"{{$_GET.userid.default(0)}}"},
-        {"name":":targetTenantId","value":"{{$_SESSION.TENANT_ID}}"},
-        {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},
-        {"name":":ownerUserId","value":"{{$_SESSION.USER_ID}}"},
-        {"name":":ownerTenantId","value":"{{$_SESSION.TENANT_ID}}"},
-        {"name":":actorUserId","value":"{{$_SESSION.USER_ID}}"},
-        {"name":":actorTenantId","value":"{{$_SESSION.TENANT_ID}}"}
-      ]
-    }},
-    "output":true,
-    "outputType":"array"
-  }}
+  "settings": {
+    "options": {
+      "nocsrf": true,
+      "method": "get",
+      "restrict": {
+        "provider": "security",
+        "permissions": [
+          "owner-admin"
+        ]
+      }
+    }
+  },
+  "meta": {
+    "$_GET": [
+      {
+        "type": "number",
+        "name": "userid"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "roles",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT r.id,r.roleCode,r.roleName,r.roleDescription,r.isOwnerRole,EXISTS(SELECT 1 FROM tbl_user_tenant_roles targetMap WHERE targetMap.userId=:targetUserId AND targetMap.tenantId=:targetTenantId AND targetMap.roleId=r.id AND targetMap.isActive=1) isAssigned FROM tbl_roles r WHERE r.isActive=1 AND (r.tenantId=:tenantId OR (r.tenantId IS NULL AND r.isProtected=1)) AND (r.isAssignable=1 OR (r.isOwnerRole=1 AND EXISTS (SELECT 1 FROM tbl_user_tenant_roles ownerMap INNER JOIN tbl_roles ownerRole ON ownerRole.id=ownerMap.roleId AND ownerRole.isOwnerRole=1 AND ownerRole.isActive=1 WHERE ownerMap.userId=:ownerUserId AND ownerMap.tenantId=:ownerTenantId AND ownerMap.isActive=1))) AND NOT EXISTS (SELECT 1 FROM tbl_role_permissions targetRp WHERE targetRp.roleId=r.id AND NOT EXISTS (SELECT 1 FROM tbl_user_tenant_roles actorMap INNER JOIN tbl_role_permissions actorRp ON actorRp.roleId=actorMap.roleId AND actorRp.permissionId=targetRp.permissionId WHERE actorMap.userId=:actorUserId AND actorMap.tenantId=:actorTenantId AND actorMap.isActive=1)) ORDER BY r.isOwnerRole,r.roleName",
+            "params": [
+              {
+                "name": ":targetUserId",
+                "value": "{{$_GET.userid.default(0)}}"
+              },
+              {
+                "name": ":targetTenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":ownerUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":ownerTenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":actorUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":actorTenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      }
+    ]
+  }
 }

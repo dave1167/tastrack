@@ -1,28 +1,78 @@
 {
   "settings": {
     "options": {
-      "restrict": {"provider": "security"},
+      "restrict": {
+        "provider": "security"
+      },
       "method": "post"
     }
   },
   "meta": {
     "$_POST": [
-      {"type": "number", "name": "id"},
-      {"type": "number", "name": "rowVersion"},
-      {"type": "text", "name": "workflowName"},
-      {"type": "text", "name": "referenceCode"},
-      {"type": "text", "name": "notes"},
-      {"type": "number", "name": "eventStatusId"},
-      {"type": "number", "name": "ownerTeamId"},
-      {"type": "text", "name": "startDate"},
-      {"type": "text", "name": "targetDate"},
-      {"type": "text", "name": "showDate"},
-      {"type": "text", "name": "showTime"},
-      {"type": "number", "name": "locationId"},
-      {"type": "number", "name": "spaceId"},
-      {"type": "number", "name": "configurationId"},
-      {"type": "number", "name": "workflowTypeId"},
-      {"type": "number", "name": "contractingEntityId"}
+      {
+        "type": "number",
+        "name": "id"
+      },
+      {
+        "type": "number",
+        "name": "rowVersion"
+      },
+      {
+        "type": "text",
+        "name": "workflowName"
+      },
+      {
+        "type": "text",
+        "name": "referenceCode"
+      },
+      {
+        "type": "text",
+        "name": "notes"
+      },
+      {
+        "type": "number",
+        "name": "eventStatusId"
+      },
+      {
+        "type": "number",
+        "name": "ownerTeamId"
+      },
+      {
+        "type": "text",
+        "name": "startDate"
+      },
+      {
+        "type": "text",
+        "name": "targetDate"
+      },
+      {
+        "type": "text",
+        "name": "showDate"
+      },
+      {
+        "type": "text",
+        "name": "showTime"
+      },
+      {
+        "type": "number",
+        "name": "locationId"
+      },
+      {
+        "type": "number",
+        "name": "spaceId"
+      },
+      {
+        "type": "number",
+        "name": "configurationId"
+      },
+      {
+        "type": "number",
+        "name": "workflowTypeId"
+      },
+      {
+        "type": "number",
+        "name": "contractingEntityId"
+      }
     ]
   },
   "exec": {
@@ -34,11 +84,20 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT w.id,w.workflowName,w.referenceCode,w.eventStatusId,es.statusName AS status,w.ownerTeamId,w.startDate,w.targetDate,w.locationId,w.spaceId,w.configurationId,w.rowVersion FROM tbl_workflows w INNER JOIN tbl_event_statuses es ON es.id=w.eventStatusId AND es.tenantId=w.tenantId WHERE w.id=:id AND w.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenants membership WHERE membership.userId=:userId AND membership.tenantId=w.tenantId AND membership.isActive=1 AND membership.membershipStatus='active') LIMIT 1",
+            "query": "SELECT w.id,w.workflowName,w.referenceCode,w.eventStatusId,es.statusName AS status,w.ownerTeamId,w.startDate,w.targetDate,w.locationId,w.spaceId,w.configurationId,w.rowVersion FROM tbl_workflows w INNER JOIN tbl_event_statuses es ON es.id=w.eventStatusId AND es.tenantId=w.tenantId WHERE w.id=:id AND w.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenants membership WHERE membership.userId=:userId AND membership.tenantId=w.tenantId AND membership.isActive=1 AND membership.membershipStatus='active') AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles editRole INNER JOIN tbl_role_permissions editGrant ON editGrant.roleId=editRole.roleId INNER JOIN tbl_permissions editPermission ON editPermission.id=editGrant.permissionId AND editPermission.permissionCode='workflows.edit' AND editPermission.isActive=1 WHERE editRole.userId=:userId AND editRole.tenantId=w.tenantId AND editRole.isActive=1) LIMIT 1",
             "params": [
-              {"name": ":id", "value": "{{$_POST.id}}"},
-              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
-              {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}
+              {
+                "name": ":id",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              }
             ]
           }
         },
@@ -52,29 +111,92 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_workflows w SET w.workflowName=:workflowName,w.referenceCode=NULLIF(:referenceCode,''),w.notes=NULLIF(:notes,''),w.eventStatusId=(SELECT status.id FROM tbl_event_statuses status WHERE status.id=:eventStatusId AND status.tenantId=w.tenantId AND (status.isActive=1 OR status.id=w.eventStatusId) LIMIT 1),w.ownerTeamId=(SELECT team.id FROM tbl_teams team WHERE team.id=NULLIF(:ownerTeamId,'') AND team.tenantId=w.tenantId AND team.isActive=1 LIMIT 1),w.workflowTypeId=(SELECT type.id FROM tbl_workflow_types type WHERE type.id=NULLIF(:workflowTypeId,'') AND type.tenantId=w.tenantId AND type.isActive=1 LIMIT 1),w.contractingEntityId=COALESCE((SELECT entity.id FROM tbl_contracting_entities entity WHERE entity.id=NULLIF(:contractingEntityId,'') AND entity.tenantId=w.tenantId AND entity.isActive=1 LIMIT 1),(SELECT defaultEntity.id FROM tbl_contracting_entities defaultEntity WHERE defaultEntity.tenantId=w.tenantId AND defaultEntity.isDefault=1 AND defaultEntity.isActive=1 LIMIT 1)),w.locationId=(SELECT location.id FROM tbl_locations location WHERE location.id=NULLIF(:locationId,'') AND location.tenantId=w.tenantId LIMIT 1),w.spaceId=(SELECT space.id FROM tbl_spaces space WHERE space.id=NULLIF(:spaceId,'') AND space.locationId=NULLIF(:locationId2,'') AND space.tenantId=w.tenantId LIMIT 1),w.configurationId=(SELECT configuration.id FROM tbl_space_configurations configuration WHERE configuration.id=NULLIF(:configurationId,'') AND configuration.spaceId=NULLIF(:spaceId2,'') AND configuration.tenantId=w.tenantId LIMIT 1),w.startDate=NULLIF(:startDate,''),w.targetDate=NULLIF(:targetDate,''),w.completedDate=CASE WHEN EXISTS(SELECT 1 FROM tbl_event_statuses status WHERE status.id=:eventStatusId2 AND status.tenantId=w.tenantId AND status.systemCategory='completed') THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.rowVersion=w.rowVersion+1,w.modifiedByUserId=:modifiedByUserId,w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:id AND w.tenantId=:tenantId AND w.rowVersion=:rowVersion AND EXISTS(SELECT 1 FROM tbl_event_statuses status WHERE status.id=:validEventStatusId AND status.tenantId=w.tenantId AND (status.isActive=1 OR status.id=w.eventStatusId)) AND EXISTS(SELECT 1 FROM tbl_user_tenants membership WHERE membership.userId=:permissionUserId AND membership.tenantId=w.tenantId AND membership.isActive=1 AND membership.membershipStatus='active')",
+            "query": "UPDATE tbl_workflows w SET w.workflowName=:workflowName,w.referenceCode=NULLIF(:referenceCode,''),w.notes=NULLIF(:notes,''),w.eventStatusId=(SELECT status.id FROM tbl_event_statuses status WHERE status.id=:eventStatusId AND status.tenantId=w.tenantId AND (status.isActive=1 OR status.id=w.eventStatusId) LIMIT 1),w.ownerTeamId=(SELECT team.id FROM tbl_teams team WHERE team.id=NULLIF(:ownerTeamId,'') AND team.tenantId=w.tenantId AND team.isActive=1 LIMIT 1),w.workflowTypeId=(SELECT type.id FROM tbl_workflow_types type WHERE type.id=NULLIF(:workflowTypeId,'') AND type.tenantId=w.tenantId AND type.isActive=1 LIMIT 1),w.contractingEntityId=COALESCE((SELECT entity.id FROM tbl_contracting_entities entity WHERE entity.id=NULLIF(:contractingEntityId,'') AND entity.tenantId=w.tenantId AND entity.isActive=1 LIMIT 1),(SELECT defaultEntity.id FROM tbl_contracting_entities defaultEntity WHERE defaultEntity.tenantId=w.tenantId AND defaultEntity.isDefault=1 AND defaultEntity.isActive=1 LIMIT 1)),w.locationId=(SELECT location.id FROM tbl_locations location WHERE location.id=NULLIF(:locationId,'') AND location.tenantId=w.tenantId LIMIT 1),w.spaceId=(SELECT space.id FROM tbl_spaces space WHERE space.id=NULLIF(:spaceId,'') AND space.locationId=NULLIF(:locationId2,'') AND space.tenantId=w.tenantId LIMIT 1),w.configurationId=(SELECT configuration.id FROM tbl_space_configurations configuration WHERE configuration.id=NULLIF(:configurationId,'') AND configuration.spaceId=NULLIF(:spaceId2,'') AND configuration.tenantId=w.tenantId LIMIT 1),w.startDate=NULLIF(:startDate,''),w.targetDate=NULLIF(:targetDate,''),w.completedDate=CASE WHEN EXISTS(SELECT 1 FROM tbl_event_statuses status WHERE status.id=:eventStatusId2 AND status.tenantId=w.tenantId AND status.systemCategory='completed') THEN COALESCE(w.completedDate,CURRENT_TIMESTAMP) ELSE NULL END,w.rowVersion=w.rowVersion+1,w.modifiedByUserId=:modifiedByUserId,w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:id AND w.tenantId=:tenantId AND w.rowVersion=:rowVersion AND EXISTS(SELECT 1 FROM tbl_event_statuses status WHERE status.id=:validEventStatusId AND status.tenantId=w.tenantId AND (status.isActive=1 OR status.id=w.eventStatusId)) AND EXISTS(SELECT 1 FROM tbl_user_tenants membership WHERE membership.userId=:permissionUserId AND membership.tenantId=w.tenantId AND membership.isActive=1 AND membership.membershipStatus='active') AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles editRole INNER JOIN tbl_role_permissions editGrant ON editGrant.roleId=editRole.roleId INNER JOIN tbl_permissions editPermission ON editPermission.id=editGrant.permissionId AND editPermission.permissionCode='workflows.edit' AND editPermission.isActive=1 WHERE editRole.userId=:permissionUserId AND editRole.tenantId=w.tenantId AND editRole.isActive=1)",
             "params": [
-              {"name": ":workflowName", "value": "{{$_POST.workflowName}}"},
-              {"name": ":referenceCode", "value": "{{$_POST.referenceCode.default('')}}"},
-              {"name": ":notes", "value": "{{$_POST.notes.default('')}}"},
-              {"name": ":eventStatusId", "value": "{{$_POST.eventStatusId}}"},
-              {"name": ":ownerTeamId", "value": "{{$_POST.ownerTeamId.default('')}}"},
-              {"name": ":workflowTypeId", "value": "{{$_POST.workflowTypeId.default('')}}"},
-              {"name": ":contractingEntityId", "value": "{{$_POST.contractingEntityId.default('')}}"},
-              {"name": ":locationId", "value": "{{$_POST.locationId.default('')}}"},
-              {"name": ":spaceId", "value": "{{$_POST.spaceId.default('')}}"},
-              {"name": ":locationId2", "value": "{{$_POST.locationId.default('')}}"},
-              {"name": ":configurationId", "value": "{{$_POST.configurationId.default('')}}"},
-              {"name": ":spaceId2", "value": "{{$_POST.spaceId.default('')}}"},
-              {"name": ":startDate", "value": "{{$_POST.startDate.default('')}}"},
-              {"name": ":targetDate", "value": "{{$_POST.targetDate.default('')}}"},
-              {"name": ":eventStatusId2", "value": "{{$_POST.eventStatusId}}"},
-              {"name": ":modifiedByUserId", "value": "{{$_SESSION.USER_ID}}"},
-              {"name": ":id", "value": "{{$_POST.id}}"},
-              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
-              {"name": ":rowVersion", "value": "{{$_POST.rowVersion}}"},
-              {"name": ":validEventStatusId", "value": "{{$_POST.eventStatusId}}"},
-              {"name": ":permissionUserId", "value": "{{$_SESSION.USER_ID}}"}
+              {
+                "name": ":workflowName",
+                "value": "{{$_POST.workflowName}}"
+              },
+              {
+                "name": ":referenceCode",
+                "value": "{{$_POST.referenceCode.default('')}}"
+              },
+              {
+                "name": ":notes",
+                "value": "{{$_POST.notes.default('')}}"
+              },
+              {
+                "name": ":eventStatusId",
+                "value": "{{$_POST.eventStatusId}}"
+              },
+              {
+                "name": ":ownerTeamId",
+                "value": "{{$_POST.ownerTeamId.default('')}}"
+              },
+              {
+                "name": ":workflowTypeId",
+                "value": "{{$_POST.workflowTypeId.default('')}}"
+              },
+              {
+                "name": ":contractingEntityId",
+                "value": "{{$_POST.contractingEntityId.default('')}}"
+              },
+              {
+                "name": ":locationId",
+                "value": "{{$_POST.locationId.default('')}}"
+              },
+              {
+                "name": ":spaceId",
+                "value": "{{$_POST.spaceId.default('')}}"
+              },
+              {
+                "name": ":locationId2",
+                "value": "{{$_POST.locationId.default('')}}"
+              },
+              {
+                "name": ":configurationId",
+                "value": "{{$_POST.configurationId.default('')}}"
+              },
+              {
+                "name": ":spaceId2",
+                "value": "{{$_POST.spaceId.default('')}}"
+              },
+              {
+                "name": ":startDate",
+                "value": "{{$_POST.startDate.default('')}}"
+              },
+              {
+                "name": ":targetDate",
+                "value": "{{$_POST.targetDate.default('')}}"
+              },
+              {
+                "name": ":eventStatusId2",
+                "value": "{{$_POST.eventStatusId}}"
+              },
+              {
+                "name": ":modifiedByUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":id",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":rowVersion",
+                "value": "{{$_POST.rowVersion}}"
+              },
+              {
+                "name": ":validEventStatusId",
+                "value": "{{$_POST.eventStatusId}}"
+              },
+              {
+                "name": ":permissionUserId",
+                "value": "{{$_SESSION.USER_ID}}"
+              }
             ]
           }
         },
@@ -95,11 +217,20 @@
                 "options": {
                   "connection": "db",
                   "sql": {
-                    "query": "SELECT w.id,w.workflowName,w.referenceCode,w.eventStatusId,es.statusName AS status,w.ownerTeamId,w.startDate,w.targetDate,w.locationId,w.spaceId,w.configurationId,w.rowVersion,w.modifiedDate,COALESCE(u.displayName,'Unknown user') AS modifiedByUserName FROM tbl_workflows w INNER JOIN tbl_event_statuses es ON es.id=w.eventStatusId AND es.tenantId=w.tenantId LEFT JOIN tbl_users u ON u.id=w.modifiedByUserId WHERE w.id=:id AND w.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenants membership WHERE membership.userId=:userId AND membership.tenantId=w.tenantId AND membership.isActive=1 AND membership.membershipStatus='active') LIMIT 1",
+                    "query": "SELECT w.id,w.workflowName,w.referenceCode,w.eventStatusId,es.statusName AS status,w.ownerTeamId,w.startDate,w.targetDate,w.locationId,w.spaceId,w.configurationId,w.rowVersion,w.modifiedDate,COALESCE(u.displayName,'Unknown user') AS modifiedByUserName FROM tbl_workflows w INNER JOIN tbl_event_statuses es ON es.id=w.eventStatusId AND es.tenantId=w.tenantId LEFT JOIN tbl_users u ON u.id=w.modifiedByUserId WHERE w.id=:id AND w.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenants membership WHERE membership.userId=:userId AND membership.tenantId=w.tenantId AND membership.isActive=1 AND membership.membershipStatus='active') AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles editRole INNER JOIN tbl_role_permissions editGrant ON editGrant.roleId=editRole.roleId INNER JOIN tbl_permissions editPermission ON editPermission.id=editGrant.permissionId AND editPermission.permissionCode='workflows.edit' AND editPermission.isActive=1 WHERE editRole.userId=:userId AND editRole.tenantId=w.tenantId AND editRole.isActive=1) LIMIT 1",
                     "params": [
-                      {"name": ":id", "value": "{{$_POST.id}}"},
-                      {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
-                      {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}
+                      {
+                        "name": ":id",
+                        "value": "{{$_POST.id}}"
+                      },
+                      {
+                        "name": ":tenantId",
+                        "value": "{{$_SESSION.TENANT_ID}}"
+                      },
+                      {
+                        "name": ":userId",
+                        "value": "{{$_SESSION.USER_ID}}"
+                      }
                     ]
                   }
                 },
@@ -163,11 +294,26 @@
           "sql": {
             "query": "UPDATE tbl_workflow_field_values fv INNER JOIN tbl_workflows w ON w.id=fv.workflowId AND w.tenantId=fv.tenantId SET fv.valueDate=CASE WHEN fv.fieldKey='show_date' THEN NULLIF(:showDate,'') ELSE fv.valueDate END,fv.valueText=CASE WHEN fv.fieldKey='show_time' THEN NULLIF(:showTime,'') ELSE fv.valueText END,fv.modifiedDate=CURRENT_TIMESTAMP WHERE fv.workflowId=:workflowId AND fv.tenantId=:tenantId AND fv.fieldKey IN ('show_date','show_time') AND :affectedRows=1",
             "params": [
-              {"name": ":showDate", "value": "{{$_POST.showDate.default('')}}"},
-              {"name": ":showTime", "value": "{{$_POST.showTime.default('')}}"},
-              {"name": ":workflowId", "value": "{{$_POST.id}}"},
-              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
-              {"name": ":affectedRows", "value": "{{updateWorkflow.affectedRows.default(0)}}"}
+              {
+                "name": ":showDate",
+                "value": "{{$_POST.showDate.default('')}}"
+              },
+              {
+                "name": ":showTime",
+                "value": "{{$_POST.showTime.default('')}}"
+              },
+              {
+                "name": ":workflowId",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":affectedRows",
+                "value": "{{updateWorkflow.affectedRows.default(0)}}"
+              }
             ]
           }
         },
@@ -182,37 +328,130 @@
           "sql": {
             "query": "INSERT INTO tbl_activity_log (tenantId,userId,workflowId,entityType,entityId,actionType,summary,beforeJson,afterJson,createdDate) SELECT :tenantId,:userId,:workflowId,'workflow',:entityId,CASE WHEN :oldStatus<>:newStatus THEN 'workflow.status_changed' ELSE 'workflow.updated' END,CASE WHEN :oldStatus2<>:newStatus2 THEN CONCAT(:displayName,' changed ',:workflowName,' from ',REPLACE(:oldStatus3,'_',' '),' to ',REPLACE(:newStatus3,'_',' ')) ELSE CONCAT(:displayName,' updated ',:workflowName2) END,JSON_OBJECT('version',:oldVersion,'workflowName',:oldName,'referenceCode',:oldReference,'status',:oldStatus4,'ownerTeamId',:oldTeam,'startDate',:oldStart,'targetDate',:oldTarget),JSON_OBJECT('version',:newVersion,'workflowName',:newName,'referenceCode',:newReference,'status',:newStatus4,'ownerTeamId',:newTeam,'startDate',:newStart,'targetDate',:newTarget),CURRENT_TIMESTAMP FROM tbl_activity_types activityType WHERE activityType.tenantId=:tenantId2 AND activityType.activityKey=CASE WHEN :oldStatus5<>:newStatus5 THEN 'workflow.status_changed' ELSE 'workflow.updated' END AND activityType.isActive=1 AND :affectedRows=1 LIMIT 1",
             "params": [
-              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
-              {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"},
-              {"name": ":workflowId", "value": "{{$_POST.id}}"},
-              {"name": ":entityId", "value": "{{$_POST.id}}"},
-              {"name": ":oldStatus", "value": "{{workflowBeforeChange[0].eventStatusId}}"},
-              {"name": ":newStatus", "value": "{{$_POST.eventStatusId}}"},
-              {"name": ":oldStatus2", "value": "{{workflowBeforeChange[0].eventStatusId}}"},
-              {"name": ":newStatus2", "value": "{{$_POST.eventStatusId}}"},
-              {"name": ":displayName", "value": "{{$_SESSION.DISPLAY_NAME.default('A user')}}"},
-              {"name": ":workflowName", "value": "{{$_POST.workflowName}}"},
-              {"name": ":oldStatus3", "value": "{{workflowBeforeChange[0].status}}"},
-              {"name": ":newStatus3", "value": "{{$_POST.eventStatusId}}"},
-              {"name": ":workflowName2", "value": "{{$_POST.workflowName}}"},
-              {"name": ":oldVersion", "value": "{{workflowBeforeChange[0].rowVersion}}"},
-              {"name": ":newVersion", "value": "{{$_POST.rowVersion + 1}}"},
-              {"name": ":oldName", "value": "{{workflowBeforeChange[0].workflowName}}"},
-              {"name": ":oldReference", "value": "{{workflowBeforeChange[0].referenceCode}}"},
-              {"name": ":oldStatus4", "value": "{{workflowBeforeChange[0].status}}"},
-              {"name": ":oldTeam", "value": "{{workflowBeforeChange[0].ownerTeamId}}"},
-              {"name": ":oldStart", "value": "{{workflowBeforeChange[0].startDate}}"},
-              {"name": ":oldTarget", "value": "{{workflowBeforeChange[0].targetDate}}"},
-              {"name": ":newName", "value": "{{$_POST.workflowName}}"},
-              {"name": ":newReference", "value": "{{$_POST.referenceCode.default('')}}"},
-              {"name": ":newStatus4", "value": "{{$_POST.eventStatusId}}"},
-              {"name": ":newTeam", "value": "{{$_POST.ownerTeamId}}"},
-              {"name": ":newStart", "value": "{{$_POST.startDate.default('')}}"},
-              {"name": ":newTarget", "value": "{{$_POST.targetDate.default('')}}"},
-              {"name": ":tenantId2", "value": "{{$_SESSION.TENANT_ID}}"},
-              {"name": ":oldStatus5", "value": "{{workflowBeforeChange[0].eventStatusId}}"},
-              {"name": ":newStatus5", "value": "{{$_POST.eventStatusId}}"},
-              {"name": ":affectedRows", "value": "{{updateWorkflow.affectedRows.default(0)}}"}
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID}}"
+              },
+              {
+                "name": ":workflowId",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":entityId",
+                "value": "{{$_POST.id}}"
+              },
+              {
+                "name": ":oldStatus",
+                "value": "{{workflowBeforeChange[0].eventStatusId}}"
+              },
+              {
+                "name": ":newStatus",
+                "value": "{{$_POST.eventStatusId}}"
+              },
+              {
+                "name": ":oldStatus2",
+                "value": "{{workflowBeforeChange[0].eventStatusId}}"
+              },
+              {
+                "name": ":newStatus2",
+                "value": "{{$_POST.eventStatusId}}"
+              },
+              {
+                "name": ":displayName",
+                "value": "{{$_SESSION.DISPLAY_NAME.default('A user')}}"
+              },
+              {
+                "name": ":workflowName",
+                "value": "{{$_POST.workflowName}}"
+              },
+              {
+                "name": ":oldStatus3",
+                "value": "{{workflowBeforeChange[0].status}}"
+              },
+              {
+                "name": ":newStatus3",
+                "value": "{{$_POST.eventStatusId}}"
+              },
+              {
+                "name": ":workflowName2",
+                "value": "{{$_POST.workflowName}}"
+              },
+              {
+                "name": ":oldVersion",
+                "value": "{{workflowBeforeChange[0].rowVersion}}"
+              },
+              {
+                "name": ":newVersion",
+                "value": "{{$_POST.rowVersion + 1}}"
+              },
+              {
+                "name": ":oldName",
+                "value": "{{workflowBeforeChange[0].workflowName}}"
+              },
+              {
+                "name": ":oldReference",
+                "value": "{{workflowBeforeChange[0].referenceCode}}"
+              },
+              {
+                "name": ":oldStatus4",
+                "value": "{{workflowBeforeChange[0].status}}"
+              },
+              {
+                "name": ":oldTeam",
+                "value": "{{workflowBeforeChange[0].ownerTeamId}}"
+              },
+              {
+                "name": ":oldStart",
+                "value": "{{workflowBeforeChange[0].startDate}}"
+              },
+              {
+                "name": ":oldTarget",
+                "value": "{{workflowBeforeChange[0].targetDate}}"
+              },
+              {
+                "name": ":newName",
+                "value": "{{$_POST.workflowName}}"
+              },
+              {
+                "name": ":newReference",
+                "value": "{{$_POST.referenceCode.default('')}}"
+              },
+              {
+                "name": ":newStatus4",
+                "value": "{{$_POST.eventStatusId}}"
+              },
+              {
+                "name": ":newTeam",
+                "value": "{{$_POST.ownerTeamId}}"
+              },
+              {
+                "name": ":newStart",
+                "value": "{{$_POST.startDate.default('')}}"
+              },
+              {
+                "name": ":newTarget",
+                "value": "{{$_POST.targetDate.default('')}}"
+              },
+              {
+                "name": ":tenantId2",
+                "value": "{{$_SESSION.TENANT_ID}}"
+              },
+              {
+                "name": ":oldStatus5",
+                "value": "{{workflowBeforeChange[0].eventStatusId}}"
+              },
+              {
+                "name": ":newStatus5",
+                "value": "{{$_POST.eventStatusId}}"
+              },
+              {
+                "name": ":affectedRows",
+                "value": "{{updateWorkflow.affectedRows.default(0)}}"
+              }
             ]
           }
         },

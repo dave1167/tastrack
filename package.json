@@ -8,7 +8,17 @@
     "node": ">=16.9.0"
   },
   "scripts": {
-    "start": "node ./index.js"
+    "start": "node ./index.js",
+    "test:e2e:seed": "node tests/e2e/setup/seed-test-data.js",
+    "test:e2e": "node tests/e2e/setup/run-e2e.js",
+    "test:e2e:phase1": "node tests/e2e/setup/run-e2e.js tests/e2e/specs/01-authentication-and-sessions.spec.js tests/e2e/specs/02-tenant-isolation-and-permissions.spec.js tests/e2e/specs/03-smoke.spec.js",
+    "test:e2e:phase2": "node tests/e2e/setup/run-e2e.js tests/e2e/specs/phase2",
+    "test:e2e:workflows": "node tests/e2e/setup/run-e2e.js tests/e2e/specs/phase2/workflows",
+    "test:e2e:concurrency": "node tests/e2e/setup/run-e2e.js tests/e2e/specs/phase2/workflows/concurrency.spec.js",
+    "test:e2e:tasks": "node tests/e2e/setup/run-e2e.js tests/e2e/specs/phase2/tasks",
+    "test:e2e:headed": "node tests/e2e/setup/run-e2e.js --headed",
+    "test:e2e:ui": "node tests/e2e/setup/run-e2e.js --ui",
+    "test:e2e:report": "playwright show-report"
   },
   "author": "Wappler",
   "license": "ISC",
@@ -53,5 +63,8 @@
       "tmp/**/restart.txt"
     ],
     "ext": "ejs,js,json"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1"
   }
 }

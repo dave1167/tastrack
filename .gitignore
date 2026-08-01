@@ -1,5 +1,11 @@
 node_modules
 .svn
 .env
+.env.test
 **/.DS_Store
 uploads/
+playwright-report/
+test-results/
+blob-report/
+tests/e2e/.state/
+tmp/e2e-runtime/

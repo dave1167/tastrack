@@ -1,0 +1,69 @@
+{
+  "settings": {
+    "options": {
+      "restrict": {
+        "provider": "security"
+      },
+      "nocsrf": true,
+      "method": "get"
+    }
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "encryptedUsers",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT u.id userId,COALESCE(NULLIF(u.displayName,''),NULLIF(CONCAT_WS(' ',u.fName,u.lName),''),u.email) userName,u.email,COALESCE(ut.chatAvailability,'available') chatAvailability,ut.chatStatusMessage,CASE WHEN cp.isActive=1 THEN c.id ELSE NULL END conversationId,COALESCE((SELECT COUNT(*) FROM tbl_chat_messages msg WHERE cp.isActive=1 AND msg.tenantId=ut.tenantId AND msg.conversationId=c.id AND msg.senderUserId<>:currentUser AND msg.isDeleted=0 AND msg.id>COALESCE(cp.lastReadMessageId,0)),0) unreadCount,(SELECT latest.messageCiphertext FROM tbl_chat_messages latest WHERE cp.isActive=1 AND latest.tenantId=ut.tenantId AND latest.conversationId=c.id AND latest.isDeleted=0 ORDER BY latest.id DESC LIMIT 1) messageCiphertext,(SELECT latest.messageIv FROM tbl_chat_messages latest WHERE cp.isActive=1 AND latest.tenantId=ut.tenantId AND latest.conversationId=c.id AND latest.isDeleted=0 ORDER BY latest.id DESC LIMIT 1) messageIv,(SELECT latest.messageAuthTag FROM tbl_chat_messages latest WHERE cp.isActive=1 AND latest.tenantId=ut.tenantId AND latest.conversationId=c.id AND latest.isDeleted=0 ORDER BY latest.id DESC LIMIT 1) messageAuthTag,(SELECT latest.messageKeyVersion FROM tbl_chat_messages latest WHERE cp.isActive=1 AND latest.tenantId=ut.tenantId AND latest.conversationId=c.id AND latest.isDeleted=0 ORDER BY latest.id DESC LIMIT 1) messageKeyVersion,CASE WHEN cp.isActive=1 THEN c.id ELSE NULL END messageConversationId,(SELECT latest.senderUserId FROM tbl_chat_messages latest WHERE cp.isActive=1 AND latest.tenantId=ut.tenantId AND latest.conversationId=c.id AND latest.isDeleted=0 ORDER BY latest.id DESC LIMIT 1) lastSenderUserId,(SELECT MAX(lastMessage.createdDate) FROM tbl_chat_messages lastMessage WHERE cp.isActive=1 AND lastMessage.tenantId=ut.tenantId AND lastMessage.conversationId=c.id AND lastMessage.isDeleted=0) lastMessageDate FROM tbl_user_tenants ut INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 LEFT JOIN tbl_chat_conversations c ON c.tenantId=ut.tenantId AND c.conversationType='direct' AND c.directKey=CONCAT(LEAST(:currentUser2,u.id),'-',GREATEST(:currentUser3,u.id)) AND c.isActive=1 LEFT JOIN tbl_chat_participants cp ON cp.tenantId=ut.tenantId AND cp.conversationId=c.id AND cp.userId=:currentUser4 WHERE ut.tenantId=:tenantId AND ut.isActive=1 AND ut.membershipStatus='active' AND ut.userId<>:currentUser5 AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='TEAM_CHAT' AND m.isActive=1 WHERE tm.tenantId=ut.tenantId AND tm.status IN ('ACTIVE','TRIAL')) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles roleMembership INNER JOIN tbl_role_permissions rp ON rp.roleId=roleMembership.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='chat.view' AND p.isActive=1 WHERE roleMembership.userId=:currentUser6 AND roleMembership.tenantId=ut.tenantId AND roleMembership.isActive=1) ORDER BY CASE WHEN lastMessageDate IS NULL THEN 1 ELSE 0 END,lastMessageDate DESC,userName",
+            "params": [
+              {
+                "name": ":currentUser",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":currentUser2",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":currentUser3",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":currentUser4",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":currentUser5",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":currentUser6",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": false,
+        "outputType": "array"
+      },
+      {
+        "name": "users",
+        "module": "chatCrypto",
+        "action": "decryptRows",
+        "options": {
+          "rows": "{{encryptedUsers}}",
+          "tenantId": "{{$_SESSION.TENANT_ID.default(0)}}",
+          "outputField": "lastMessageText"
+        },
+        "output": true
+      }
+    ]
+  }
+}

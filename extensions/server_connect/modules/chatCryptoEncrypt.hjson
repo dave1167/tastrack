@@ -1,0 +1,26 @@
+{
+  type: 'chat_crypto_encrypt',
+  module: 'chatCrypto',
+  action: 'encrypt',
+  groupTitle: 'Security',
+  groupIcon: 'fa fa-lock comp-data',
+  addTitle: 'Encrypt chat message',
+  title: 'Encrypt chat message',
+  icon: 'fa fa-lock comp-data',
+  serverModel: ['node'],
+  dataPickObject: true,
+  dataScheme: [
+    { name: 'ciphertext', type: 'text' },
+    { name: 'iv', type: 'text' },
+    { name: 'authTag', type: 'text' },
+    { name: 'keyVersion', type: 'number' }
+  ],
+  properties: [{
+    group: 'Message',
+    variables: [
+      { name: 'plaintext', optionName: 'plaintext', title: 'Plain text', type: 'text', required: true, serverDataBindings: true },
+      { name: 'tenantId', optionName: 'tenantId', title: 'Tenant ID', type: 'number', required: true, serverDataBindings: true },
+      { name: 'conversationId', optionName: 'conversationId', title: 'Conversation ID', type: 'number', required: true, serverDataBindings: true }
+    ]
+  }]
+}

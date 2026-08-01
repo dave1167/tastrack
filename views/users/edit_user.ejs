@@ -2,7 +2,7 @@
 <dmx-query-manager id="query1"></dmx-query-manager>
 <dmx-browser id="browser1"></dmx-browser>
 <dmx-serverconnect id="scUser" url="/api/tenant/users/get_v2" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
-<dmx-serverconnect id="scRoles" url="/api/tenant/users/role_options_v2" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
+<dmx-serverconnect id="scRoles" url="/api/tenant/users/role_options_v2"></dmx-serverconnect>
 <dmx-serverconnect id="scTeamOptions" url="/api/tenant/users/team_options"></dmx-serverconnect>
 <dmx-serverconnect id="scTeamRoles" url="/api/tenant/users/team_role_options" noload="true"></dmx-serverconnect>
 <dmx-serverconnect id="scTeamAssignments" url="/api/tenant/users/team_assignments" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
@@ -11,7 +11,7 @@
     <div class="col-12">
         <div class="d-flex align-items-center justify-content-between gap-3">
             <div>
-                <h1 class="mb-1">Manage tenant roles</h1>
+                <h1 class="mb-1">Manage User roles</h1>
                 <p class="text-muted mb-0">Assign one or more permitted roles to this person within the current organisation.</p>
             </div>
             <a class="btn btn-outline-secondary" href="/users/all_users">Back to users</a>
@@ -33,28 +33,19 @@
                     <span dmx-text="frmRoles.lastError.response.message || frmRoles.lastError.message || 'Check the selections and try again.'"></span>
                 </div>
 
-                <form id="frmRoles" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/update_roles" dmx-on:success="browser1.goto('/users/all_users?roles_updated=1')">
+                <form id="frmRoles" data-testid="role-form" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/update_roles" dmx-on:success="browser1.goto('/users/all_users?roles_updated=1')">
                     <%- _csrfInput() %>
                     <input type="hidden" name="userId" dmx-bind:value="scUser.data.user[0].userId">
 
                     <fieldset>
-                        <legend class="h6 mb-2">Tenant roles</legend>
+                        <legend class="h6 mb-2">User roles</legend>
                         <p class="text-muted small">The user receives the combined permissions from every selected role.</p>
                         <div class="border rounded p-3">
-                            <div class="small fw-semibold text-uppercase text-muted mb-2" dmx-show="scRoles.data.roles.where('isAssigned', 1, '==').count() > 0">Assigned roles</div>
-                            <div class="form-check mb-3" is="dmx-repeat" id="repeatAssignedRoles" dmx-bind:repeat="scRoles.data.roles.where('isAssigned', 1, '==')">
-                                <input class="form-check-input" type="checkbox" name="roleIds[]" checked dmx-bind:id="'assigned_role_' + $value.id" dmx-bind:value="$value.id">
-                                <label class="form-check-label" dmx-bind:for="'assigned_role_' + $value.id">
-                                    <span class="fw-semibold" dmx-text="$value.roleName"></span>
-                                    <span class="d-block text-muted small" dmx-text="$value.roleDescription"></span>
-                                </label>
-                            </div>
-                            <div class="small fw-semibold text-uppercase text-muted mb-2 mt-3" dmx-show="scRoles.data.roles.where('isAssigned', 0, '==').count() > 0">Available roles</div>
-                            <div class="form-check mb-3" is="dmx-repeat" id="repeatAvailableRoles" dmx-bind:repeat="scRoles.data.roles.where('isAssigned', 0, '==')">
-                                <input class="form-check-input" type="checkbox" name="roleIds[]" dmx-bind:id="'available_role_' + $value.id" dmx-bind:value="$value.id">
-                                <label class="form-check-label" dmx-bind:for="'available_role_' + $value.id">
-                                    <span class="fw-semibold" dmx-text="$value.roleName"></span>
-                                    <span class="d-block text-muted small" dmx-text="$value.roleDescription"></span>
+                            <div class="form-check mb-3" is="dmx-repeat" id="repeatAssignableRoles" dmx-bind:repeat="scRoles.data.roles">
+                                <input class="form-check-input" type="checkbox" name="roleIds[]" dmx-bind:id="'edit_role_' + id" dmx-bind:value="id" dmx-bind:checked="scUser.data.roles.where('roleId', id, '==').count() > 0">
+                                <label class="form-check-label" dmx-bind:for="'edit_role_' + id">
+                                    <span class="fw-semibold" dmx-text="roleName"></span>
+                                    <span class="d-block text-muted small" dmx-text="roleDescription"></span>
                                 </label>
                             </div>
                             <div class="text-muted small" dmx-show="!scRoles.state.executing && scRoles.data.roles.count()==0">No roles are available for you to assign.</div>
@@ -84,8 +75,7 @@
                 <p class="text-muted small mb-0">Add this user to a team and select one or more roles within that team.</p>
             </div>
             <div class="card-body">
-                <form id="frmTeamAssignment" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/save_team_assignment"
-                    dmx-on:success="scTeamAssignments.load({userid: query1.data.userid})">
+                <form id="frmTeamAssignment" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/save_team_assignment" dmx-on:success="scTeamAssignments.load({userid: query1.data.userid})">
                     <%- _csrfInput() %>
                     <input type="hidden" name="userId" dmx-bind:value="scUser.data.user[0].userId">
 
@@ -95,9 +85,7 @@
 
                     <div class="mb-3">
                         <label class="form-label" for="teamAssignmentTeam">Team</label>
-                        <select class="form-select" id="teamAssignmentTeam" name="teamId" required
-                            dmx-bind:options="scTeamOptions.data.teams" optiontext="teamName" optionvalue="id"
-                            dmx-on:changed="scTeamRoles.load({teamid: value})">
+                        <select class="form-select" id="teamAssignmentTeam" name="teamId" required dmx-bind:options="scTeamOptions.data.teams" optiontext="teamName" optionvalue="id" dmx-on:changed="scTeamRoles.load({teamid: value})">
                             <option value="">Select a team</option>
                         </select>
                     </div>
@@ -106,8 +94,7 @@
                         <legend class="h6">Team roles</legend>
                         <div class="border rounded p-3 mb-3">
                             <div class="form-check mb-2" is="dmx-repeat" id="repeatTeamRoleOptions" dmx-bind:repeat="scTeamRoles.data.roles">
-                                <input class="form-check-input" type="checkbox" name="teamRoleIds[]" dmx-bind:id="'team_role_' + id" dmx-bind:value="id"
-                                    dmx-bind:checked="scTeamAssignments.data.teamRoles.where('teamId', teamAssignmentTeam.value, '==').where('teamRoleId', id, '==').count() > 0">
+                                <input class="form-check-input" type="checkbox" name="teamRoleIds[]" dmx-bind:id="'team_role_' + id" dmx-bind:value="id" dmx-bind:checked="scTeamAssignments.data.teamRoles.where('teamId', teamAssignmentTeam.value, '==').where('teamRoleId', id, '==').count() > 0">
                                 <label class="form-check-label" dmx-bind:for="'team_role_' + id">
                                     <span class="fw-semibold" dmx-text="teamRoleName"></span>
                                     <span class="d-block text-muted small" dmx-text="teamRoleDescription"></span>
@@ -132,8 +119,7 @@
                                 <span class="badge bg-light text-dark border" dmx-text="teamRoleName"></span>
                             </div>
                         </div>
-                        <form is="dmx-serverconnect-form" method="post" action="/api/tenant/users/remove_team_assignment"
-                            dmx-on:success="scTeamAssignments.load({userid: query1.data.userid})">
+                        <form is="dmx-serverconnect-form" method="post" action="/api/tenant/users/remove_team_assignment" dmx-on:success="scTeamAssignments.load({userid: query1.data.userid})">
                             <%- _csrfInput() %>
                             <input type="hidden" name="userId" dmx-bind:value="scUser.data.user[0].userId">
                             <input type="hidden" name="teamId" dmx-bind:value="teamId">

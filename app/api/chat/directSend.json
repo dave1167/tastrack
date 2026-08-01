@@ -1,0 +1,369 @@
+{
+  "settings": {
+    "options": {
+      "restrict": {
+        "provider": "security"
+      },
+      "method": "post"
+    }
+  },
+  "meta": {
+    "$_POST": [
+      {
+        "type": "number",
+        "name": "recipientUserId"
+      },
+      {
+        "type": "text",
+        "name": "messageText"
+      }
+    ]
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "recipient",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT u.id userId,COALESCE(NULLIF(u.displayName,''),CONCAT_WS(' ',u.fName,u.lName),u.email) userName,COALESCE(NULLIF(sender.displayName,''),CONCAT_WS(' ',sender.fName,sender.lName),sender.email) senderName,CONCAT(LEAST(:senderId,u.id),'-',GREATEST(:senderId2,u.id)) directKey FROM tbl_user_tenants ut INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 INNER JOIN tbl_users sender ON sender.id=:senderId3 WHERE ut.userId=:recipientId AND ut.tenantId=:tenantId AND ut.isActive=1 AND ut.membershipStatus='active' AND ut.userId<>:senderId4 AND NULLIF(TRIM(:messageText),'') IS NOT NULL AND CHAR_LENGTH(TRIM(:messageText2))<=4000 AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='TEAM_CHAT' AND m.isActive=1 WHERE tm.tenantId=ut.tenantId AND tm.status IN ('ACTIVE','TRIAL')) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles membership INNER JOIN tbl_role_permissions rp ON rp.roleId=membership.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='chat.send' AND p.isActive=1 WHERE membership.userId=:senderId5 AND membership.tenantId=ut.tenantId AND membership.isActive=1) LIMIT 1",
+            "params": [
+              {
+                "name": ":senderId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":senderId2",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":senderId3",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":recipientId",
+                "value": "{{$_POST.recipientUserId.default(0)}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":senderId4",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":messageText",
+                "value": "{{$_POST.messageText.default('')}}"
+              },
+              {
+                "name": ":messageText2",
+                "value": "{{$_POST.messageText.default('')}}"
+              },
+              {
+                "name": ":senderId5",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "requireRecipient",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{recipient.count() == 0}}",
+          "then": {
+            "steps": {
+              "module": "core",
+              "action": "error",
+              "options": {
+                "status": 422,
+                "message": "Choose a valid user and enter a message."
+              }
+            }
+          }
+        },
+        "outputType": "boolean"
+      },
+      {
+        "name": "ensureConversation",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT IGNORE INTO tbl_chat_conversations (tenantId,conversationType,directKey,conversationName,createdByUserId,modifiedByUserId) VALUES (:tenantId,'direct',:directKey,:conversationName,:userId,:userId2)",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":directKey",
+                "value": "{{recipient[0].directKey}}"
+              },
+              {
+                "name": ":conversationName",
+                "value": "{{recipient[0].userName}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":userId2",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "conversation",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT id FROM tbl_chat_conversations WHERE tenantId=:tenantId AND conversationType='direct' AND directKey=:directKey AND isActive=1 LIMIT 1",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":directKey",
+                "value": "{{recipient[0].directKey}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
+        "name": "encryptedMessage",
+        "module": "chatCrypto",
+        "action": "encrypt",
+        "options": {
+          "plaintext": "{{$_POST.messageText.trim()}}",
+          "tenantId": "{{$_SESSION.TENANT_ID.default(0)}}",
+          "conversationId": "{{conversation[0].id.default(0)}}"
+        },
+        "output": false
+      },
+      {
+        "name": "senderParticipant",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_chat_participants (tenantId,conversationId,userId,isActive) VALUES (:tenantId,:conversationId,:userId,1) ON DUPLICATE KEY UPDATE isActive=1",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":conversationId",
+                "value": "{{conversation[0].id.default(0)}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "recipientParticipant",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_chat_participants (tenantId,conversationId,userId,isActive) VALUES (:tenantId,:conversationId,:userId,1) ON DUPLICATE KEY UPDATE isActive=1",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":conversationId",
+                "value": "{{conversation[0].id.default(0)}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{recipient[0].userId}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "insertMessage",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_chat_messages (tenantId,conversationId,senderUserId,messageText,messageCiphertext,messageIv,messageAuthTag,messageKeyVersion) VALUES (:tenantId,:conversationId,:userId,NULL,:ciphertext,:iv,:authTag,:keyVersion)",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":conversationId",
+                "value": "{{conversation[0].id.default(0)}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":ciphertext",
+                "value": "{{encryptedMessage.ciphertext}}"
+              },
+              {
+                "name": ":iv",
+                "value": "{{encryptedMessage.iv}}"
+              },
+              {
+                "name": ":authTag",
+                "value": "{{encryptedMessage.authTag}}"
+              },
+              {
+                "name": ":keyVersion",
+                "value": "{{encryptedMessage.keyVersion}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "markSenderRead",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_chat_participants SET lastReadMessageId=:messageId,lastReadDate=CURRENT_TIMESTAMP WHERE tenantId=:tenantId AND conversationId=:conversationId AND userId=:userId",
+            "params": [
+              {
+                "name": ":messageId",
+                "value": "{{insertMessage.identity.default(insertMessage.insertId).default(0)}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":conversationId",
+                "value": "{{conversation[0].id.default(0)}}"
+              },
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "notification",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "INSERT INTO tbl_notifications (tenantId,userId,notificationType,title,message,status,channel,createdDate) VALUES (:tenantId,:recipientId,'chat_message',CONCAT('New message from ',:senderName),'You have a new private message.','unread','in_app',CURRENT_TIMESTAMP)",
+            "params": [
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              },
+              {
+                "name": ":recipientId",
+                "value": "{{recipient[0].userId}}"
+              },
+              {
+                "name": ":senderName",
+                "value": "{{recipient[0].senderName}}"
+              }
+            ]
+          }
+        },
+        "output": true
+      },
+      {
+        "name": "notifySender",
+        "module": "sockets",
+        "action": "emit",
+        "options": {
+          "namespace": "/",
+          "room": "user:{{$_SESSION.USER_ID.default(0)}}",
+          "eventName": "chat:message",
+          "params": {
+            "conversationId": "{{conversation[0].id}}",
+            "messageId": "{{insertMessage.identity.default(insertMessage.insertId).default(0)}}",
+            "senderUserId": "{{$_SESSION.USER_ID}}",
+            "recipientUserId": "{{recipient[0].userId}}"
+          }
+        }
+      },
+      {
+        "name": "notifyRecipient",
+        "module": "sockets",
+        "action": "emit",
+        "options": {
+          "namespace": "/",
+          "room": "user:{{recipient[0].userId}}",
+          "eventName": "chat:message",
+          "params": {
+            "conversationId": "{{conversation[0].id}}",
+            "messageId": "{{insertMessage.identity.default(insertMessage.insertId).default(0)}}",
+            "senderUserId": "{{$_SESSION.USER_ID}}",
+            "recipientUserId": "{{recipient[0].userId}}"
+          }
+        }
+      },
+      {
+        "name": "refreshChatClients",
+        "module": "sockets",
+        "action": "refresh",
+        "options": {
+          "action": "chat:changed",
+          "params": {
+            "changed": true
+          }
+        }
+      },
+      {
+        "name": "response",
+        "module": "core",
+        "action": "response",
+        "options": {
+          "status": 201,
+          "data": {
+            "success": true,
+            "message": "Message sent."
+          }
+        }
+      }
+    ]
+  }
+}

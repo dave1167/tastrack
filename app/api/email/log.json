@@ -1,0 +1,17 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "nocsrf": true, "method": "get"}},
+  "exec": {"steps": {
+    "name": "emails",
+    "module": "dbupdater",
+    "action": "custom",
+    "options": {"connection": "db", "sql": {
+      "query": "SELECT q.id,q.recipientName,q.recipientEmail,q.subjectSnapshot,q.status,q.providerMessageId,q.queuedDate,q.sentDate,q.deliveredDate,q.failureMessage,COALESCE(u.displayName,'System') initiatedBy FROM tbl_email_queue q LEFT JOIN tbl_users u ON u.id=q.initiatedByUserId WHERE q.tenantId=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode IN ('email.configure','email.send') AND p.isActive=1 WHERE utr.userId=:userId AND utr.tenantId=q.tenantId AND utr.isActive=1) ORDER BY q.id DESC LIMIT 50",
+      "params": [
+        {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+        {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}
+      ]
+    }},
+    "output": true,
+    "outputType": "array"
+  }}
+}

@@ -1,10 +1,10 @@
 {
   "settings": {"options": {"restrict":{"provider":"security"},"method": "post"}},
   "meta": {"$_POST": [
-    {"type":"number","name":"templateId"}, {"type":"text","name":"workflowName"},
-    {"type":"text","name":"referenceCode"}, {"type":"text","name":"notes"}, {"type":"number","name":"eventStatusId"},
-    {"type":"number","name":"ownerTeamId"}, {"type":"text","name":"startDate"},
-    {"type":"text","name":"targetDate"}, {"type":"number","name":"locationId"},
+    {"type":"number","name":"templateId","options":{"rules":{"core:required":{"param":""}}}}, {"type":"text","name":"workflowName","options":{"rules":{"core:required":{"param":""}}}},
+    {"type":"text","name":"referenceCode","options":{"rules":{"core:required":{"param":""}}}}, {"type":"text","name":"notes"}, {"type":"number","name":"eventStatusId","options":{"rules":{"core:required":{"param":""}}}},
+    {"type":"number","name":"ownerTeamId","options":{"rules":{"core:required":{"param":""}}}}, {"type":"text","name":"startDate","options":{"rules":{"core:required":{"param":""}}}},
+    {"type":"text","name":"targetDate","options":{"rules":{"core:required":{"param":""}}}}, {"type":"number","name":"locationId"},
     {"type":"number","name":"spaceId"}, {"type":"number","name":"configurationId"},
     {"type":"number","name":"workflowTypeId"}, {"type":"number","name":"contractingEntityId"}
   ]},
