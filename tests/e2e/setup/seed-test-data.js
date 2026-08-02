@@ -109,6 +109,8 @@ async function seedTestData() {
     await seedTenantModules(db, betaTenantId, Number(process.env.E2E_TEMPLATE_TENANT_ID || 0));
     await enableModule(db, alphaTenantId, 'LOCATIONS');
     await enableModule(db, betaTenantId, 'LOCATIONS');
+    await enableModule(db, alphaTenantId, 'CONTRACT_GENERATION');
+    await enableModule(db, betaTenantId, 'CONTRACT_GENERATION');
     await seedActivityTypes(db, alphaTenantId);
     await seedActivityTypes(db, betaTenantId);
 
@@ -163,6 +165,21 @@ async function seedTestData() {
     const [alphaTask] = await db.execute("INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,taskName,description,status,priority,isRequired,assignedToUserId,assignedToTeamId,dueDate,createdByUserId,rowVersion) VALUES (?,?,?,'E2E Alpha Task','Tenant Alpha test task','not_started','normal',1,?,?,DATE_ADD(CURRENT_TIMESTAMP,INTERVAL 7 DAY),?,1)", [alphaTenantId, alphaWorkflow.insertId, alphaStage.insertId, users.alphaMember, alphaTeam.insertId, users.alphaOwner]);
     const [alphaTaskTwo] = await db.execute("INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,taskName,description,status,priority,isRequired,assignedToUserId,assignedToTeamId,dueDate,createdByUserId,rowVersion) VALUES (?,?,?,'E2E Alpha Task Two','Second concurrent E2E task','not_started','normal',0,?,?,DATE_ADD(CURRENT_TIMESTAMP,INTERVAL 8 DAY),?,1)", [alphaTenantId, alphaWorkflow.insertId, alphaStage.insertId, users.alphaAdmin, alphaTeam.insertId, users.alphaOwner]);
     const [betaTask] = await db.execute("INSERT INTO tbl_tasks (tenantId,workflowId,taskName,description,status,priority,isRequired,assignedToUserId,assignedToTeamId,dueDate,createdByUserId,rowVersion) VALUES (?,?,'E2E Beta Task','Tenant Beta test task','not_started','normal',1,?,?,DATE_ADD(CURRENT_TIMESTAMP,INTERVAL 7 DAY),?,1)", [betaTenantId, betaWorkflow.insertId, users.betaMember, betaTeam.insertId, users.betaOwner]);
+
+    const [alphaEntity] = await db.execute("INSERT INTO tbl_contracting_entities (tenantId,tradingName,legalName,registrationNumber,vatNumber,addressLine1,townCity,postcode,country,email,signatoryName,signatoryTitle,defaultPaymentTerms,contractFooter,isDefault,isActive,createdByUserId,modifiedByUserId) VALUES (?,'E2E Alpha Trading','E2E Alpha Legal Ltd','E2E-001','GB-E2E-001','1 Alpha Street','Alpha Town','AA1 1AA','United Kingdom','contracts-alpha@example.test','Alice Signatory','Director','Payment within 30 days','E2E Alpha footer',1,1,?,?)", [alphaTenantId, users.alphaOwner, users.alphaOwner]);
+    const [betaEntity] = await db.execute("INSERT INTO tbl_contracting_entities (tenantId,tradingName,legalName,registrationNumber,addressLine1,townCity,postcode,country,email,isDefault,isActive,createdByUserId,modifiedByUserId) VALUES (?,'E2E Beta Trading','E2E Beta Legal Ltd','E2E-002','2 Beta Street','Beta Town','BB1 1BB','United Kingdom','contracts-beta@example.test',1,1,?,?)", [betaTenantId, users.betaOwner, users.betaOwner]);
+    await db.execute('UPDATE tbl_workflows SET contractingEntityId=? WHERE id=? AND tenantId=?', [alphaEntity.insertId, alphaWorkflow.insertId, alphaTenantId]);
+    await db.execute('UPDATE tbl_workflows SET contractingEntityId=? WHERE id=? AND tenantId=?', [betaEntity.insertId, betaWorkflow.insertId, betaTenantId]);
+
+    const templateBody = '<h1>{{event.name}}</h1><p>Reference: {{event.reference}}</p><p>Venue: {{location.name}}</p><p>Organisation: {{tenant.name}}</p><p>Entity: {{contractingEntity.legalName}}</p>';
+    const [alphaContractTemplate] = await db.execute("INSERT INTO tbl_contract_templates (tenantId,templateName,description,outputType,templateKey,bodyHtml,versionNumber,isActive,createdByUserId,modifiedByUserId) VALUES (?,'E2E Alpha Contract','Phase 3 deterministic contract template','contract','e2e-alpha-contract',?,1,1,?,?)", [alphaTenantId, templateBody, users.alphaOwner, users.alphaOwner]);
+    const [betaContractTemplate] = await db.execute("INSERT INTO tbl_contract_templates (tenantId,templateName,description,outputType,templateKey,bodyHtml,versionNumber,isActive,createdByUserId,modifiedByUserId) VALUES (?,'E2E Beta Contract','Phase 3 tenant isolation template','contract','e2e-beta-contract',?,1,1,?,?)", [betaTenantId, templateBody, users.betaOwner, users.betaOwner]);
+    const [alphaClause] = await db.execute("INSERT INTO tbl_contract_clauses (tenantId,clauseName,clauseCode,clauseCategory,clauseHtml,clauseBehaviour,sortOrder,isActive,createdByUserId,modifiedByUserId) VALUES (?,'E2E Health and Safety','E2E-HS','Operations','<p>{{eventName}} at {{venueName}} must comply with E2E safety rules for {{tenantName}}.</p>','mandatory',10,1,?,?)", [alphaTenantId, users.alphaOwner, users.alphaOwner]);
+    const [betaClause] = await db.execute("INSERT INTO tbl_contract_clauses (tenantId,clauseName,clauseCode,clauseCategory,clauseHtml,clauseBehaviour,sortOrder,isActive,createdByUserId,modifiedByUserId) VALUES (?,'E2E Beta Clause','E2E-BETA','General','<p>Beta tenant wording.</p>','optional',10,1,?,?)", [betaTenantId, users.betaOwner, users.betaOwner]);
+    const [alphaTemplateClause] = await db.execute("INSERT INTO tbl_contract_template_clauses (tenantId,templateId,clauseId,clauseNameSnapshot,clauseHtmlSnapshot,clauseBehaviour,defaultIncluded,isActive,sortOrder,modifiedByUserId) VALUES (?,?,?,?,?,'mandatory',1,1,10,?)", [alphaTenantId, alphaContractTemplate.insertId, alphaClause.insertId, 'E2E Health and Safety', '<p>{{eventName}} at {{venueName}} must comply with E2E safety rules for {{tenantName}}.</p>', users.alphaOwner]);
+    const [alphaDraft] = await db.execute("INSERT INTO tbl_generated_contracts (tenantId,workflowId,templateId,templateVersionNumber,contractVersionNumber,rowVersion,draftModifiedDate,draftModifiedByUserId,contractingEntityId,contractName,renderedHtml,status,generatedByUserId,modifiedByUserId) VALUES (?,?,?,?,0,1,CURRENT_TIMESTAMP,?,?,?,'<h1>E2E Alpha Event Contract</h1><p>Editable Phase 3 draft.</p>','draft',?,?)", [alphaTenantId, alphaWorkflow.insertId, alphaContractTemplate.insertId, 1, users.alphaOwner, alphaEntity.insertId, 'E2E Alpha Draft Contract', users.alphaOwner, users.alphaOwner]);
+    const [betaDraft] = await db.execute("INSERT INTO tbl_generated_contracts (tenantId,workflowId,templateId,templateVersionNumber,contractVersionNumber,rowVersion,draftModifiedDate,draftModifiedByUserId,contractingEntityId,contractName,renderedHtml,status,generatedByUserId,modifiedByUserId) VALUES (?,?,?,?,0,1,CURRENT_TIMESTAMP,?,?,?,'<h1>E2E Beta Event Contract</h1><p>Beta private wording.</p>','draft',?,?)", [betaTenantId, betaWorkflow.insertId, betaContractTemplate.insertId, 1, users.betaOwner, betaEntity.insertId, 'E2E Beta Draft Contract', users.betaOwner, users.betaOwner]);
+    const [alphaDocumentClause] = await db.execute("INSERT INTO tbl_contract_document_clauses (tenantId,contractId,sourceClauseId,clauseHeading,clauseTextSnapshot,clauseBehaviour,displayOrder,isIncluded,isCustom,createdByUserId,modifiedByUserId) VALUES (?,?,?,'E2E Health and Safety','<p>E2E Alpha Event at E2E Alpha Location must comply with E2E safety rules for E2E Tenant Alpha.</p>','mandatory',10,1,0,?,?)", [alphaTenantId, alphaDraft.insertId, alphaClause.insertId, users.alphaOwner, users.alphaOwner]);
     await db.query('SET FOREIGN_KEY_CHECKS=1');
     await db.end();
 
@@ -180,7 +197,13 @@ async function seedTestData() {
         templateStages: { alpha: alphaTemplateStage.insertId },
         workflowStages: { alpha: alphaStage.insertId },
         workflows: { alpha: alphaWorkflow.insertId, beta: betaWorkflow.insertId },
-        tasks: { alpha: alphaTask.insertId, alphaTwo: alphaTaskTwo.insertId, beta: betaTask.insertId }
+        tasks: { alpha: alphaTask.insertId, alphaTwo: alphaTaskTwo.insertId, beta: betaTask.insertId },
+        contractingEntities: { alpha: alphaEntity.insertId, beta: betaEntity.insertId },
+        contractTemplates: { alpha: alphaContractTemplate.insertId, beta: betaContractTemplate.insertId },
+        contractClauses: { alpha: alphaClause.insertId, beta: betaClause.insertId },
+        contractTemplateClauses: { alpha: alphaTemplateClause.insertId },
+        contracts: { alphaDraft: alphaDraft.insertId, betaDraft: betaDraft.insertId },
+        contractDocumentClauses: { alpha: alphaDocumentClause.insertId }
     };
     fs.mkdirSync(stateDirectory, { recursive: true });
     fs.writeFileSync(statePath, JSON.stringify(state, null, 2));

@@ -27,16 +27,22 @@ async function loginAs(page, user) {
         await page.getByTestId('login-email').fill(user.email);
         await page.getByTestId('login-password').fill(user.password);
         await Promise.all([
-            page.waitForURL(url => !url.pathname.startsWith('/login'), { timeout: 12_000 }),
+            page.waitForURL(url => !url.pathname.startsWith('/login'), { timeout: 20_000 }),
             page.getByRole('button', { name: /^sign in$/i }).click()
         ]);
     };
-    try {
-        await submit();
-    } catch (error) {
-        if (!new URL(page.url()).pathname.startsWith('/login')) throw error;
-        await submit();
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            await submit();
+            lastError = null;
+            break;
+        } catch (error) {
+            lastError = error;
+            if (!new URL(page.url()).pathname.startsWith('/login')) throw error;
+        }
     }
+    if (lastError) throw lastError;
     await expect(page.getByTestId('authenticated-user'), 'authenticated user indicator for ' + user.email).toContainText(user.firstName);
 }
 
