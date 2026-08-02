@@ -8,13 +8,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <%- _csrfMeta() %>
     <title>Meldren</title>
-    <link rel="icon" type="image/png" href="/assets/images/meldren_logo_dark.png">
-    <link rel="icon" type="image/png" href="/assets/images/meldren_logo_dark.png">
+    <link rel="icon" type="image/png" sizes="256x256" href="/assets/images/meldren_favicon.png?v=1">
 
     <link rel="stylesheet" href="/bootstrap/5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
     <link rel="stylesheet" href="/dmxAppConnect/dmxSummernote/summernote-bs5.min.css">
-    <link rel="stylesheet" href="/css/style.css?v=20260731-branding">
+    <link rel="stylesheet" href="/css/style.css?v=20260802-org-chart-hierarchy">
 
     <script src="/vendor/jquery/jquery.min.js?v=3.7.1"></script>
     <script src="/dmxAppConnect/dmxSummernote/summernote-bs5.min.js" defer></script>
@@ -38,7 +37,7 @@
     <script src="/js/contract-clause-editor.js?v=20260725" defer></script>
     <script src="/js/contract-draft-editor.js?v=20260728-5" defer></script>
     <script src="/socket.io/socket.io.js" defer></script>
-    <script src="/js/chat-live.js?v=20260801-2" defer></script>
+    <script src="/js/chat-live.js?v=20260802-notifications" defer></script>
 </head>
 
 <body is="dmx-app" id="main_shell" class="shell-app" dmx-bind:data-bs-theme="scBranding.data.branding[0].defaultColourMode == 'dark' ? 'dark' : 'light'" dmx-bind:style="'--meldren-primary:' + scBranding.data.branding[0].primaryColour.default('#14B8A6') + ';--meldren-accent:' + scBranding.data.branding[0].accentColour.default('#2563EB') + ';--shell-topbar:' + scBranding.data.branding[0].headerColour.default('#0D1B2A') + ';--shell-topbar-2:' + scBranding.data.branding[0].headerColour.default('#0D1B2A') + ';--shell-sidebar-bg:' + scBranding.data.branding[0].sidebarColour.default('#0D1B2A') + ';--shell-sidebar-bg-2:' + scBranding.data.branding[0].sidebarColour.default('#0D1B2A')">
@@ -49,7 +48,9 @@
     <dmx-serverconnect id="scTenantModules" url="/api/modules/currentTenantModules"></dmx-serverconnect>
     <dmx-serverconnect id="scHeaderNotifications" url="/api/notifications/recent"></dmx-serverconnect>
     <dmx-serverconnect id="scHeaderChat" url="/api/chat/summary"></dmx-serverconnect>
+    <dmx-serverconnect id="scHeaderProfile" url="/api/profile/get"></dmx-serverconnect>
     <dmx-serverconnect id="scChatDrawerUsers" url="/api/chat/users"></dmx-serverconnect>
+    <dmx-serverconnect id="scChatDrawerAvatars" url="/api/chat/userAvatars"></dmx-serverconnect>
     <dmx-serverconnect id="scChatDrawerMessages" url="/api/chat/directMessages" dmx-param:userid="chatDrawerRecipient.value" dmx-on:success="scChatDrawerMessages.data.conversation[0].id && frmChatDrawerMarkRead.submit()"></dmx-serverconnect>
     <header class="navbar shell-navbar sticky-top">
         <div class="container-fluid px-3 px-lg-4">
@@ -83,9 +84,18 @@
                         </div>
                     </div>
                 </div>
-                <div class="shell-user-chip">
-                    <span class="shell-user-avatar" aria-hidden="true">OP</span>
-                    <span class="shell-user-name d-none d-sm-inline">Operations</span>
+                <div class="dropdown">
+                    <button class="shell-user-chip border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Open your profile menu">
+                        <span class="shell-user-avatar overflow-hidden" aria-hidden="true"><img dmx-show="scHeaderProfile.data.profile[0].avatarPath" dmx-bind:src="scHeaderProfile.data.profile[0].avatarPath" alt=""><span dmx-show="!scHeaderProfile.data.profile[0].avatarPath" dmx-text="scHeaderProfile.data.profile[0].initials.default('U')"></span></span>
+                        <span class="shell-user-name d-none d-sm-inline" dmx-text="scHeaderProfile.data.profile[0].displayName.default(scWelcome.data.DISPLAY_NAME)"></span>
+                        <i class="fas fa-chevron-down small" aria-hidden="true"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end shadow border-0 shell-user-menu">
+                        <div class="px-3 py-2 border-bottom"><div class="fw-semibold text-truncate" dmx-text="scHeaderProfile.data.profile[0].displayName"></div><div class="small text-muted text-truncate" dmx-text="scHeaderProfile.data.profile[0].email"></div></div>
+                        <a class="dropdown-item py-2" href="/profile"><i class="fas fa-user-edit fa-fw me-2"></i>My profile</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item py-2" href="/api/login/logout"><i class="fas fa-sign-out-alt fa-fw me-2"></i>Sign out</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -127,19 +137,23 @@
                                 </a>
                                 <a class="shell-nav-link" href="/workflows">
                                     <i class="fas fa-route"></i>
-                                    <span dmx-text="scTerminology.data.query[0].workflowPlural">Workflows</span>
+                                    <span dmx-text="scTerminology.data.query[0].workflowPlural.default('Events')">Events</span>
                                 </a>
                                 <a class="shell-nav-link" href="/workflows/calendar">
                                     <i class="fas fa-calendar-alt"></i>
-                                    <span dmx-text="scTerminology.data.query[0].workflowSingular + ' Calendar'">Event Calendar</span>
+                                    <span dmx-text="scTerminology.data.query[0].workflowSingular.default('Event') + ' Calendar'">Event Calendar</span>
                                 </a>
                                 <a class="shell-nav-link" href="/tasks">
                                     <i class="fas fa-tasks"></i>
-                                    <span dmx-text="scTerminology.data.query[0].taskPlural">Tasks</span>
+                                    <span dmx-text="scTerminology.data.query[0].taskPlural.default('Tasks')">Tasks</span>
                                 </a>
                                 <a class="shell-nav-link" href="/contacts">
                                     <i class="fas fa-address-book"></i>
                                     <span>Contacts</span>
+                                </a>
+                                <a class="shell-nav-link" href="/organisation-chart">
+                                    <i class="fas fa-sitemap"></i>
+                                    <span>Organisation chart</span>
                                 </a>
                                 <a class="shell-nav-link" href="/documents">
                                     <i class="fas fa-folder-open"></i>
@@ -212,12 +226,12 @@
         <div class="offcanvas-body p-0 d-flex flex-column">
             <select class="d-none" id="chatDrawerRecipient" dmx-bind:options="scChatDrawerUsers.data.users" optiontext="userName" optionvalue="userId" dmx-on:changed="scChatDrawerMessages.load()"><option value=""></option></select>
             <div class="shell-chat-list flex-grow-1" dmx-show="!chatDrawerRecipient.value">
-                <div class="px-3 py-2 small text-muted border-bottom">Recent conversations</div>
+                <div class="shell-chat-list-heading px-3 py-1 small text-muted border-bottom">Recent conversations</div>
                 <div is="dmx-repeat" dmx-bind:repeat="scChatDrawerUsers.data.users">
-                    <button class="shell-chat-list-item btn w-100 rounded-0 border-bottom text-start p-3" type="button" dmx-on:click="chatDrawerRecipient.setValue($value.userId);scChatDrawerMessages.load({userid:$value.userId})">
-                        <span class="d-flex align-items-start gap-3">
-                            <span class="shell-chat-avatar flex-shrink-0"><i class="fas fa-user"></i><i class="fas fa-circle shell-chat-presence" dmx-class:text-success="$value.chatAvailability == 'available'" dmx-class:text-warning="$value.chatAvailability == 'do_not_disturb'" dmx-class:text-secondary="$value.chatAvailability == 'unavailable'"></i></span>
-                            <span class="min-w-0 flex-grow-1"><span class="d-flex justify-content-between gap-2"><strong class="text-truncate" dmx-text="$value.userName"></strong><small class="text-muted flex-shrink-0" dmx-show="$value.lastMessageDate" dmx-text="$value.lastMessageDate.formatDate('dd MMM')"></small></span><span class="d-flex justify-content-between gap-2 mt-1"><span class="small text-muted text-truncate" dmx-text="$value.lastMessageText.default('Start a conversation')"></span><span class="badge rounded-pill bg-danger flex-shrink-0" dmx-show="$value.unreadCount > 0" dmx-text="$value.unreadCount"></span></span></span>
+                    <button class="shell-chat-list-item btn w-100 rounded-0 border-bottom text-start px-3 py-2" type="button" dmx-on:click="chatDrawerRecipient.setValue($value.userId);scChatDrawerMessages.load({userid:$value.userId})">
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="shell-chat-avatar flex-shrink-0"><img dmx-show="scChatDrawerAvatars.data.users.where('userId',$value.userId,'==')[0].avatarPath" dmx-bind:src="scChatDrawerAvatars.data.users.where('userId',$value.userId,'==')[0].avatarPath" dmx-bind:alt="$value.userName"><i class="fas fa-user" dmx-show="!scChatDrawerAvatars.data.users.where('userId',$value.userId,'==')[0].avatarPath"></i><i class="fas fa-circle shell-chat-presence" dmx-class:text-success="$value.chatAvailability == 'available'" dmx-class:text-warning="$value.chatAvailability == 'do_not_disturb'" dmx-class:text-secondary="$value.chatAvailability == 'unavailable'"></i></span>
+                            <span class="shell-chat-list-details min-w-0 flex-grow-1"><span class="d-flex justify-content-between align-items-baseline gap-2"><strong class="shell-chat-list-name text-truncate" dmx-text="$value.userName"></strong><small class="shell-chat-list-date text-muted flex-shrink-0" dmx-show="$value.lastMessageDate" dmx-text="$value.lastMessageDate.formatDate('dd MMM')"></small></span><span class="d-flex justify-content-between align-items-center gap-2"><span class="shell-chat-list-preview text-muted text-truncate" dmx-text="$value.lastMessageText.default('Start a conversation')"></span><span class="shell-chat-list-unread badge rounded-pill bg-danger flex-shrink-0" dmx-show="$value.unreadCount > 0" dmx-text="$value.unreadCount"></span></span></span>
                         </span>
                     </button>
                 </div>

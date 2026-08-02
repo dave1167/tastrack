@@ -14,35 +14,34 @@
 <dmx-serverconnect id="scSpaces" url="/api/locations/spaceOptions" dmx-param:locationid="eventLocationId.value" dmx-param:selectedid="scWorkflow.data.query[0].spaceId" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scConfigurations" url="/api/locations/configurationOptions" dmx-param:spaceid="eventSpaceId.value" dmx-param:selectedid="scWorkflow.data.query[0].configurationId" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scNotificationRecipients" url="/api/notifications/recipients"></dmx-serverconnect>
-<dmx-serverconnect id="scEventStatuses" url="/api/event_statuses/options" dmx-param:selectedid="scWorkflow.data.query[0].eventStatusId"></dmx-serverconnect>
-<dmx-serverconnect id="scCurrentMilestone" url="/api/event_milestones/current" dmx-param:workflowid="query.id"></dmx-serverconnect>
-<dmx-serverconnect id="scMilestoneOptions" url="/api/event_milestones/milestone_options" dmx-param:selectedid="scCurrentMilestone.data.query[0].currentMilestoneId"></dmx-serverconnect>
 <dmx-serverconnect id="scCommercial" url="/api/commercial/get" dmx-param:workflowid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scStageReadiness" url="/api/workflow/checkStageReadiness" dmx-param:recordid="query.id" dmx-param:currentstageid="scWorkflow.data.query[0].currentStageId"></dmx-serverconnect>
+<dmx-serverconnect id="scStageHistory" url="/api/workflow/stageHistory" dmx-param:recordid="query.id"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12" dmx-show="query.saved == 1"><div class="alert alert-success mb-0"><i class="fas fa-check-circle me-2"></i><strong>Changes saved.</strong> The event has been updated successfully.</div></div>
     <div class="col-12">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
             <div><h1 class="mb-1" dmx-text="scWorkflow.data.query[0].workflowName"></h1><div class="d-flex flex-wrap align-items-center gap-x-3 gap-2 mb-1"><span class="fw-semibold"><i class="fas fa-calendar-day text-primary me-2"></i><span dmx-text="scWorkflow.data.query[0].showDate ? scWorkflow.data.query[0].showDate.formatDate('ddd dd MMM yyyy') : 'Date not set'">Date not set</span></span><span class="fw-semibold"><i class="fas fa-clock text-primary me-2"></i><span dmx-text="scWorkflow.data.query[0].showTime || 'Time not set'">Time not set</span><a class="small ms-2 fw-normal" dmx-bind:href="'/workflows/edit?id=' + query.id" dmx-text="scWorkflow.data.query[0].showTime ? 'Change' : 'Set time'">Set time</a></span></div><p class="text-muted mb-0"><span dmx-text="scWorkflow.data.query[0].referenceCode"></span><span dmx-show="scWorkflow.data.query[0].referenceCode && scWorkflow.data.query[0].effectiveLocation"> &middot; </span><span dmx-text="scWorkflow.data.query[0].effectiveLocation"></span></p></div>
-            <div class="d-flex flex-wrap gap-2"><button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#sendEventNotificationModal"><i class="fas fa-bell me-2"></i>Notify people</button><a class="btn btn-outline-secondary" href="/workflows" dmx-text="scTerminology.data.query[0].workflowPlural">Workflows</a><a class="btn btn-outline-primary" href="/workflows/calendar"><i class="fas fa-calendar-alt me-2"></i>Calendar</a><a class="btn btn-outline-primary" dmx-bind:href="'/workflows/edit?id=' + query.id" dmx-text="'Edit ' + scTerminology.data.query[0].workflowSingular.lowercase()">Edit workflow</a></div>
+            <div class="d-flex flex-wrap gap-2"><button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#sendEventNotificationModal"><i class="fas fa-bell me-2"></i>Notify people</button><a class="btn btn-outline-secondary" href="/workflows"><i class="fas fa-list me-2"></i><span dmx-text="scTerminology.data.query[0].workflowPlural.default('Events')">Events</span></a><a class="btn btn-outline-primary" href="/workflows/calendar"><i class="fas fa-calendar-alt me-2"></i>Calendar</a><a class="btn btn-outline-primary" dmx-bind:href="'/workflows/edit?id=' + query.id"><i class="fas fa-pen me-2"></i><span dmx-text="'Edit ' + scTerminology.data.query[0].workflowSingular.default('event').lowercase()">Edit event</span></a></div>
         </div>
     </div>
 
     <div class="col-12">
         <nav aria-label="Event sections">
             <div class="nav nav-tabs flex-nowrap overflow-auto" id="eventSectionTabs" role="tablist">
-                <a class="nav-link text-nowrap" id="eventInfoTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=info'" dmx-class:active="!query.section || query.section == 'info'" dmx-bind:aria-selected="(!query.section || query.section == 'info').toString()" aria-controls="eventInfoSummary"><i class="fas fa-calendar-alt me-2"></i><span dmx-text="scTerminology.data.query[0].workflowSingular + ' Info'">Event Info</span></a>
-                <a class="nav-link text-nowrap" id="eventTasksTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=tasks'" dmx-class:active="query.section == 'tasks'" dmx-bind:aria-selected="(query.section == 'tasks').toString()" aria-controls="eventInfoWorkflow"><i class="fas fa-tasks me-2"></i><span dmx-text="scTerminology.data.query[0].taskPlural">Tasks</span> <span class="badge rounded-pill bg-secondary ms-1" dmx-text="scTasks.data.query.count()">0</span></a>
+                <a class="nav-link text-nowrap" id="eventInfoTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=info'" dmx-class:active="!query.section || query.section == 'info'" dmx-bind:aria-selected="(!query.section || query.section == 'info').toString()" aria-controls="eventInfoSummary"><i class="fas fa-calendar-alt me-2"></i><span dmx-text="scTerminology.data.query[0].workflowSingular.default('Event') + ' Info'">Event Info</span></a>
+                <a class="nav-link text-nowrap" id="eventTasksTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=tasks'" dmx-class:active="query.section == 'tasks'" dmx-bind:aria-selected="(query.section == 'tasks').toString()" aria-controls="eventInfoWorkflow"><i class="fas fa-tasks me-2"></i><span dmx-text="scTerminology.data.query[0].taskPlural.default('Tasks')">Tasks</span> <span class="badge rounded-pill bg-secondary ms-1" dmx-text="scTasks.data.query.count()">0</span></a>
                 <a class="nav-link text-nowrap" id="eventContactsTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=contacts'" dmx-class:active="query.section == 'contacts'" dmx-bind:aria-selected="(query.section == 'contacts').toString()" aria-controls="eventContactsSection"><i class="fas fa-address-book me-2"></i>Contacts <span class="badge rounded-pill bg-secondary ms-1" dmx-text="scWorkflowContacts.data.query.count()">0</span></a>
                 <a class="nav-link text-nowrap" id="eventDocumentsTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=documents'" dmx-class:active="query.section == 'documents'" dmx-bind:aria-selected="(query.section == 'documents').toString()" aria-controls="eventDocumentsSection"><i class="fas fa-file-alt me-2"></i>Documents <span class="badge rounded-pill bg-secondary ms-1" dmx-text="scDocuments.data.query.count()">0</span></a>
-                <a class="nav-link text-nowrap" id="eventCommercialTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=commercial'" dmx-class:active="query.section == 'commercial'" dmx-bind:aria-selected="(query.section == 'commercial').toString()" aria-controls="eventCommercialSection" dmx-show="scTenantModules.data.commercialAccess[0].hasAccess == 1"><i class="fas fa-tags me-2"></i><span dmx-text="scTerminology.data.query[0].commercialSingular">Commercial Details</span></a>
+                <a class="nav-link text-nowrap" id="eventCommercialTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=commercial'" dmx-class:active="query.section == 'commercial'" dmx-bind:aria-selected="(query.section == 'commercial').toString()" aria-controls="eventCommercialSection" dmx-show="scTenantModules.data.commercialAccess[0].hasAccess == 1"><i class="fas fa-tags me-2"></i><span dmx-text="scTerminology.data.query[0].commercialSingular.default('Commercial Details')">Commercial Details</span></a>
             </div>
         </nav>
     </div>
 
     <div class="col-12" id="eventInfoSummary" role="tabpanel" aria-labelledby="eventInfoTab" dmx-show="!query.section || query.section == 'info'"><div class="row g-3">
-        <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted mb-2">Status</div><form id="frmEventStatus" is="dmx-serverconnect-form" method="post" action="/api/workflows/update_event_status" dmx-on:success="scWorkflow.load(); scWorkflowConcurrency.load()"><%- _csrfInput() %><input type="hidden" name="workflowId" dmx-bind:value="query.id"><input type="hidden" name="rowVersion" dmx-bind:value="scWorkflowConcurrency.data.record[0].rowVersion"><select class="form-select form-select-sm" name="eventStatusId" required dmx-bind:options="scEventStatuses.data.query" optiontext="statusName" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].eventStatusId" dmx-on:changed="frmEventStatus.submit()"><option value="">Select status</option></select><div class="small text-danger mt-1" dmx-show="frmEventStatus.lastError" dmx-text="frmEventStatus.lastError.response.message.default('Status could not be changed.')"></div></form></div></div>
-        <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted mb-2">Current milestone</div><form id="frmCurrentMilestone" is="dmx-serverconnect-form" method="post" action="/api/workflows/update_current_milestone" dmx-on:success="scCurrentMilestone.load(); scWorkflowConcurrency.load()"><%- _csrfInput() %><input type="hidden" name="workflowId" dmx-bind:value="query.id"><input type="hidden" name="rowVersion" dmx-bind:value="scWorkflowConcurrency.data.record[0].rowVersion"><select class="form-select form-select-sm" name="currentMilestoneId" required dmx-bind:options="scMilestoneOptions.data.query" optiontext="milestoneName" optionvalue="id" dmx-bind:value="scCurrentMilestone.data.query[0].currentMilestoneId" dmx-on:changed="frmCurrentMilestone.submit()"><option value="">Select milestone</option></select><div class="small text-danger mt-1" dmx-show="frmCurrentMilestone.lastError" dmx-text="frmCurrentMilestone.lastError.response.message.default('Milestone could not be changed.')"></div></form></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm h-100"><div class="small text-muted">Status</div><div class="fw-semibold mt-1" dmx-text="scWorkflow.data.query[0].status.default('Not set')"></div></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm h-100"><div class="small text-muted" dmx-text="'Current ' + scTerminology.data.query[0].stageSingular.default('Phase').lowercase()">Current phase</div><div class="fw-semibold mt-1" dmx-text="scStageReadiness.data.readiness[0].currentStageName.default('Not set')"></div></div></div>
         <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Owner team</div><div class="fw-semibold" dmx-text="scWorkflow.data.query[0].teamName"></div></div></div>
         <div class="col-sm-6 col-xl-3"><div class="p-3 bg-white border rounded shadow-sm"><div class="small text-muted">Start date</div><div class="fw-semibold" dmx-text="scWorkflow.data.query[0].startDate.formatDate('dd MMM yyyy')"></div></div></div>
         <div class="col-12"><div class="p-3 bg-white border rounded shadow-sm"><div class="d-flex justify-content-between align-items-start gap-3"><div><div class="small text-muted" dmx-text="scTerminology.data.query[0].locationSingular">Location</div><div class="fw-semibold"><i class="fas fa-map-marker-alt text-primary me-2"></i><span dmx-text="scWorkflow.data.query[0].effectiveLocation"></span></div><div class="small text-muted ms-4" dmx-show="scWorkflow.data.query[0].townCity || scWorkflow.data.query[0].postcode"><span dmx-text="scWorkflow.data.query[0].townCity"></span><span dmx-show="scWorkflow.data.query[0].townCity && scWorkflow.data.query[0].postcode">, </span><span dmx-text="scWorkflow.data.query[0].postcode"></span></div><div class="small text-warning ms-4" dmx-show="scWorkflow.data.query[0].locationIsActive == 0 || scWorkflow.data.query[0].spaceIsActive == 0 || scWorkflow.data.query[0].configurationIsActive == 0" dmx-text="'This ' + scTerminology.data.query[0].workflowSingular.lowercase() + ' uses an inactive ' + scTerminology.data.query[0].locationSingular.lowercase() + ' record.'">This event uses an inactive location record.</div></div><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#editEventLocation">Change</button></div><div class="collapse mt-3" id="editEventLocation"><div class="alert alert-warning" dmx-show="frmEventLocation.lastError && frmEventLocation.lastError.status == 409"><strong>Location not saved.</strong> This event changed after the page loaded. Refresh the page and review the latest details.</div><form id="frmEventLocation" is="dmx-serverconnect-form" method="post" action="/api/workflows/update_location" class="row g-3" dmx-on:success="scWorkflow.load(); scWorkflowConcurrency.load()"><%- _csrfInput() %><input type="hidden" name="workflowId" dmx-bind:value="query.id"><input type="hidden" name="rowVersion" dmx-bind:value="scWorkflowConcurrency.data.record[0].rowVersion"><div class="col-md-4"><label class="form-label" for="eventLocationId" dmx-text="scTerminology.data.query[0].locationSingular">Location</label><select class="form-select" id="eventLocationId" name="locationId" dmx-bind:options="scLocations.data.query" optiontext="locationLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].locationId" dmx-on:changed="eventSpaceId.setValue(''); eventConfigurationId.setValue(''); scSpaces.load(); scConfigurations.load()"><option value="">No location selected</option></select></div><div class="col-md-4"><label class="form-label" for="eventSpaceId" dmx-text="scTerminology.data.query[0].spaceSingular">Space</label><select class="form-select" id="eventSpaceId" name="spaceId" dmx-bind:options="scSpaces.data.query" optiontext="spaceLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].spaceId" dmx-bind:disabled="!eventLocationId.value" dmx-on:changed="eventConfigurationId.setValue(''); scConfigurations.load()"><option value="">No space selected</option></select></div><div class="col-md-4"><label class="form-label" for="eventConfigurationId" dmx-text="scTerminology.data.query[0].configurationSingular">Configuration</label><select class="form-select" id="eventConfigurationId" name="configurationId" dmx-bind:options="scConfigurations.data.query" optiontext="configurationLabel" optionvalue="id" dmx-bind:value="scWorkflow.data.query[0].configurationId" dmx-bind:disabled="!eventSpaceId.value"><option value="">No configuration selected</option></select></div><div class="col-12"><button class="btn btn-primary btn-sm" type="submit">Save location</button></div></form></div></div></div>
@@ -196,6 +195,20 @@
     <div class="col-12" id="eventInfoWorkflow" role="tabpanel" aria-labelledby="eventTasksTab" dmx-show="query.section == 'tasks'">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3"><div><h2 class="h4 mb-1">Phases and tasks</h2><p class="text-muted small mb-0" dmx-text="'This ' + scTerminology.data.query[0].workflowSingular.lowercase() + ' is divided into phases. Each phase contains its own ' + scTerminology.data.query[0].taskPlural.lowercase() + '.'">This event is divided into phases. Each phase contains its own tasks.</p></div><div class="d-flex gap-2 align-items-center"><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + (scStages.data.query.count() == 1 ? ' phase' : ' phases')"></span><button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#addOneOffTask" aria-expanded="false" aria-controls="addOneOffTask"><i class="fas fa-plus me-1"></i><span dmx-text="'Add ' + scTerminology.data.query[0].taskSingular.lowercase()">Add task</span></button></div></div>
 
+        <div class="card shadow-sm mb-4" dmx-show="scStageReadiness.data.readiness.count() > 0 && (scStageReadiness.data.readiness[0].readinessResult == 'ready_for_approval' || (scStageReadiness.data.readiness[0].allowManualOverride == 1 && scStageReadiness.data.readiness[0].canOverride == 1))">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center"><div><h3 class="h5 mb-1" dmx-text="'Move to next ' + scTerminology.data.query[0].stageSingular.default('Phase').lowercase()">Move to next phase</h3><div class="small text-muted"><span dmx-text="scStageReadiness.data.readiness[0].currentStageName"></span><span dmx-show="scStageReadiness.data.readiness[0].nextStageName"> &rarr; </span><span dmx-text="scStageReadiness.data.readiness[0].nextStageName"></span></div></div><span class="badge" dmx-class:bg-success="scStageReadiness.data.readiness[0].readinessResult == 'ready_for_approval'" dmx-class:bg-warning="scStageReadiness.data.readiness[0].readinessResult == 'not_ready'" dmx-class:bg-danger="scStageReadiness.data.readiness[0].readinessResult == 'blocked'" dmx-text="scStageReadiness.data.readiness[0].readinessResult == 'ready_for_approval' ? 'Ready for approval' : (scStageReadiness.data.readiness[0].readinessResult == 'not_ready' ? 'Not ready' : 'Blocked')"></span></div>
+            <div class="card-body">
+                <div class="alert alert-info mb-3" dmx-show="scStageReadiness.data.readiness[0].readinessResult == 'ready_for_approval'"><strong>All required tasks are complete.</strong><div dmx-show="scStageReadiness.data.readiness[0].requiresProgressionApproval == 1">Approval is required before moving to <span dmx-text="scStageReadiness.data.readiness[0].nextStageName"></span>.</div></div>
+                <div class="alert alert-light border mb-3" dmx-show="scStageReadiness.data.readiness[0].readinessResult == 'not_ready'"><strong>Current stage is not ready to progress.</strong><div><span dmx-text="scStageReadiness.data.readiness[0].completeTaskCount"></span> of <span dmx-text="scStageReadiness.data.readiness[0].requiredTaskCount"></span> required tasks completed.</div></div>
+                <div class="alert alert-danger mb-3" dmx-show="scStageReadiness.data.readiness[0].readinessResult == 'blocked'"><strong>This phase cannot move yet.</strong><div><span dmx-text="scStageReadiness.data.readiness[0].onHoldTaskCount"></span> on hold, <span dmx-text="scStageReadiness.data.readiness[0].cancelledTaskCount"></span> cancelled, and <span dmx-text="scStageReadiness.data.readiness[0].missingResponseCount"></span> missing required responses.</div></div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#approveStageModal" dmx-show="scStageReadiness.data.readiness[0].readinessResult == 'ready_for_approval' && scStageReadiness.data.readiness[0].canApprove == 1"><i class="fas fa-check-circle me-2"></i><span dmx-text="'Approve and move to next ' + scTerminology.data.query[0].stageSingular.default('phase').lowercase()">Approve and move to next phase</span></button>
+                    <span class="text-muted align-self-center" dmx-show="scStageReadiness.data.readiness[0].readinessResult == 'ready_for_approval' && scStageReadiness.data.readiness[0].canApprove != 1">Awaiting stage approval</span>
+                    <button class="btn btn-outline-danger ms-sm-auto" type="button" data-bs-toggle="modal" data-bs-target="#overrideStageModal" dmx-show="scStageReadiness.data.readiness[0].allowManualOverride == 1 && scStageReadiness.data.readiness[0].canOverride == 1"><i class="fas fa-exclamation-triangle me-2"></i>Override stage requirements</button>
+                </div>
+            </div>
+        </div>
+
         <div class="collapse mb-4" id="addOneOffTask">
             <div class="card border-primary shadow-sm">
                 <div class="card-header bg-white"><h3 class="h5 mb-1" dmx-text="'Add a one-off ' + scTerminology.data.query[0].taskSingular.lowercase()">Add a one-off task</h3><p class="small text-muted mb-0" dmx-text="'This only affects this ' + scTerminology.data.query[0].workflowSingular.lowercase() + '; the template will not be changed.'">This only affects this event; the template will not be changed.</p></div>
@@ -223,7 +236,7 @@
                         <div class="col-auto"><span class="phase-number d-inline-flex align-items-center justify-content-center rounded-circle" dmx-bind:style.background-color="$value.colour" dmx-text="$index + 1">1</span></div>
                         <div class="col-12 col-md-3"><div class="small fw-bold text-uppercase text-muted" dmx-text="'Phase ' + ($index + 1)">Phase 1</div><div class="h5 mb-0" dmx-text="$value.stageName"></div><div class="small text-muted mt-1" dmx-text="$value.completedTaskCount + '/' + $value.taskCount + ' ' + scTerminology.data.query[0].taskPlural.lowercase() + ' complete'"></div></div>
                         <div class="col"><div class="small text-muted text-uppercase" dmx-text="'Next ' + scTerminology.data.query[0].taskSingular.lowercase()">Next task</div><div class="fw-semibold" dmx-show="$value.nextTaskId" dmx-text="$value.nextTaskName"></div><div class="text-muted" dmx-show="!$value.nextTaskId" dmx-text="'No open ' + scTerminology.data.query[0].taskPlural.lowercase()">No open tasks</div><div class="small text-muted" dmx-show="$value.nextTaskId"><span dmx-text="$value.nextAssignee"></span><span dmx-show="$value.nextDueDate"> &middot; Due </span><span dmx-text="$value.nextDueDate.formatDate('dd MMM yyyy')"></span></div></div>
-                        <div class="col-auto"><span class="badge text-capitalize" dmx-class:bg-secondary="$value.status == 'not_started'" dmx-class:bg-primary="$value.status == 'in_progress'" dmx-class:bg-warning="$value.status == 'waiting'" dmx-class:text-dark="$value.status == 'waiting'" dmx-class:bg-success="$value.status == 'complete'" dmx-class:bg-danger="$value.status == 'overdue'" dmx-text="$value.status.replace('_',' ')"></span></div>
+                        <div class="col-auto"><span class="badge text-capitalize" dmx-class:bg-secondary="$value.status == 'not_started'" dmx-class:bg-primary="$value.status == 'in_progress'" dmx-class:bg-info="$value.status == 'complete' && (scWorkflow.data.query[0].currentStageId == $value.id || $value.completedTaskCount < $value.taskCount)" dmx-class:text-dark="$value.status == 'waiting' || ($value.status == 'complete' && (scWorkflow.data.query[0].currentStageId == $value.id || $value.completedTaskCount < $value.taskCount))" dmx-class:bg-warning="$value.status == 'waiting'" dmx-class:bg-success="$value.status == 'complete' && scWorkflow.data.query[0].currentStageId != $value.id && $value.completedTaskCount == $value.taskCount" dmx-class:bg-danger="$value.status == 'overdue'" dmx-text="$value.status == 'complete' && scWorkflow.data.query[0].currentStageId == $value.id ? 'Ready for approval' : ($value.status == 'complete' && $value.completedTaskCount < $value.taskCount ? 'Requirements met' : $value.status.replace('_',' '))"></span></div>
                         <div class="col-auto"><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" dmx-bind:data-bs-target="'#workflowStageTasks' + $value.id" dmx-bind:aria-controls="'workflowStageTasks' + $value.id" aria-expanded="false" aria-label="Show all tasks"><span class="d-none d-md-inline me-2" dmx-text="'View ' + scTerminology.data.query[0].taskPlural.lowercase()">View tasks</span><i class="fas fa-chevron-down"></i></button></div>
                     </div>
                 </div>
@@ -238,7 +251,7 @@
                                     <td dmx-text="$value.dueDate.formatDate('dd MMM yyyy')"></td>
                                     <td><span class="badge bg-light text-dark border text-capitalize" dmx-text="$value.priority"></span></td>
                                     <td><form class="d-flex gap-2" method="post" action="/api/workflows/update_task_status"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="$value.id"><input type="hidden" name="workflowId" dmx-bind:value="$value.workflowId"><select class="form-select form-select-sm" name="status" dmx-bind:value="$value.status"><option value="not_started">Not started</option><option value="in_progress" dmx-bind:disabled="$value.startBlockerCount > 0">In progress</option><option value="waiting" dmx-bind:disabled="$value.startBlockerCount > 0">Waiting</option><option value="complete" dmx-bind:disabled="$value.startBlockerCount > 0 || $value.finishBlockerCount > 0">Complete</option><option value="skipped">Skipped</option><option value="cancelled">Cancelled</option></select><button class="btn btn-sm btn-outline-primary" type="submit">Save</button></form></td>
-                                    <td><a class="btn btn-sm btn-outline-secondary" dmx-bind:href="'/tasks/edit?id=' + $value.id"><i class="fas fa-pen"></i></a></td>
+                                    <td><a class="btn btn-sm btn-outline-secondary" dmx-bind:href="'/tasks/edit?id=' + $value.id + '&source=workflow'" title="Edit task"><i class="fas fa-pen"></i></a></td>
                                 </tr>
                             </tbody>
                         </table></div>
@@ -247,7 +260,11 @@
             </div>
         </div>
         <div class="text-center text-muted py-5" dmx-show="!scStages.state.executing && scStages.data.query.count() == 0" dmx-text="'No ' + scTerminology.data.query[0].stagePlural.lowercase() + ' exist for this ' + scTerminology.data.query[0].workflowSingular.lowercase() + '.'">No stages exist for this workflow.</div>
+
+        <div class="card shadow-sm mt-4" dmx-show="scStageHistory.data.history.count() > 0"><div class="card-header bg-white"><h3 class="h5 mb-0">Stage history</h3></div><div class="list-group list-group-flush" is="dmx-repeat" dmx-bind:repeat="scStageHistory.data.history"><div class="list-group-item"><div class="d-flex justify-content-between gap-3"><div><span class="badge me-2" dmx-class:bg-primary="$value.transitionType == 'approved'" dmx-class:bg-danger="$value.transitionType == 'manual_override'" dmx-text="$value.transitionType.replace('_',' ')"></span><strong dmx-text="$value.fromStageName || 'Initial stage'"></strong> &rarr; <strong dmx-text="$value.toStageName"></strong><div class="small text-muted"><span dmx-text="$value.approvedByName"></span> &middot; <span dmx-text="$value.transitionDate.formatDate('dd MMM yyyy HH:mm')"></span></div><div class="small mt-1" dmx-show="$value.overrideReason"><strong>Override reason:</strong> <span dmx-text="$value.overrideReason"></span></div><div class="small mt-1" dmx-show="$value.approvalComment" dmx-text="$value.approvalComment"></div></div></div></div></div></div>
     </div>
+    <div class="modal fade" id="approveStageModal" is="dmx-bs5-modal" tabindex="-1" aria-labelledby="approveStageModalLabel" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form is="dmx-serverconnect-form" method="post" action="/api/workflow/approveStageProgression" dmx-on:success="approveStageModal.hide();scWorkflow.load();scWorkflowConcurrency.load();scStages.load();scTasks.load();scStageReadiness.load();scStageHistory.load()"><%- _csrfInput() %><input type="hidden" name="recordId" dmx-bind:value="query.id"><input type="hidden" name="expectedCurrentStageId" dmx-bind:value="scStageReadiness.data.readiness[0].currentStageId"><input type="hidden" name="targetStageId" dmx-bind:value="scStageReadiness.data.readiness[0].nextWorkflowStageId"><div class="modal-header"><h2 class="modal-title h5" id="approveStageModalLabel">Approve stage progression</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><p>Approve moving this record from <strong dmx-text="scStageReadiness.data.readiness[0].currentStageName"></strong> to <strong dmx-text="scStageReadiness.data.readiness[0].nextStageName"></strong>?</p><label class="form-label" for="stageApprovalComment">Approval comment <span class="text-muted">(optional)</span></label><textarea class="form-control" id="stageApprovalComment" name="approvalComment" rows="3" maxlength="2000"></textarea></div><div class="modal-footer"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Remain in current stage</button><button class="btn btn-success" type="submit">Approve and move</button></div></form></div></div></div>
+    <div class="modal fade" id="overrideStageModal" is="dmx-bs5-modal" tabindex="-1" aria-labelledby="overrideStageModalLabel" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content"><form is="dmx-serverconnect-form" method="post" action="/api/workflow/overrideStageProgression" dmx-on:success="overrideStageModal.hide();scWorkflow.load();scWorkflowConcurrency.load();scStages.load();scTasks.load();scStageReadiness.load();scStageHistory.load()"><%- _csrfInput() %><input type="hidden" name="recordId" dmx-bind:value="query.id"><input type="hidden" name="expectedCurrentStageId" dmx-bind:value="scStageReadiness.data.readiness[0].currentStageId"><div class="modal-header bg-danger-subtle"><div><h2 class="modal-title h5" id="overrideStageModalLabel">Override stage requirements</h2><p class="small mb-0">This sensitive action bypasses the normal workflow rules and is fully audited.</p></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><div class="alert alert-danger"><strong>This stage is not ready to progress normally.</strong><div><span dmx-text="scStageReadiness.data.readiness[0].incompleteTaskCount"></span> required tasks incomplete, <span dmx-text="scStageReadiness.data.readiness[0].onHoldTaskCount"></span> on hold, and <span dmx-text="scStageReadiness.data.readiness[0].missingResponseCount"></span> required responses missing.</div></div><div class="mb-3"><label class="form-label" for="overrideTargetStage">Target stage</label><select class="form-select" id="overrideTargetStage" name="targetStageId" required dmx-bind:options="scStages.data.query.where('id','!=',scStageReadiness.data.readiness[0].currentStageId)" optiontext="stageName" optionvalue="id" dmx-bind:value="scStageReadiness.data.readiness[0].nextWorkflowStageId"><option value="">Select target stage</option></select></div><div class="mb-3"><label class="form-label" for="overrideReason">Override reason</label><textarea class="form-control" id="overrideReason" name="overrideReason" rows="3" required minlength="10" maxlength="2000"></textarea><div class="form-text">At least 10 characters. This reason is stored in the permanent stage history.</div></div><div><label class="form-label" for="overrideNotes">Supporting notes <span class="text-muted">(optional)</span></label><textarea class="form-control" id="overrideNotes" name="supportingNotes" rows="2" maxlength="2000"></textarea></div></div><div class="modal-footer"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Cancel</button><button class="btn btn-danger" type="submit"><i class="fas fa-exclamation-triangle me-2"></i>Force move to selected stage</button></div></form></div></div></div>
     <div class="modal fade" id="sendEventNotificationModal" is="dmx-bs5-modal" tabindex="-1" aria-labelledby="sendEventNotificationModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -274,10 +291,11 @@
     border-color: #dee2e6;
 }
 .phase-number {
-    width: 2.25rem;
-    height: 2.25rem;
+    width: 1.85rem;
+    height: 1.85rem;
     color: #111;
     font-weight: 700;
+    font-size: .82rem;
 }
 #eventInfoSummary .p-3 {
     padding: .65rem 1rem !important;
@@ -288,21 +306,65 @@
 }
 
 #eventInfoWorkflow .card-body {
-    padding: .65rem 1rem;
+    padding: .5rem .75rem;
 }
 
 #eventInfoWorkflow .row.g-3 {
-    --bs-gutter-y: .4rem;
+    --bs-gutter-x: .65rem;
+    --bs-gutter-y: .25rem;
 }
 
 #eventInfoWorkflow .table > :not(caption) > * > * {
-    padding-top: .4rem;
-    padding-bottom: .4rem;
+    padding: .28rem .5rem;
+    line-height: 1.2;
 }
 
 #eventInfoWorkflow .form-select-sm,
 #eventInfoWorkflow .btn-sm {
-    min-height: 1.9rem;
+    min-height: 1.75rem;
+    padding-top: .18rem;
+    padding-bottom: .18rem;
+    font-size: .8rem;
+}
+
+#eventInfoWorkflow .workflow-phase-card .h5 {
+    font-size: 1rem;
+    line-height: 1.15;
+}
+
+#eventInfoWorkflow .workflow-phase-card .small {
+    font-size: .74rem;
+    line-height: 1.2;
+}
+
+#eventInfoWorkflow .workflow-phase-card .table {
+    font-size: .82rem;
+}
+
+#eventInfoWorkflow .workflow-phase-card .table th {
+    font-size: .7rem;
+    line-height: 1.1;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+#eventInfoWorkflow .workflow-phase-card td .fw-semibold {
+    line-height: 1.15;
+}
+
+#eventInfoWorkflow .workflow-phase-card .badge {
+    font-size: .68rem;
+    padding: .25rem .4rem;
+}
+
+@media (min-width: 768px) {
+    #eventInfoWorkflow {
+        font-size: .9rem;
+    }
+
+    #eventInfoWorkflow .workflow-phase-card {
+        margin-bottom: .35rem !important;
+    }
 }
 
 </style>

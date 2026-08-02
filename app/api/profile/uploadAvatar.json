@@ -1,0 +1,56 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "method": "post"}},
+  "exec": {"steps": [
+    {
+      "name": "uploadAvatar",
+      "module": "upload",
+      "action": "upload",
+      "options": {
+        "fields": "avatarFile",
+        "path": "/public/uploads/avatars/{{$_SESSION.USER_ID}}",
+        "template": "avatar_{guid}{ext}",
+        "overwrite": false,
+        "createPath": true,
+        "throwErrors": true,
+        "replaceSpace": true,
+        "asciiOnly": true,
+        "replaceDiacritics": true
+      },
+      "output": true
+    },
+    {
+      "name": "validateAvatar",
+      "module": "core",
+      "action": "condition",
+      "options": {
+        "if": "{{uploadAvatar && uploadAvatar.size <= 2097152 && (uploadAvatar.type == 'image/png' || uploadAvatar.type == 'image/jpeg' || uploadAvatar.type == 'image/webp')}}",
+        "then": {"steps": {
+          "name": "saveAvatar",
+          "module": "dbupdater",
+          "action": "custom",
+          "options": {"connection": "db", "sql": {
+            "query": "UPDATE tbl_users u SET u.avatarPath=:avatarPath WHERE u.id=:userId AND u.isActive=1 AND EXISTS(SELECT 1 FROM tbl_user_tenants ut WHERE ut.userId=u.id AND ut.tenantId=:tenantId AND ut.isActive=1 AND ut.membershipStatus='active')",
+            "params": [
+              {"name":":avatarPath","value":"{{uploadAvatar.path.replace('/public','')}}"},
+              {"name":":userId","value":"{{$_SESSION.USER_ID.default(0)}}"},
+              {"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"}
+            ]
+          }},
+          "output": true
+        }},
+        "else": {"steps": [
+          {"module":"fs","action":"remove","options":{"path":"{{uploadAvatar.path}}"}},
+          {"name":"invalidAvatar","module":"core","action":"response","options":{"status":422,"data":{"success":false,"message":"Choose a PNG, JPG or WebP image no larger than 2 MB."}}}
+        ]}
+      },
+      "outputType": "boolean"
+    },
+    {
+      "name":"uploaded",
+      "module":"core",
+      "action":"condition",
+      "options":{"if":"{{uploadAvatar && uploadAvatar.size <= 2097152 && (uploadAvatar.type == 'image/png' || uploadAvatar.type == 'image/jpeg' || uploadAvatar.type == 'image/webp')}}","then":{"steps":{"name":"uploadedResponse","module":"core","action":"response","options":{"status":200,"data":{"success":true,"message":"Your profile picture has been updated."}}}}},
+      "outputType":"boolean"
+    }
+  ]}
+}

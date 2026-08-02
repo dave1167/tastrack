@@ -2,10 +2,11 @@
     'use strict';
 
     function loadCalendar() {
-        document.getElementById('calendarApplyFilters').dispatchEvent(new Event('click', {bubbles: true}));
+        if (window.dmx) {
+            window.dmx.parse('scCalendarEvents.load()');
+        }
     }
 
-    document.getElementById('calendarApplyFilters').addEventListener('click', loadCalendar);
     document.getElementById('calendarSearch').addEventListener('keydown', function (event) {
         if (event.key === 'Enter') {
             event.preventDefault();

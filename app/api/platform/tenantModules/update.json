@@ -14,7 +14,7 @@
     {"type": "number", "name": "autoRenew"},
     {"type": "text", "name": "billingReference"},
     {"type": "text", "name": "notes"},
-    {"type": "text", "name": "changeNote"}
+    {"type": "text", "name": "changeNote", "options": {"rules": {"core:required": {"param": ""}}}}
   ]},
   "exec": {"steps": [
     {
@@ -179,6 +179,6 @@
       },
       "output": true
     },
-    {"module": "core", "action": "redirect", "options": {"url": "/platform/tenant-modules?tenantId={{$_POST.tenantId}}&saved=1", "status": 302}}
+    {"module":"core","action":"redirect","options":{"url":"/platform/tenant-modules?tenantId={{$_POST.tenantId}}&saved=1","status":302}}
   ]}
 }

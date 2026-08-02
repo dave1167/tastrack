@@ -54,6 +54,28 @@
       }
     },
     {
+      "path": "/organisation-chart",
+      "page": "organisation/chart",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
+      "path": "/profile",
+      "page": "profile/index",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {
+        "provider": "security",
+        "loginUrl": "/login/login",
+        "forbiddenUrl": "/unauthorised"
+      }
+    },
+    {
       "path": "/users/create_user",
       "page": "users/create_user",
       "layout": "main_shell",

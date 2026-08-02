@@ -1,0 +1,50 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="my_profile" appConnect="local" components="{dmxBrowser:{}}" -->
+<dmx-serverconnect id="scProfile" url="/api/profile/get"></dmx-serverconnect>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div><h1 class="mb-1">My profile</h1><p class="text-muted mb-0">Manage the personal details colleagues see in Meldren.</p></div>
+    </div>
+    <div class="col-12 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center">
+                <div class="profile-avatar-preview mx-auto mb-3">
+                    <img dmx-show="scProfile.data.profile[0].avatarPath" dmx-bind:src="scProfile.data.profile[0].avatarPath" dmx-bind:alt="scProfile.data.profile[0].displayName">
+                    <span dmx-show="!scProfile.data.profile[0].avatarPath" dmx-text="scProfile.data.profile[0].initials.default('U')"></span>
+                </div>
+                <h2 class="h5 mb-1" dmx-text="scProfile.data.profile[0].displayName"></h2>
+                <div class="small text-muted mb-3" dmx-text="scProfile.data.profile[0].jobTitle.default('No role title added')"></div>
+                <form id="frmProfileAvatar" is="dmx-serverconnect-form" method="post" action="/api/profile/uploadAvatar" enctype="multipart/form-data" dmx-on:success="scProfile.load();scHeaderProfile.load();reset()">
+                    <%- _csrfInput() %>
+                    <label class="form-label text-start w-100" for="avatarFile">Profile picture</label>
+                    <input class="form-control form-control-sm" id="avatarFile" name="avatarFile" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" required>
+                    <div class="form-text text-start">PNG, JPG or WebP; maximum 2 MB.</div>
+                    <button class="btn btn-outline-primary w-100 mt-3" type="submit" dmx-bind:disabled="frmProfileAvatar.state.executing"><i class="fas fa-camera me-2"></i>Upload picture</button>
+                    <div class="small text-success mt-2" dmx-show="frmProfileAvatar.data.success" dmx-text="frmProfileAvatar.data.message"></div>
+                    <div class="small text-danger mt-2" dmx-show="frmProfileAvatar.lastError && frmProfileAvatar.lastError.status" dmx-text="frmProfileAvatar.lastError.response.message.default('The picture could not be uploaded.')"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-8 col-xl-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3"><h2 class="h5 mb-0">Personal information</h2></div>
+            <div class="card-body">
+                <form id="frmProfile" is="dmx-serverconnect-form" method="post" action="/api/profile/update" dmx-on:success="scProfile.load();scHeaderProfile.load();scWelcome.load()">
+                    <%- _csrfInput() %>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="profileFirstName">First name</label><input class="form-control" id="profileFirstName" name="firstName" maxlength="100" required dmx-bind:value="scProfile.data.profile[0].fName"></div>
+                        <div class="col-md-6"><label class="form-label" for="profileLastName">Last name</label><input class="form-control" id="profileLastName" name="lastName" maxlength="100" required dmx-bind:value="scProfile.data.profile[0].lName"></div>
+                        <div class="col-md-6"><label class="form-label" for="profileDisplayName">Display name</label><input class="form-control" id="profileDisplayName" name="displayName" maxlength="150" required dmx-bind:value="scProfile.data.profile[0].displayName"><div class="form-text">This name appears on tasks, messages and activity.</div></div>
+                        <div class="col-md-6"><label class="form-label" for="profileJobTitle">Role title</label><input class="form-control" id="profileJobTitle" name="jobTitle" maxlength="120" dmx-bind:value="scProfile.data.profile[0].jobTitle"></div>
+                        <div class="col-md-6"><label class="form-label" for="profilePhone">Phone</label><input class="form-control" id="profilePhone" name="phone" type="tel" maxlength="60" dmx-bind:value="scProfile.data.profile[0].phone"></div>
+                        <div class="col-md-6"><label class="form-label" for="profileEmail">Email</label><input class="form-control" id="profileEmail" type="email" readonly dmx-bind:value="scProfile.data.profile[0].email"><div class="form-text">Your email is your sign-in address and cannot be changed here.</div></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 mt-4"><button class="btn btn-primary" type="submit" dmx-bind:disabled="frmProfile.state.executing">Save changes</button><span class="text-success" dmx-show="frmProfile.data.success" dmx-text="frmProfile.data.message"></span><span class="text-danger" dmx-show="frmProfile.lastError && frmProfile.lastError.status" dmx-text="frmProfile.lastError.response.message.default('Your profile could not be updated.')"></span></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<meta name="ac:route" content="/profile">

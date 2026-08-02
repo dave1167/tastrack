@@ -1,73 +1,701 @@
-{
-  "settings": {"options": {"restrict":{"provider":"security"},"method": "post"}},
-  "meta": {"$_POST": [
-    {"type":"number","name":"templateId","options":{"rules":{"core:required":{"param":""}}}}, {"type":"text","name":"workflowName","options":{"rules":{"core:required":{"param":""}}}},
-    {"type":"text","name":"referenceCode","options":{"rules":{"core:required":{"param":""}}}}, {"type":"text","name":"notes"}, {"type":"number","name":"eventStatusId","options":{"rules":{"core:required":{"param":""}}}},
-    {"type":"number","name":"ownerTeamId","options":{"rules":{"core:required":{"param":""}}}}, {"type":"text","name":"startDate","options":{"rules":{"core:required":{"param":""}}}},
-    {"type":"text","name":"targetDate","options":{"rules":{"core:required":{"param":""}}}}, {"type":"number","name":"locationId"},
-    {"type":"number","name":"spaceId"}, {"type":"number","name":"configurationId"},
-    {"type":"number","name":"workflowTypeId"}, {"type":"number","name":"contractingEntityId"}
-  ]},
-  "exec": {"steps": [
-    {
-      "name":"getTemplate","module":"dbupdater","action":"custom",
-      "options":{"connection":"db","sql":{"query":"SELECT id,versionNumber FROM tbl_workflow_templates WHERE id=:id AND tenantId=:tenantId AND status='published' LIMIT 1","params":[{"name":":id","value":"{{$_POST.templateId}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},
-      "output":true,"outputType":"array","meta":[{"name":"id","type":"number"},{"name":"versionNumber","type":"number"}]
-    },
-    {
-      "name":"getEventStatus","module":"dbupdater","action":"custom",
-      "options":{"connection":"db","sql":{"query":"SELECT es.id,es.statusName,es.systemCategory FROM tbl_event_statuses es WHERE es.tenantId=:tenantId AND es.isActive=1 AND (es.id=NULLIF(:eventStatusId,0) OR (:eventStatusId2=0 AND es.isDefault=1)) ORDER BY CASE WHEN es.id=NULLIF(:eventStatusId3,0) THEN 0 ELSE 1 END,es.isDefault DESC,es.displayOrder,es.id LIMIT 1","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":eventStatusId","value":"{{$_POST.eventStatusId.default(0)}}"},{"name":":eventStatusId2","value":"{{$_POST.eventStatusId.default(0)}}"},{"name":":eventStatusId3","value":"{{$_POST.eventStatusId.default(0)}}"}]}},
-      "output":true,"outputType":"array","meta":[{"name":"id","type":"number"},{"name":"statusName","type":"text"},{"name":"systemCategory","type":"text"}]
-    },
-    {
-      "name":"insertWorkflow","module":"dbupdater","action":"insert",
-      "options":{"connection":"db","sql":{"type":"insert","values":[
-        {"table":"tbl_workflows","column":"tenantId","type":"number","value":"{{$_SESSION.TENANT_ID}}"},
-        {"table":"tbl_workflows","column":"templateId","type":"number","value":"{{getTemplate[0].id}}"},
-        {"table":"tbl_workflows","column":"templateVersionNumber","type":"number","value":"{{getTemplate[0].versionNumber}}"},
-        {"table":"tbl_workflows","column":"workflowName","type":"text","value":"{{$_POST.workflowName}}"},
-        {"table":"tbl_workflows","column":"referenceCode","type":"text","value":"{{$_POST.referenceCode}}"},
-        {"table":"tbl_workflows","column":"notes","type":"text","value":"{{$_POST.notes.default('')}}"},
-        {"table":"tbl_workflows","column":"eventStatusId","type":"number","value":"{{getEventStatus[0].id}}"},
-        {"table":"tbl_workflows","column":"status","type":"text","value":"not_started"},
-        {"table":"tbl_workflows","column":"ownerUserId","type":"number","value":"{{$_SESSION.USER_ID}}"},
-        {"table":"tbl_workflows","column":"ownerTeamId","type":"number","value":"{{$_POST.ownerTeamId}}"},
-        {"table":"tbl_workflows","column":"startDate","type":"date","value":"{{$_POST.startDate}}"},
-        {"table":"tbl_workflows","column":"targetDate","type":"date","value":"{{$_POST.targetDate}}"},
-        {"table":"tbl_workflows","column":"createdByUserId","type":"number","value":"{{$_SESSION.USER_ID}}"}
-      ],"table":"tbl_workflows","returning":"id","query":"insert into `tbl_workflows` (`tenantId`,`templateId`,`templateVersionNumber`,`workflowName`,`referenceCode`,`notes`,`eventStatusId`,`status`,`ownerUserId`,`ownerTeamId`,`startDate`,`targetDate`,`createdByUserId`) values (?,?,?,?,?,?,?,?,?,?,?,?,?)","params":[
-        {"name":":P1","type":"expression","value":"{{$_SESSION.TENANT_ID}}"},{"name":":P2","type":"expression","value":"{{getTemplate[0].id}}"},{"name":":P3","type":"expression","value":"{{getTemplate[0].versionNumber}}"},{"name":":P4","type":"expression","value":"{{$_POST.workflowName}}"},{"name":":P5","type":"expression","value":"{{$_POST.referenceCode}}"},{"name":":P6","type":"expression","value":"{{$_POST.notes.default('')}}"},{"name":":P7","type":"expression","value":"{{getEventStatus[0].id}}"},{"name":":P8","type":"text","value":"not_started"},{"name":":P9","type":"expression","value":"{{$_SESSION.USER_ID}}"},{"name":":P10","type":"expression","value":"{{$_POST.ownerTeamId}}"},{"name":":P11","type":"expression","value":"{{$_POST.startDate}}"},{"name":":P12","type":"expression","value":"{{$_POST.targetDate}}"},{"name":":P13","type":"expression","value":"{{$_SESSION.USER_ID}}"}
-      ]}},"meta":[{"name":"identity","type":"text"},{"name":"affected","type":"number"}],"output":true
-    },
-    {
-      "name":"setWorkflowLocation","module":"dbupdater","action":"custom",
-      "options":{"connection":"db","sql":{"query":"UPDATE tbl_workflows w SET w.workflowTypeId=(SELECT t.id FROM tbl_workflow_types t WHERE t.id=NULLIF(:workflowTypeId,'') AND t.tenantId=w.tenantId AND t.isActive=1 LIMIT 1),w.locationId=CASE WHEN EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='LOCATIONS' AND m.isActive=1 WHERE tm.tenantId=w.tenantId AND (tm.status='ACTIVE' OR (tm.status='TRIAL' AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate>CURRENT_TIMESTAMP))) AND (tm.accessStartDate IS NULL OR tm.accessStartDate<=CURRENT_TIMESTAMP) AND (tm.accessEndDate IS NULL OR tm.accessEndDate>CURRENT_TIMESTAMP)) THEN (SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,'') AND l.tenantId=w.tenantId LIMIT 1) ELSE NULL END,w.spaceId=CASE WHEN EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='LOCATIONS' AND m.isActive=1 WHERE tm.tenantId=w.tenantId AND tm.status IN ('ACTIVE','TRIAL')) THEN (SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,'') AND s.locationId=NULLIF(:locationId2,'') AND s.tenantId=w.tenantId LIMIT 1) ELSE NULL END,w.configurationId=CASE WHEN EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='LOCATIONS' AND m.isActive=1 WHERE tm.tenantId=w.tenantId AND tm.status IN ('ACTIVE','TRIAL')) THEN (SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,'') AND c.spaceId=NULLIF(:spaceId2,'') AND c.tenantId=w.tenantId LIMIT 1) ELSE NULL END WHERE w.id=:workflowId AND w.tenantId=:tenantId","params":[{"name":":workflowTypeId","value":"{{$_POST.workflowTypeId.default('')}}"},{"name":":locationId","value":"{{$_POST.locationId.default('')}}"},{"name":":spaceId","value":"{{$_POST.spaceId.default('')}}"},{"name":":locationId2","value":"{{$_POST.locationId.default('')}}"},{"name":":configurationId","value":"{{$_POST.configurationId.default('')}}"},{"name":":spaceId2","value":"{{$_POST.spaceId.default('')}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
-    },
-    {
-      "name":"setContractingEntity","module":"dbupdater","action":"custom",
-      "options":{"connection":"db","sql":{"query":"UPDATE tbl_workflows w SET w.contractingEntityId=COALESCE((SELECT ce.id FROM tbl_contracting_entities ce WHERE ce.id=NULLIF(:contractingEntityId,'') AND ce.tenantId=w.tenantId AND ce.isActive=1 LIMIT 1),(SELECT ce.id FROM tbl_contracting_entities ce WHERE ce.tenantId=w.tenantId AND ce.isDefault=1 AND ce.isActive=1 LIMIT 1)) WHERE w.id=:workflowId AND w.tenantId=:tenantId","params":[{"name":":contractingEntityId","value":"{{$_POST.contractingEntityId.default('')}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
-    },
-    {
-      "name":"cloneStages","module":"dbupdater","action":"custom",
-      "options":{"connection":"db","sql":{"query":"INSERT INTO tbl_workflow_stages (tenantId,workflowId,sourceTemplateStageId,stageName,description,sortOrder,status,colour) SELECT :tenantId,:workflowId,s.id,s.stageName,s.description,s.sortOrder,'not_started',s.colour FROM tbl_template_stages s WHERE s.templateId=:templateId AND s.tenantId=:tenantId2 AND s.status='active' ORDER BY s.sortOrder","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":templateId","value":"{{getTemplate[0].id}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
-    },
-    {
-      "name":"cloneTasks","module":"dbupdater","action":"custom",
-      "options":{"connection":"db","sql":{"query":"INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,sourceTemplateTaskId,taskName,description,status,priority,isRequired,assignedToUserId,assignedToTeamId,assignedToRoleId,dueDate,createdByUserId) SELECT :tenantId,:workflowId,ws.id,tt.id,tt.taskName,tt.description,'not_started',tt.priority,tt.isRequired,CASE WHEN tt.defaultOwnerType='workflow_owner' THEN :ownerUser WHEN tt.defaultOwnerType='specific_user' THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType='team' THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType='role' THEN tt.defaultOwnerId ELSE NULL END,CASE tt.dueOffsetType WHEN 'workflow_creation_date' THEN DATE_ADD(CURRENT_DATE,INTERVAL (CASE WHEN tt.dueRelation='before' THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN 'workflow_start_date' THEN DATE_ADD(NULLIF(:startDate,''),INTERVAL (CASE WHEN tt.dueRelation='before' THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN 'event_target_date' THEN DATE_ADD(NULLIF(:targetDate,''),INTERVAL (CASE WHEN tt.dueRelation='before' THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) ELSE NULL END,:createdBy FROM tbl_template_tasks tt INNER JOIN tbl_workflow_stages ws ON ws.workflowId=:workflowId2 AND ws.sourceTemplateStageId=tt.templateStageId AND ws.tenantId=:tenantId2 WHERE tt.templateId=:templateId AND tt.tenantId=:tenantId3 AND tt.status='active' ORDER BY tt.templateStageId,tt.sortOrder","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":ownerUser","value":"{{$_SESSION.USER_ID}}"},{"name":":startDate","value":"{{$_POST.startDate.default('')}}"},{"name":":targetDate","value":"{{$_POST.targetDate.default('')}}"},{"name":":createdBy","value":"{{$_SESSION.USER_ID}}"},{"name":":workflowId2","value":"{{insertWorkflow.identity}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"},{"name":":templateId","value":"{{getTemplate[0].id}}"},{"name":":tenantId3","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
-    },
-    {
-      "name":"cloneDependencies","module":"dbupdater","action":"custom",
-      "options":{"connection":"db","sql":{"query":"INSERT INTO tbl_task_dependencies (tenantId,workflowId,taskId,dependsOnTaskId,dependencyType) SELECT :tenantId,:workflowId,t.id,d.id,td.dependencyType FROM tbl_template_task_dependencies td INNER JOIN tbl_tasks t ON t.workflowId=:workflowId2 AND t.sourceTemplateTaskId=td.templateTaskId AND t.tenantId=:tenantId2 INNER JOIN tbl_tasks d ON d.workflowId=:workflowId3 AND d.sourceTemplateTaskId=td.dependsOnTemplateTaskId AND d.tenantId=:tenantId3 WHERE td.templateId=:templateId AND td.tenantId=:tenantId4","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":workflowId2","value":"{{insertWorkflow.identity}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId3","value":"{{insertWorkflow.identity}}"},{"name":":tenantId3","value":"{{$_SESSION.TENANT_ID}}"},{"name":":templateId","value":"{{getTemplate[0].id}}"},{"name":":tenantId4","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
-    },
-    {
-      "name":"cloneFields","module":"dbupdater","action":"custom",
-      "options":{"connection":"db","sql":{"query":"INSERT INTO tbl_workflow_field_values (tenantId,workflowId,templateCustomFieldId,fieldKey) SELECT :tenantId,:workflowId,f.id,f.fieldKey FROM tbl_template_custom_fields f WHERE f.templateId=:templateId AND f.tenantId=:tenantId2 AND f.status='active'","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":templateId","value":"{{getTemplate[0].id}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
-    },
-    {
-      "name":"setCurrentStage","module":"dbupdater","action":"custom",
-      "options":{"connection":"db","sql":{"query":"UPDATE tbl_workflows w SET w.currentStageId=(SELECT ws.id FROM tbl_workflow_stages ws WHERE ws.workflowId=w.id AND ws.tenantId=w.tenantId ORDER BY ws.sortOrder LIMIT 1),w.currentMilestoneId=(SELECT m.id FROM tbl_event_milestones m WHERE m.tenantId=w.tenantId AND m.isDefault=1 AND m.isActive=1 ORDER BY m.displayOrder,m.id LIMIT 1) WHERE w.id=:workflowId AND w.tenantId=:tenantId","params":[{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true
-    },
-    {"name":"logWorkflowCreated","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"INSERT INTO tbl_activity_log (tenantId,userId,workflowId,entityType,entityId,actionType,summary,afterJson,createdDate) SELECT :tenantId,:userId,:workflowId,'workflow',:entityId,'workflow.created',CONCAT(:displayName,' created ',:workflowName),JSON_OBJECT('workflowName',:workflowName2,'referenceCode',:referenceCode,'status','not_started','ownerTeamId',:ownerTeamId),CURRENT_TIMESTAMP FROM tbl_activity_types at WHERE at.tenantId=:tenantId2 AND at.activityKey='workflow.created' AND at.isActive=1 LIMIT 1","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":userId","value":"{{$_SESSION.USER_ID}}"},{"name":":workflowId","value":"{{insertWorkflow.identity}}"},{"name":":entityId","value":"{{insertWorkflow.identity}}"},{"name":":displayName","value":"{{$_SESSION.DISPLAY_NAME.default('A user')}}"},{"name":":workflowName","value":"{{$_POST.workflowName}}"},{"name":":workflowName2","value":"{{$_POST.workflowName}}"},{"name":":referenceCode","value":"{{$_POST.referenceCode.default('')}}"},{"name":":ownerTeamId","value":"{{$_POST.ownerTeamId}}"},{"name":":tenantId2","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true},
-    {"module":"core","action":"redirect","options":{"url":"/workflows/view?id={{insertWorkflow.identity}}","status":302}}
-  ]}
+﻿{
+    "settings":  {
+                     "options":  {
+                                     "restrict":  {
+                                                      "provider":  "security"
+                                                  },
+                                     "method":  "post"
+                                 }
+                 },
+    "meta":  {
+                 "$_POST":  [
+                                {
+                                    "type":  "number",
+                                    "name":  "templateId",
+                                    "options":  {
+                                                    "rules":  {
+                                                                  "core:required":  {
+                                                                                        "param":  ""
+                                                                                    }
+                                                              }
+                                                }
+                                },
+                                {
+                                    "type":  "text",
+                                    "name":  "workflowName",
+                                    "options":  {
+                                                    "rules":  {
+                                                                  "core:required":  {
+                                                                                        "param":  ""
+                                                                                    }
+                                                              }
+                                                }
+                                },
+                                {
+                                    "type":  "text",
+                                    "name":  "referenceCode",
+                                    "options":  {
+                                                    "rules":  {
+                                                                  "core:required":  {
+                                                                                        "param":  ""
+                                                                                    }
+                                                              }
+                                                }
+                                },
+                                {
+                                    "type":  "text",
+                                    "name":  "notes"
+                                },
+                                {
+                                    "type":  "number",
+                                    "name":  "eventStatusId",
+                                    "options":  {
+                                                    "rules":  {
+                                                                  "core:required":  {
+                                                                                        "param":  ""
+                                                                                    }
+                                                              }
+                                                }
+                                },
+                                {
+                                    "type":  "number",
+                                    "name":  "ownerTeamId",
+                                    "options":  {
+                                                    "rules":  {
+                                                                  "core:required":  {
+                                                                                        "param":  ""
+                                                                                    }
+                                                              }
+                                                }
+                                },
+                                {
+                                    "type":  "text",
+                                    "name":  "startDate",
+                                    "options":  {
+                                                    "rules":  {
+                                                                  "core:required":  {
+                                                                                        "param":  ""
+                                                                                    }
+                                                              }
+                                                }
+                                },
+                                {
+                                    "type":  "text",
+                                    "name":  "targetDate",
+                                    "options":  {
+                                                    "rules":  {
+                                                                  "core:required":  {
+                                                                                        "param":  ""
+                                                                                    }
+                                                              }
+                                                }
+                                },
+                                {
+                                    "type":  "number",
+                                    "name":  "locationId"
+                                },
+                                {
+                                    "type":  "number",
+                                    "name":  "spaceId"
+                                },
+                                {
+                                    "type":  "number",
+                                    "name":  "configurationId"
+                                },
+                                {
+                                    "type":  "number",
+                                    "name":  "workflowTypeId"
+                                },
+                                {
+                                    "type":  "number",
+                                    "name":  "contractingEntityId"
+                                }
+                            ]
+             },
+    "exec":  {
+                 "steps":  [
+                               {
+                                   "name":  "getTemplate",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "SELECT id,versionNumber FROM tbl_workflow_templates WHERE id=:id AND tenantId=:tenantId AND status=\u0027published\u0027 LIMIT 1",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":id",
+                                                                                  "value":  "{{$_POST.templateId}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true,
+                                   "outputType":  "array",
+                                   "meta":  [
+                                                {
+                                                    "name":  "id",
+                                                    "type":  "number"
+                                                },
+                                                {
+                                                    "name":  "versionNumber",
+                                                    "type":  "number"
+                                                }
+                                            ]
+                               },
+                               {
+                                   "name":  "getEventStatus",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "SELECT es.id,es.statusName,es.systemCategory FROM tbl_event_statuses es WHERE es.tenantId=:tenantId AND es.isActive=1 AND (es.id=NULLIF(:eventStatusId,0) OR (:eventStatusId2=0 AND es.isDefault=1)) ORDER BY CASE WHEN es.id=NULLIF(:eventStatusId3,0) THEN 0 ELSE 1 END,es.isDefault DESC,es.displayOrder,es.id LIMIT 1",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":eventStatusId",
+                                                                                  "value":  "{{$_POST.eventStatusId.default(0)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":eventStatusId2",
+                                                                                  "value":  "{{$_POST.eventStatusId.default(0)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":eventStatusId3",
+                                                                                  "value":  "{{$_POST.eventStatusId.default(0)}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true,
+                                   "outputType":  "array",
+                                   "meta":  [
+                                                {
+                                                    "name":  "id",
+                                                    "type":  "number"
+                                                },
+                                                {
+                                                    "name":  "statusName",
+                                                    "type":  "text"
+                                                },
+                                                {
+                                                    "name":  "systemCategory",
+                                                    "type":  "text"
+                                                }
+                                            ]
+                               },
+                               {
+                                   "name":  "insertWorkflow",
+                                   "module":  "dbupdater",
+                                   "action":  "insert",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "type":  "insert",
+                                                               "values":  [
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "tenantId",
+                                                                                  "type":  "number",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "templateId",
+                                                                                  "type":  "number",
+                                                                                  "value":  "{{getTemplate[0].id}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "templateVersionNumber",
+                                                                                  "type":  "number",
+                                                                                  "value":  "{{getTemplate[0].versionNumber}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "workflowName",
+                                                                                  "type":  "text",
+                                                                                  "value":  "{{$_POST.workflowName}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "referenceCode",
+                                                                                  "type":  "text",
+                                                                                  "value":  "{{$_POST.referenceCode}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "notes",
+                                                                                  "type":  "text",
+                                                                                  "value":  "{{$_POST.notes.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "eventStatusId",
+                                                                                  "type":  "number",
+                                                                                  "value":  "{{getEventStatus[0].id}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "status",
+                                                                                  "type":  "text",
+                                                                                  "value":  "not_started"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "ownerUserId",
+                                                                                  "type":  "number",
+                                                                                  "value":  "{{$_SESSION.USER_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "ownerTeamId",
+                                                                                  "type":  "number",
+                                                                                  "value":  "{{$_POST.ownerTeamId}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "startDate",
+                                                                                  "type":  "date",
+                                                                                  "value":  "{{$_POST.startDate}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "targetDate",
+                                                                                  "type":  "date",
+                                                                                  "value":  "{{$_POST.targetDate}}"
+                                                                              },
+                                                                              {
+                                                                                  "table":  "tbl_workflows",
+                                                                                  "column":  "createdByUserId",
+                                                                                  "type":  "number",
+                                                                                  "value":  "{{$_SESSION.USER_ID}}"
+                                                                              }
+                                                                          ],
+                                                               "table":  "tbl_workflows",
+                                                               "returning":  "id",
+                                                               "query":  "insert into `tbl_workflows` (`tenantId`,`templateId`,`templateVersionNumber`,`workflowName`,`referenceCode`,`notes`,`eventStatusId`,`status`,`ownerUserId`,`ownerTeamId`,`startDate`,`targetDate`,`createdByUserId`) values (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":P1",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P2",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{getTemplate[0].id}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P3",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{getTemplate[0].versionNumber}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P4",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{$_POST.workflowName}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P5",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{$_POST.referenceCode}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P6",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{$_POST.notes.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P7",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{getEventStatus[0].id}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P8",
+                                                                                  "type":  "text",
+                                                                                  "value":  "not_started"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P9",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{$_SESSION.USER_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P10",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{$_POST.ownerTeamId}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P11",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{$_POST.startDate}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P12",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{$_POST.targetDate}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":P13",
+                                                                                  "type":  "expression",
+                                                                                  "value":  "{{$_SESSION.USER_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "meta":  [
+                                                {
+                                                    "name":  "identity",
+                                                    "type":  "text"
+                                                },
+                                                {
+                                                    "name":  "affected",
+                                                    "type":  "number"
+                                                }
+                                            ],
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "setWorkflowLocation",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "UPDATE tbl_workflows w SET w.workflowTypeId=(SELECT t.id FROM tbl_workflow_types t WHERE t.id=NULLIF(:workflowTypeId,\u0027\u0027) AND t.tenantId=w.tenantId AND t.isActive=1 LIMIT 1),w.locationId=CASE WHEN EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode=\u0027LOCATIONS\u0027 AND m.isActive=1 WHERE tm.tenantId=w.tenantId AND (tm.status=\u0027ACTIVE\u0027 OR (tm.status=\u0027TRIAL\u0027 AND (tm.trialEndsDate IS NULL OR tm.trialEndsDate\u003eCURRENT_TIMESTAMP))) AND (tm.accessStartDate IS NULL OR tm.accessStartDate\u003c=CURRENT_TIMESTAMP) AND (tm.accessEndDate IS NULL OR tm.accessEndDate\u003eCURRENT_TIMESTAMP)) THEN (SELECT l.id FROM tbl_locations l WHERE l.id=NULLIF(:locationId,\u0027\u0027) AND l.tenantId=w.tenantId LIMIT 1) ELSE NULL END,w.spaceId=CASE WHEN EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode=\u0027LOCATIONS\u0027 AND m.isActive=1 WHERE tm.tenantId=w.tenantId AND tm.status IN (\u0027ACTIVE\u0027,\u0027TRIAL\u0027)) THEN (SELECT s.id FROM tbl_spaces s WHERE s.id=NULLIF(:spaceId,\u0027\u0027) AND s.locationId=NULLIF(:locationId2,\u0027\u0027) AND s.tenantId=w.tenantId LIMIT 1) ELSE NULL END,w.configurationId=CASE WHEN EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode=\u0027LOCATIONS\u0027 AND m.isActive=1 WHERE tm.tenantId=w.tenantId AND tm.status IN (\u0027ACTIVE\u0027,\u0027TRIAL\u0027)) THEN (SELECT c.id FROM tbl_space_configurations c WHERE c.id=NULLIF(:configurationId,\u0027\u0027) AND c.spaceId=NULLIF(:spaceId2,\u0027\u0027) AND c.tenantId=w.tenantId LIMIT 1) ELSE NULL END WHERE w.id=:workflowId AND w.tenantId=:tenantId",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":workflowTypeId",
+                                                                                  "value":  "{{$_POST.workflowTypeId.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":locationId",
+                                                                                  "value":  "{{$_POST.locationId.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":spaceId",
+                                                                                  "value":  "{{$_POST.spaceId.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":locationId2",
+                                                                                  "value":  "{{$_POST.locationId.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":configurationId",
+                                                                                  "value":  "{{$_POST.configurationId.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":spaceId2",
+                                                                                  "value":  "{{$_POST.spaceId.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "setContractingEntity",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "UPDATE tbl_workflows w SET w.contractingEntityId=COALESCE((SELECT ce.id FROM tbl_contracting_entities ce WHERE ce.id=NULLIF(:contractingEntityId,\u0027\u0027) AND ce.tenantId=w.tenantId AND ce.isActive=1 LIMIT 1),(SELECT ce.id FROM tbl_contracting_entities ce WHERE ce.tenantId=w.tenantId AND ce.isDefault=1 AND ce.isActive=1 LIMIT 1)) WHERE w.id=:workflowId AND w.tenantId=:tenantId",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":contractingEntityId",
+                                                                                  "value":  "{{$_POST.contractingEntityId.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "cloneStages",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "INSERT INTO tbl_workflow_stages (tenantId,workflowId,sourceTemplateStageId,stageName,description,sortOrder,status,colour,requiresProgressionApproval,allowManualOverride,approvalPrompt) SELECT :tenantId,:workflowId,s.id,s.stageName,s.description,s.sortOrder,\u0027not_started\u0027,s.colour,s.requiresProgressionApproval,s.allowManualOverride,s.approvalPrompt FROM tbl_template_stages s WHERE s.templateId=:templateId AND s.tenantId=:tenantId2 AND s.status=\u0027active\u0027 ORDER BY s.sortOrder",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":templateId",
+                                                                                  "value":  "{{getTemplate[0].id}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId2",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "linkStageProgression",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "UPDATE tbl_workflow_stages ws INNER JOIN tbl_template_stages ts ON ts.id=ws.sourceTemplateStageId AND ts.tenantId=ws.tenantId LEFT JOIN tbl_workflow_stages nextWs ON nextWs.workflowId=ws.workflowId AND nextWs.tenantId=ws.tenantId AND nextWs.sourceTemplateStageId=ts.nextStageTemplateId SET ws.nextWorkflowStageId=nextWs.id WHERE ws.workflowId=:workflowId AND ws.tenantId=:tenantId",
+                                                               "params":  [
+                                                                              {"name":  ":workflowId", "value":  "{{insertWorkflow.identity}}"},
+                                                                              {"name":  ":tenantId", "value":  "{{$_SESSION.TENANT_ID}}"}
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "cloneTasks",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,sourceTemplateTaskId,taskName,description,status,priority,isRequired,responseRequired,responseType,assignedToUserId,assignedToTeamId,assignedToRoleId,dueDate,createdByUserId) SELECT :tenantId,:workflowId,ws.id,tt.id,tt.taskName,tt.description,\u0027not_started\u0027,tt.priority,tt.isRequired,tt.responseRequired,tt.responseType,CASE WHEN tt.defaultOwnerType=\u0027workflow_owner\u0027 THEN :ownerUser WHEN tt.defaultOwnerType=\u0027specific_user\u0027 THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType=\u0027team\u0027 THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType=\u0027role\u0027 THEN tt.defaultOwnerId ELSE NULL END,CASE tt.dueOffsetType WHEN \u0027workflow_creation_date\u0027 THEN DATE_ADD(CURRENT_DATE,INTERVAL (CASE WHEN tt.dueRelation=\u0027before\u0027 THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN \u0027workflow_start_date\u0027 THEN DATE_ADD(NULLIF(:startDate,\u0027\u0027),INTERVAL (CASE WHEN tt.dueRelation=\u0027before\u0027 THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN \u0027event_target_date\u0027 THEN DATE_ADD(NULLIF(:targetDate,\u0027\u0027),INTERVAL (CASE WHEN tt.dueRelation=\u0027before\u0027 THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) ELSE NULL END,:createdBy FROM tbl_template_tasks tt INNER JOIN tbl_workflow_stages ws ON ws.workflowId=:workflowId2 AND ws.sourceTemplateStageId=tt.templateStageId AND ws.tenantId=:tenantId2 WHERE tt.templateId=:templateId AND tt.tenantId=:tenantId3 AND tt.status=\u0027active\u0027 ORDER BY tt.templateStageId,tt.sortOrder",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":ownerUser",
+                                                                                  "value":  "{{$_SESSION.USER_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":startDate",
+                                                                                  "value":  "{{$_POST.startDate.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":targetDate",
+                                                                                  "value":  "{{$_POST.targetDate.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":createdBy",
+                                                                                  "value":  "{{$_SESSION.USER_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId2",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId2",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":templateId",
+                                                                                  "value":  "{{getTemplate[0].id}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId3",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "cloneDependencies",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "INSERT INTO tbl_task_dependencies (tenantId,workflowId,taskId,dependsOnTaskId,dependencyType) SELECT :tenantId,:workflowId,t.id,d.id,td.dependencyType FROM tbl_template_task_dependencies td INNER JOIN tbl_tasks t ON t.workflowId=:workflowId2 AND t.sourceTemplateTaskId=td.templateTaskId AND t.tenantId=:tenantId2 INNER JOIN tbl_tasks d ON d.workflowId=:workflowId3 AND d.sourceTemplateTaskId=td.dependsOnTemplateTaskId AND d.tenantId=:tenantId3 WHERE td.templateId=:templateId AND td.tenantId=:tenantId4",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId2",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId2",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId3",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId3",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":templateId",
+                                                                                  "value":  "{{getTemplate[0].id}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId4",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "cloneFields",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "INSERT INTO tbl_workflow_field_values (tenantId,workflowId,templateCustomFieldId,fieldKey) SELECT :tenantId,:workflowId,f.id,f.fieldKey FROM tbl_template_custom_fields f WHERE f.templateId=:templateId AND f.tenantId=:tenantId2 AND f.status=\u0027active\u0027",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":templateId",
+                                                                                  "value":  "{{getTemplate[0].id}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId2",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "setCurrentStage",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "UPDATE tbl_workflows w SET w.currentStageId=(SELECT ws.id FROM tbl_workflow_stages ws WHERE ws.workflowId=w.id AND ws.tenantId=w.tenantId ORDER BY ws.sortOrder LIMIT 1),w.currentMilestoneId=(SELECT m.id FROM tbl_event_milestones m WHERE m.tenantId=w.tenantId AND m.isDefault=1 AND m.isActive=1 ORDER BY m.displayOrder,m.id LIMIT 1) WHERE w.id=:workflowId AND w.tenantId=:tenantId",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "logWorkflowCreated",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "INSERT INTO tbl_activity_log (tenantId,userId,workflowId,entityType,entityId,actionType,summary,afterJson,createdDate) SELECT :tenantId,:userId,:workflowId,\u0027workflow\u0027,:entityId,\u0027workflow.created\u0027,CONCAT(:displayName,\u0027 created \u0027,:workflowName),JSON_OBJECT(\u0027workflowName\u0027,:workflowName2,\u0027referenceCode\u0027,:referenceCode,\u0027status\u0027,\u0027not_started\u0027,\u0027ownerTeamId\u0027,:ownerTeamId),CURRENT_TIMESTAMP FROM tbl_activity_types at WHERE at.tenantId=:tenantId2 AND at.activityKey=\u0027workflow.created\u0027 AND at.isActive=1 LIMIT 1",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":userId",
+                                                                                  "value":  "{{$_SESSION.USER_ID}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":entityId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":displayName",
+                                                                                  "value":  "{{$_SESSION.DISPLAY_NAME.default(\u0027A user\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowName",
+                                                                                  "value":  "{{$_POST.workflowName}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":workflowName2",
+                                                                                  "value":  "{{$_POST.workflowName}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":referenceCode",
+                                                                                  "value":  "{{$_POST.referenceCode.default(\u0027\u0027)}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":ownerTeamId",
+                                                                                  "value":  "{{$_POST.ownerTeamId}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId2",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "module":  "core",
+                                   "action":  "redirect",
+                                   "options":  {
+                                                   "url":  "/workflows/view?id={{insertWorkflow.identity}}",
+                                                   "status":  302
+                                               }
+                               }
+                           ]
+             }
 }

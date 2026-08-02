@@ -3,6 +3,7 @@
 <div class="row g-4">
     <div class="col-12"><div class="d-flex justify-content-between align-items-center"><div><h1 class="mb-1">Edit Tenant Module</h1><p class="text-muted mb-0"><span dmx-text="scTenantModule.data.entitlement[0].tenantName"></span> · <span dmx-text="scTenantModule.data.entitlement[0].moduleName"></span></p></div><a class="btn btn-outline-secondary" dmx-bind:href="'/platform/tenant-modules?tenantId=' + query.tenantId">Back to tenant modules</a></div></div>
     <div class="col-12 col-xl-9"><div class="card border-0 shadow-sm" dmx-show="scTenantModule.data.entitlement.count() > 0"><div class="card-body p-4">
+        <div class="alert alert-primary d-flex justify-content-between align-items-center gap-3"><div><div class="small text-uppercase fw-semibold">Module being configured</div><div class="h5 mb-0" dmx-text="scTenantModule.data.entitlement[0].moduleName.default('Loading module...')">Loading module...</div></div><div class="text-end"><div class="small">Tenant</div><div class="fw-semibold" dmx-text="scTenantModule.data.entitlement[0].tenantName.default('Loading...')">Loading...</div><div class="small" dmx-show="scTenantModule.data.entitlement[0].moduleCode" dmx-text="scTenantModule.data.entitlement[0].moduleCode"></div></div></div>
         <form method="post" action="/api/platform/tenantModules/update">
             <%- _csrfInput() %><input type="hidden" name="tenantId" dmx-bind:value="query.tenantId"><input type="hidden" name="moduleId" dmx-bind:value="query.moduleId">
             <div class="row g-3">
@@ -17,7 +18,7 @@
                 <div class="col-md-4"><label class="form-label">Auto renew</label><select class="form-select" name="autoRenew" dmx-bind:value="scTenantModule.data.entitlement[0].autoRenew"><option value="0">No</option><option value="1">Yes</option></select></div>
                 <div class="col-md-8"><label class="form-label">Billing reference</label><input class="form-control" name="billingReference" dmx-bind:value="scTenantModule.data.entitlement[0].billingReference"></div>
                 <div class="col-12"><label class="form-label">Commercial notes</label><textarea class="form-control" name="notes" rows="3" dmx-bind:value="scTenantModule.data.entitlement[0].notes"></textarea></div>
-                <div class="col-12"><label class="form-label">Reason for change</label><input class="form-control" name="changeNote" required></div>
+                <div class="col-12"><label class="form-label" for="tenantModuleChangeNote">Reason for change</label><input class="form-control" id="tenantModuleChangeNote" name="changeNote" required minlength="3"><div class="form-text">Required. This is recorded in the module history.</div></div>
             </div>
             <div class="d-flex justify-content-end gap-2 mt-4"><a class="btn btn-light" dmx-bind:href="'/platform/tenant-modules?tenantId=' + query.tenantId">Cancel</a><button class="btn btn-primary" type="submit">Save tenant module</button></div>
         </form>

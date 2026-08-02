@@ -1,0 +1,20 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "nocsrf": true, "method": "get"}},
+  "exec": {"steps": {
+    "name": "profile",
+    "module": "dbupdater",
+    "action": "custom",
+    "options": {"connection": "db", "sql": {
+      "query": "SELECT u.id,u.email,u.fName,u.lName,u.displayName,u.phone,u.jobTitle,u.avatarPath,UPPER(CONCAT(LEFT(COALESCE(NULLIF(u.fName,''),u.displayName,'U'),1),LEFT(COALESCE(NULLIF(u.lName,''),''),1))) initials FROM tbl_users u INNER JOIN tbl_user_tenants ut ON ut.userId=u.id AND ut.tenantId=:tenantId AND ut.isActive=1 AND ut.membershipStatus='active' WHERE u.id=:userId AND u.isActive=1 LIMIT 1",
+      "params": [
+        {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"},
+        {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"}
+      ]
+    }},
+    "output": true,
+    "outputType": "array",
+    "meta": [
+      {"name":"id","type":"number"},{"name":"email","type":"text"},{"name":"fName","type":"text"},{"name":"lName","type":"text"},{"name":"displayName","type":"text"},{"name":"phone","type":"text"},{"name":"jobTitle","type":"text"},{"name":"avatarPath","type":"text"},{"name":"initials","type":"text"}
+    ]
+  }}
+}

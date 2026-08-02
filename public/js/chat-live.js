@@ -65,6 +65,7 @@
             refreshChat();
         });
 
+
         if (new URLSearchParams(window.location.search).get('chat') === 'open') {
             const drawer = document.getElementById('chatDrawer');
             if (drawer && window.bootstrap && window.bootstrap.Offcanvas) {

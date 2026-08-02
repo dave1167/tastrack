@@ -59,6 +59,23 @@
         }
       },
       {
+        "name": "tenantContext",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT ut.tenantId,t.tenantName,r.id roleId,r.roleName,r.roleKey FROM tbl_user_tenants ut INNER JOIN tbl_tenants t ON t.id=ut.tenantId AND t.isActive=1 LEFT JOIN tbl_user_tenant_roles utr ON utr.userId=ut.userId AND utr.tenantId=ut.tenantId AND utr.isActive=1 LEFT JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 WHERE ut.userId=:userId AND ut.isActive=1 AND ut.membershipStatus='active' ORDER BY CASE WHEN ut.tenantId=NULLIF(:currentTenant,0) THEN 0 ELSE 1 END,COALESCE(utr.isPrimary,0) DESC,ut.id DESC,COALESCE(r.id,0) LIMIT 1",
+            "params": [
+              {"name": ":userId", "value": "{{identity}}"},
+              {"name": ":currentTenant", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
         "name": "USER_ID",
         "module": "core",
         "action": "setsession",
@@ -86,19 +103,31 @@
         "name": "TENANT_ID",
         "module": "core",
         "action": "setsession",
-        "options": {"value": ""}
+        "options": {"value": "{{tenantContext[0].tenantId.default('')}}"}
       },
       {
         "name": "TENANT_NAME",
         "module": "core",
         "action": "setsession",
-        "options": {"value": ""}
+        "options": {"value": "{{tenantContext[0].tenantName.default('')}}"}
       },
       {
         "name": "ROLE_ID",
         "module": "core",
         "action": "setsession",
-        "options": {"value": ""}
+        "options": {"value": "{{tenantContext[0].roleId.default('')}}"}
+      },
+      {
+        "name": "ROLE_NAME",
+        "module": "core",
+        "action": "setsession",
+        "options": {"value": "{{tenantContext[0].roleName.default('')}}"}
+      },
+      {
+        "name": "ROLE_KEY",
+        "module": "core",
+        "action": "setsession",
+        "options": {"value": "{{tenantContext[0].roleKey.default('')}}"}
       },
       {
         "module": "core",

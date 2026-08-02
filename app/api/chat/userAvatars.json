@@ -1,0 +1,18 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "nocsrf": true, "method": "get"}},
+  "exec": {"steps": {
+    "name": "users",
+    "module": "dbupdater",
+    "action": "custom",
+    "options": {"connection": "db", "sql": {
+      "query": "SELECT u.id userId,u.avatarPath FROM tbl_user_tenants ut INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 WHERE ut.tenantId=:tenantId AND ut.isActive=1 AND ut.membershipStatus='active' AND EXISTS(SELECT 1 FROM tbl_tenant_modules tm INNER JOIN tbl_modules m ON m.id=tm.moduleId AND m.moduleCode='TEAM_CHAT' AND m.isActive=1 WHERE tm.tenantId=ut.tenantId AND tm.status IN ('ACTIVE','TRIAL')) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles roleMembership INNER JOIN tbl_role_permissions rp ON rp.roleId=roleMembership.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='chat.view' AND p.isActive=1 WHERE roleMembership.userId=:currentUser AND roleMembership.tenantId=ut.tenantId AND roleMembership.isActive=1)",
+      "params": [
+        {"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"},
+        {"name":":currentUser","value":"{{$_SESSION.USER_ID.default(0)}}"}
+      ]
+    }},
+    "output": true,
+    "outputType": "array",
+    "meta": [{"name":"userId","type":"number"},{"name":"avatarPath","type":"text"}]
+  }}
+}

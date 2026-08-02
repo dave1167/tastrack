@@ -1,0 +1,34 @@
+{
+  "settings": {"options": {"restrict": {"provider": "security"}, "method": "post"}},
+  "meta": {"$_POST": [
+    {"type":"text","name":"firstName","options":{"rules":{"core:required":{"param":""}}}},
+    {"type":"text","name":"lastName","options":{"rules":{"core:required":{"param":""}}}},
+    {"type":"text","name":"displayName","options":{"rules":{"core:required":{"param":""}}}},
+    {"type":"text","name":"phone"},
+    {"type":"text","name":"jobTitle"}
+  ]},
+  "exec": {"steps": [
+    {
+      "name": "updateProfile",
+      "module": "dbupdater",
+      "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "UPDATE tbl_users u SET u.fName=:firstName,u.lName=:lastName,u.displayName=:displayName,u.phone=NULLIF(:phone,''),u.jobTitle=NULLIF(:jobTitle,'') WHERE u.id=:userId AND u.isActive=1 AND EXISTS(SELECT 1 FROM tbl_user_tenants ut WHERE ut.userId=u.id AND ut.tenantId=:tenantId AND ut.isActive=1 AND ut.membershipStatus='active')",
+        "params": [
+          {"name":":firstName","value":"{{$_POST.firstName.trim()}}"},
+          {"name":":lastName","value":"{{$_POST.lastName.trim()}}"},
+          {"name":":displayName","value":"{{$_POST.displayName.trim()}}"},
+          {"name":":phone","value":"{{$_POST.phone.trim().default('')}}"},
+          {"name":":jobTitle","value":"{{$_POST.jobTitle.trim().default('')}}"},
+          {"name":":userId","value":"{{$_SESSION.USER_ID.default(0)}}"},
+          {"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"}
+        ]
+      }},
+      "output": true
+    },
+    {"name":"FNAME","module":"core","action":"setsession","options":{"value":"{{$_POST.firstName.trim()}}"}},
+    {"name":"LNAME","module":"core","action":"setsession","options":{"value":"{{$_POST.lastName.trim()}}"}},
+    {"name":"DISPLAY_NAME","module":"core","action":"setsession","options":{"value":"{{$_POST.displayName.trim()}}"}},
+    {"name":"saved","module":"core","action":"response","options":{"status":200,"data":{"success":true,"message":"Your profile has been updated."}}}
+  ]}
+}

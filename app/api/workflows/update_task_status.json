@@ -85,22 +85,6 @@
         "output": true
       },
       {
-        "name": "recalculateWorkflow",
-        "module": "dbupdater",
-        "action": "custom",
-        "options": {
-          "connection": "db",
-          "sql": {
-            "query": "UPDATE tbl_workflows w SET w.currentStageId=(SELECT ws.id FROM tbl_workflow_stages ws WHERE ws.workflowId=w.id AND ws.tenantId=w.tenantId AND ws.status<>'complete' ORDER BY ws.sortOrder,ws.id LIMIT 1),w.modifiedDate=CURRENT_TIMESTAMP WHERE w.id=:workflowId AND w.tenantId=:tenantId",
-            "params": [
-              { "name": ":workflowId", "value": "{{$_POST.workflowId}}" },
-              { "name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}" }
-            ]
-          }
-        },
-        "output": true
-      },
-      {
         "module": "core",
         "action": "redirect",
         "options": {
