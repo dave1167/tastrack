@@ -6,6 +6,7 @@
 <dmx-serverconnect id="scTeamOptions" url="/api/tenant/users/team_options"></dmx-serverconnect>
 <dmx-serverconnect id="scTeamRoles" url="/api/tenant/users/team_role_options" noload="true"></dmx-serverconnect>
 <dmx-serverconnect id="scTeamAssignments" url="/api/tenant/users/team_assignments" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
+<dmx-serverconnect id="scHierarchy" url="/api/tenant/users/hierarchy_options" dmx-param:userid="query1.data.userid"></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12">
@@ -128,6 +129,24 @@
                     </div>
                 </div>
                 <p class="text-muted small mb-0" dmx-show="!scTeamAssignments.state.executing && scTeamAssignments.data.teams.count()==0">This user is not assigned to any teams.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-xl-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3"><h2 class="h5 mb-1">Organisation hierarchy</h2><p class="text-muted small mb-0">Set this person's position and reporting line.</p></div>
+            <div class="card-body">
+                <form id="frmHierarchy" is="dmx-serverconnect-form" method="post" action="/api/tenant/users/update_hierarchy" dmx-on:success="scHierarchy.load({userid: query1.data.userid})">
+                    <%- _csrfInput() %><input type="hidden" name="userId" dmx-bind:value="scUser.data.user[0].userId">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="hierarchyJobTitle">Job title</label><input class="form-control" id="hierarchyJobTitle" name="jobTitle" dmx-bind:value="scHierarchy.data.current[0].jobTitle" placeholder="e.g. Finance Director"></div>
+                        <div class="col-md-6"><label class="form-label" for="hierarchyLevel">Position level</label><select class="form-select" id="hierarchyLevel" name="positionLevel" dmx-bind:value="scHierarchy.data.current[0].positionLevel.default('team_member')"><option value="executive">Executive / CEO</option><option value="director">Director</option><option value="manager">Manager</option><option value="team_member">Team member</option></select></div>
+                        <div class="col-12"><label class="form-label" for="hierarchyManager">Reports to</label><select class="form-select" id="hierarchyManager" name="reportsToUserId" dmx-bind:options="scHierarchy.data.managers" optiontext="managerLabel" optionvalue="userId" dmx-bind:value="scHierarchy.data.current[0].reportsToUserId"><option value="">No manager / top of organisation</option></select></div>
+                    </div>
+                    <div class="alert alert-danger mt-3 mb-0" dmx-show="frmHierarchy.lastError.response.message" dmx-text="frmHierarchy.lastError.response.message"></div>
+                    <button class="btn btn-primary mt-3" type="submit" dmx-bind:disabled="frmHierarchy.state.executing">Save hierarchy</button>
+                </form>
             </div>
         </div>
     </div>

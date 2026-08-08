@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"id"}]},"exec":{"steps":{"name":"testMailbox","module":"workflowMailbox","action":"testConnection","options":{},"output":true,"outputType":"object"}}}

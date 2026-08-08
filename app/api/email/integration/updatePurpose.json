@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"id"},{"type":"text","name":"purpose"},{"type":"text","name":"customPurpose"}]},"exec":{"steps":{"name":"updateMailboxPurpose","module":"workflowMailbox","action":"updatePurpose","options":{"purpose":"{{$_POST.purpose}}"},"output":true,"outputType":"object"}}}

@@ -259,6 +259,16 @@
       "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
+      "path": "/settings/integrations/email",
+      "page": "settings/email_integration",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {"path":"/communications/mailbox","page":"communications/mailbox","layout":"main_shell","routeType":"page","restrict":{"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}},
+    {"path":"/communications/mailbox/message","page":"communications/message","layout":"main_shell","routeType":"page","restrict":{"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}},
+    {"path":"/communications/unmatched","page":"communications/unmatched","layout":"main_shell","routeType":"page","restrict":{"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}},
+    {
       "path": "/administration",
       "page": "administration/index",
       "layout": "main_shell",

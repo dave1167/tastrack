@@ -1,0 +1,1 @@
+{type:'communication_email',module:'communicationEmail',action:'recordList',groupTitle:'Email Communications',groupIcon:'fa fa-envelope',addTitle:'Email communication action',title:'Email communication action',icon:'fa fa-envelope',serverModel:['node'],dataPickObject:true,properties:[]}

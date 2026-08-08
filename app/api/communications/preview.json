@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"nocsrf":true,"method":"get"}},"meta":{"$_GET":[{"type":"number","name":"id"},{"type":"number","name":"workflowId"}]},"exec":{"steps":{"name":"email","module":"communicationEmail","action":"preview","options":{},"output":true,"outputType":"object"}}}

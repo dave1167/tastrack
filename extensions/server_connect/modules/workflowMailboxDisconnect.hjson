@@ -1,0 +1,1 @@
+{type:'workflow_mailbox_disconnect',module:'workflowMailbox',action:'disconnect',groupTitle:'Email Integration',groupIcon:'fa fa-envelope',addTitle:'Disconnect workflow mailbox',title:'Disconnect workflow mailbox',icon:'fa fa-unlink',serverModel:['node'],dataPickObject:true,properties:[]}

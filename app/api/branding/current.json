@@ -1,19 +1,38 @@
 {
-  "settings": {"options": {"restrict": {"provider": "security"}, "nocsrf": true, "method": "get"}},
-  "exec": {"steps": [
-    {
-      "name": "branding",
-      "module": "dbupdater",
-      "action": "custom",
-      "options": {"connection": "db", "sql": {
-        "query": "SELECT COALESCE(b.primaryColour,'#14B8A6') primaryColour,COALESCE(b.accentColour,'#2563EB') accentColour,COALESCE(b.headerColour,'#0D1B2A') headerColour,COALESCE(b.sidebarColour,'#0D1B2A') sidebarColour,COALESCE(NULLIF(b.logoPath,''),'/assets/images/meldren_logo_dark.png') logoPath,COALESCE(NULLIF(b.contractLogoPath,''),NULLIF(b.logoPath,''),'/assets/images/meldren_logo_light.png') contractLogoPath,COALESCE(b.defaultColourMode,'light') defaultColourMode,COALESCE(b.rowVersion,1) rowVersion,CAST(EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='branding.manage' AND p.isActive=1 WHERE utr.userId=:userId AND utr.tenantId=t.id AND utr.isActive=1) AS UNSIGNED) canManage FROM tbl_tenants t LEFT JOIN tbl_tenant_branding b ON b.tenantId=t.id WHERE t.id=:tenantId LIMIT 1",
-        "params": [
-          {"name": ":userId", "value": "{{$_SESSION.USER_ID.default(0)}}"},
-          {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}
-        ]
-      }},
-      "output": true,
-      "outputType": "array"
+  "settings": {
+    "options": {
+      "restrict": {
+        "provider": "security"
+      },
+      "nocsrf": true,
+      "method": "get"
     }
-  ]}
+  },
+  "exec": {
+    "steps": [
+      {
+        "name": "branding",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT COALESCE(b.primaryColour,'#14B8A6') primaryColour,COALESCE(b.accentColour,'#2563EB') accentColour,COALESCE(b.headerColour,'#0D1B2A') headerColour,COALESCE(b.sidebarColour,'#0D1B2A') sidebarColour,CASE WHEN NULLIF(b.logoPath,'') IN ('/assets/images/tastrack_logo.png','/assets/images/meldren_logo_dark.png','/assets/images/meldren_logo_light.png') THEN '/assets/images/metipath_logo.png' ELSE COALESCE(NULLIF(b.logoPath,''),'/assets/images/metipath_logo.png') END logoPath,CASE WHEN NULLIF(b.contractLogoPath,'') IN ('/assets/images/tastrack_logo.png','/assets/images/meldren_logo_dark.png','/assets/images/meldren_logo_light.png') THEN '/assets/images/metipath_logo.png' WHEN NULLIF(b.logoPath,'') IN ('/assets/images/tastrack_logo.png','/assets/images/meldren_logo_dark.png','/assets/images/meldren_logo_light.png') THEN '/assets/images/metipath_logo.png' ELSE COALESCE(NULLIF(b.contractLogoPath,''),NULLIF(b.logoPath,''),'/assets/images/metipath_logo.png') END contractLogoPath,COALESCE(b.defaultColourMode,'light') defaultColourMode,COALESCE(b.rowVersion,1) rowVersion,CAST(EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_role_permissions rp ON rp.roleId=utr.roleId INNER JOIN tbl_permissions p ON p.id=rp.permissionId AND p.permissionCode='branding.manage' AND p.isActive=1 WHERE utr.userId=:userId AND utr.tenantId=t.id AND utr.isActive=1) AS UNSIGNED) canManage FROM tbl_tenants t LEFT JOIN tbl_tenant_branding b ON b.tenantId=t.id WHERE t.id=:tenantId LIMIT 1",
+            "params": [
+              {
+                "name": ":userId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
+              },
+              {
+                "name": ":tenantId",
+                "value": "{{$_SESSION.TENANT_ID.default(0)}}"
+              }
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      }
+    ]
+  }
 }

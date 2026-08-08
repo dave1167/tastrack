@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"id"}]},"exec":{"steps":{"name":"disconnectMailbox","module":"workflowMailbox","action":"disconnect","options":{},"output":true,"outputType":"object"}}}

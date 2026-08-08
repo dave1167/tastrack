@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"nocsrf":true,"method":"get"}},"exec":{"steps":{"name":"mailbox","module":"workflowMailbox","action":"status","options":{},"output":true,"outputType":"object"}}}

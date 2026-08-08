@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"id"},{"type":"text","name":"mailboxType"},{"type":"number","name":"owningTeamId"},{"type":"text","name":"accessMode"}]},"exec":{"steps":{"name":"mailbox","module":"workflowMailbox","action":"updateGovernance","options":{},"output":true,"outputType":"object"}}}

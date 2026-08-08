@@ -290,7 +290,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "INSERT INTO tbl_notifications (tenantId,userId,notificationType,title,message,status,channel,createdDate) VALUES (:tenantId,:recipientId,'chat_message',CONCAT('New message from ',:senderName),'You have a new private message.','unread','in_app',CURRENT_TIMESTAMP)",
+            "query": "INSERT INTO tbl_notifications (tenantId,userId,relatedUserId,notificationType,title,message,status,channel,createdDate) VALUES (:tenantId,:recipientId,:senderUserId,'chat_message',CONCAT('New message from ',:senderName),'You have a new private message.','unread','in_app',CURRENT_TIMESTAMP)",
             "params": [
               {
                 "name": ":tenantId",
@@ -299,6 +299,10 @@
               {
                 "name": ":recipientId",
                 "value": "{{recipient[0].userId}}"
+              },
+              {
+                "name": ":senderUserId",
+                "value": "{{$_SESSION.USER_ID.default(0)}}"
               },
               {
                 "name": ":senderName",

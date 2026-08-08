@@ -1,0 +1,1 @@
+{type:'workflow_mailbox_start',module:'workflowMailbox',action:'start',groupTitle:'Email Integration',groupIcon:'fa fa-envelope',addTitle:'Connect workflow mailbox',title:'Connect workflow mailbox',icon:'fa fa-link',serverModel:['node'],dataPickObject:true,properties:[]}

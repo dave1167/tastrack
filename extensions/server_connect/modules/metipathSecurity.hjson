@@ -1,0 +1,6 @@
+{
+  type: 'metipath_security_encrypt', module: 'metipathSecurity', action: 'encryptValue',
+  groupTitle: 'Security', groupIcon: 'fa fa-lock comp-data', addTitle: 'Encrypt tenant value', title: 'Encrypt tenant value', icon: 'fa fa-lock comp-data', serverModel: ['node'], dataPickObject: true,
+  dataScheme: [{name:'ciphertext',type:'text'},{name:'iv',type:'text'},{name:'authTag',type:'text'},{name:'encryptionVersion',type:'number'},{name:'keyVersion',type:'number'}],
+  properties: [{group:'Value',variables:[{name:'plaintext',optionName:'plaintext',title:'Plaintext',type:'text',required:true,serverDataBindings:true},{name:'tenantId',optionName:'tenantId',title:'Tenant ID',type:'number',required:true,serverDataBindings:true},{name:'context',optionName:'context',title:'Context',type:'text',defaultValue:'communication',serverDataBindings:true}]}]
+}

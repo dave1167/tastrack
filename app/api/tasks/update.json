@@ -287,7 +287,7 @@
           "sql": {
             "query": "INSERT INTO tbl_notifications (tenantId,userId,workflowId,taskId,notificationType,title,message,status,channel,createdDate) SELECT t.tenantId,t.assignedToUserId,t.workflowId,t.id,'task_assigned',CONCAT('Task assigned: ',t.taskName),CONCAT(:actor,' assigned this task to you.'),'unread','in_app',CURRENT_TIMESTAMP FROM tbl_tasks t WHERE t.id=:taskId AND t.tenantId=:tenantId AND t.assignedToUserId IS NOT NULL AND t.assignedToUserId<>:actorUserId AND COALESCE(t.assignedToUserId,0)<>COALESCE(:oldAssignedUserId,0)",
             "params": [
-              {"name":":actor","value":"{{$_SESSION.DISPLAY_NAME.default('A Meldren user')}}"},
+              {"name":":actor","value":"{{$_SESSION.DISPLAY_NAME.default('A MetiPath user')}}"},
               {"name":":taskId","value":"{{$_POST.id}}"},
               {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},
               {"name":":actorUserId","value":"{{$_SESSION.USER_ID}}"},
@@ -306,7 +306,7 @@
           "sql": {
             "query": "INSERT INTO tbl_notifications (tenantId,userId,workflowId,taskId,notificationType,title,message,status,channel,createdDate) SELECT t.tenantId,ut.userId,t.workflowId,t.id,'task_assigned',CONCAT('Team task assigned: ',t.taskName),CONCAT(:actor,' assigned this task to your team.'),'unread','in_app',CURRENT_TIMESTAMP FROM tbl_tasks t INNER JOIN tbl_team_members tm ON tm.teamId=t.assignedToTeamId AND tm.tenantId=t.tenantId AND tm.isActive=1 INNER JOIN tbl_user_tenants ut ON ut.id=tm.userTenantId AND ut.tenantId=t.tenantId AND ut.isActive=1 AND ut.membershipStatus='active' WHERE t.id=:taskId AND t.tenantId=:tenantId AND t.assignedToTeamId IS NOT NULL AND t.assignedToTeamId<>:oldAssignedTeamId AND ut.userId<>:actorUserId AND (t.assignedToUserId IS NULL OR ut.userId<>t.assignedToUserId)",
             "params": [
-              {"name":":actor","value":"{{$_SESSION.DISPLAY_NAME.default('A Meldren user')}}"},
+              {"name":":actor","value":"{{$_SESSION.DISPLAY_NAME.default('A MetiPath user')}}"},
               {"name":":taskId","value":"{{$_POST.id}}"},
               {"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},
               {"name":":oldAssignedTeamId","value":"{{taskBeforeChange[0].assignedToTeamId.default(0)}}"},

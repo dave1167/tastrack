@@ -1,0 +1,1 @@
+{type:'workflow_mailbox_status',module:'workflowMailbox',action:'status',groupTitle:'Email Integration',groupIcon:'fa fa-envelope',addTitle:'Workflow mailbox status',title:'Workflow mailbox status',icon:'fa fa-envelope',serverModel:['node'],dataPickObject:true,properties:[]}

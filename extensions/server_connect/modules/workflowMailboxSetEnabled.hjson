@@ -1,0 +1,1 @@
+{type:'workflow_mailbox_set_enabled',module:'workflowMailbox',action:'setEnabled',groupTitle:'Email Integration',groupIcon:'fa fa-envelope',addTitle:'Enable or disable mailbox',title:'Enable or disable mailbox',icon:'fa fa-toggle-on',serverModel:['node'],dataPickObject:true,properties:[]}

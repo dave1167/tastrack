@@ -17,6 +17,8 @@
 <dmx-serverconnect id="scCommercial" url="/api/commercial/get" dmx-param:workflowid="query.id"></dmx-serverconnect>
 <dmx-serverconnect id="scStageReadiness" url="/api/workflow/checkStageReadiness" dmx-param:recordid="query.id" dmx-param:currentstageid="scWorkflow.data.query[0].currentStageId"></dmx-serverconnect>
 <dmx-serverconnect id="scStageHistory" url="/api/workflow/stageHistory" dmx-param:recordid="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scRecordEmails" url="/api/communications/recordEmails" dmx-param:workflowId="query.id"></dmx-serverconnect>
+<dmx-serverconnect id="scEmailPreview" url="/api/communications/preview" noload></dmx-serverconnect>
 
 <div class="row g-4">
     <div class="col-12" dmx-show="query.saved == 1"><div class="alert alert-success mb-0"><i class="fas fa-check-circle me-2"></i><strong>Changes saved.</strong> The event has been updated successfully.</div></div>
@@ -35,8 +37,19 @@
                 <a class="nav-link text-nowrap" id="eventContactsTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=contacts'" dmx-class:active="query.section == 'contacts'" dmx-bind:aria-selected="(query.section == 'contacts').toString()" aria-controls="eventContactsSection"><i class="fas fa-address-book me-2"></i>Contacts <span class="badge rounded-pill bg-secondary ms-1" dmx-text="scWorkflowContacts.data.query.count()">0</span></a>
                 <a class="nav-link text-nowrap" id="eventDocumentsTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=documents'" dmx-class:active="query.section == 'documents'" dmx-bind:aria-selected="(query.section == 'documents').toString()" aria-controls="eventDocumentsSection"><i class="fas fa-file-alt me-2"></i>Documents <span class="badge rounded-pill bg-secondary ms-1" dmx-text="scDocuments.data.query.count()">0</span></a>
                 <a class="nav-link text-nowrap" id="eventCommercialTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=commercial'" dmx-class:active="query.section == 'commercial'" dmx-bind:aria-selected="(query.section == 'commercial').toString()" aria-controls="eventCommercialSection" dmx-show="scTenantModules.data.commercialAccess[0].hasAccess == 1"><i class="fas fa-tags me-2"></i><span dmx-text="scTerminology.data.query[0].commercialSingular.default('Commercial Details')">Commercial Details</span></a>
+                <a class="nav-link text-nowrap" id="eventEmailTab" role="tab" dmx-bind:href="'/workflows/view?id=' + query.id + '&section=email'" dmx-class:active="query.section == 'email'" dmx-bind:aria-selected="(query.section == 'email').toString()" aria-controls="eventEmailSection" dmx-show="scTenantModules.data.modules.where('moduleCode','EMAIL_INTEGRATION')[0].hasAccess == 1"><i class="fas fa-envelope me-2"></i>Email <span class="badge rounded-pill bg-secondary ms-1" dmx-text="scRecordEmails.data.email.communications.count()">0</span></a>
             </div>
         </nav>
+    </div>
+
+    <div class="col-12" id="eventEmailSection" role="tabpanel" aria-labelledby="eventEmailTab" dmx-show="query.section == 'email'">
+      <div class="card border-0 shadow-sm"><div class="card-header bg-white py-3"><h2 class="h4 mb-1">Email</h2><p class="small text-muted mb-0">Operational correspondence linked to this record. Continue using your normal email application.</p></div>
+        <div class="list-group list-group-flush" is="dmx-repeat" id="recordEmailRows" dmx-bind:repeat="scRecordEmails.data.email.communications">
+          <button type="button" class="list-group-item list-group-item-action text-start py-3" dmx-on:click="scEmailPreview.load({id:id,workflowId:query.id})" data-bs-toggle="offcanvas" data-bs-target="#emailPreviewPanel">
+            <div class="d-flex justify-content-between gap-3"><div class="min-w-0"><div class="fw-semibold text-truncate"><i class="fas me-2" dmx-class:fa-arrow-down="direction == 'incoming'" dmx-class:fa-arrow-up="direction == 'outgoing'"></i><span dmx-text="subject"></span></div><div class="small text-muted text-truncate"><span dmx-text="sender[0].name.default(sender[0].email)"></span> &middot; via <span dmx-text="sourceMailbox"></span></div></div><div class="text-nowrap small"><i class="fas fa-paperclip me-2" dmx-show="hasAttachments"></i><span dmx-text="date.formatDate('dd MMM yyyy HH:mm')"></span></div></div>
+          </button>
+        </div><div class="card-body text-center text-muted py-5" dmx-show="scRecordEmails.data.email.communications.count() == 0">No email has been linked to this record.</div>
+      </div>
     </div>
 
     <div class="col-12" id="eventInfoSummary" role="tabpanel" aria-labelledby="eventInfoTab" dmx-show="!query.section || query.section == 'info'"><div class="row g-3">
@@ -283,6 +296,7 @@
         </div>
     </div>
 </div>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="emailPreviewPanel" aria-labelledby="emailPreviewTitle"><div class="offcanvas-header"><h2 class="offcanvas-title h5" id="emailPreviewTitle">Email preview</h2><button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div><div class="offcanvas-body"><div class="text-muted" dmx-show="scEmailPreview.state.executing"><span class="spinner-border spinner-border-sm me-2"></span>Loading secure preview…</div><p style="white-space:pre-wrap" dmx-text="scEmailPreview.data.email.preview"></p><p class="small text-muted">Plain-text preview only. Remote images and attachments are not loaded.</p></div></div>
 <script src="/js/event-location-cascade.js"></script>
 <script src="/js/event-page-terminology.js"></script>
 <style>

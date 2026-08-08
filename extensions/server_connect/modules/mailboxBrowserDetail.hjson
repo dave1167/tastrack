@@ -1,0 +1,1 @@
+{type:'mailbox_browser_detail',module:'mailboxBrowser',action:'detail',groupTitle:'Email Integration',groupIcon:'fa fa-envelope-open',addTitle:'Get connected mailbox message',title:'Get connected mailbox message',icon:'fa fa-envelope-open',serverModel:['node'],dataPickObject:true,properties:[]}

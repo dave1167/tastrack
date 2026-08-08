@@ -1,0 +1,17 @@
+const assert = require('assert');
+const crypto = require('crypto');
+process.env.METIPATH_ENCRYPTION_MASTER_KEY_V1 = crypto.randomBytes(32).toString('base64');
+process.env.METIPATH_ENCRYPTION_KEY_VERSION = '1';
+const security = require('../extensions/server_connect/modules/metipathSecurity')._test;
+const secret = 'Mailbox subject that must never be logged';
+const a = security.encrypt(secret, 10, 'communication.subject');
+const b = security.encrypt(secret, 10, 'communication.subject');
+assert.strictEqual(security.decrypt(a, 10, 'communication.subject'), secret);
+assert.notStrictEqual(a.ciphertext, b.ciphertext, 'random IVs must produce different ciphertext');
+assert.throws(() => security.decrypt({...a, ciphertext: a.ciphertext.slice(0,-2)+'AA'}, 10, 'communication.subject'));
+assert.throws(() => security.decrypt(a, 11, 'communication.subject'));
+const h1 = security.searchHash(' User@Example.COM ', 10, 'email.mailbox', 'email');
+const h2 = security.searchHash('user@example.com', 10, 'email.mailbox', 'email');
+assert.strictEqual(h1, h2);
+assert.notStrictEqual(h1, security.searchHash('user@example.com', 11, 'email.mailbox', 'email'));
+console.log('metipathSecurity: 7 assertions passed; no plaintext logged');

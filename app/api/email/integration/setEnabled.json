@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"id"},{"type":"text","name":"enabled"}]},"exec":{"steps":{"name":"setMailboxEnabled","module":"workflowMailbox","action":"setEnabled","options":{},"output":true,"outputType":"object"}}}

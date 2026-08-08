@@ -66,10 +66,15 @@
         });
 
 
-        if (new URLSearchParams(window.location.search).get('chat') === 'open') {
+        const initialChatParams = new URLSearchParams(window.location.search);
+        if (initialChatParams.get('chat') === 'open') {
             const drawer = document.getElementById('chatDrawer');
             if (drawer && window.bootstrap && window.bootstrap.Offcanvas) {
                 window.bootstrap.Offcanvas.getOrCreateInstance(drawer).show();
+            }
+            const requestedUser = Number(initialChatParams.get('user'));
+            if (Number.isInteger(requestedUser) && requestedUser > 0 && window.dmx) {
+                window.dmx.parse('chatDrawerRecipient.setValue(' + requestedUser + ');scChatDrawerMessages.load({userid:' + requestedUser + '})');
             }
         }
     });

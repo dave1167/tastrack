@@ -1,0 +1,88 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="email_integration" appConnect="local" -->
+<dmx-serverconnect id="scMailbox" url="/api/email/integration/status"></dmx-serverconnect>
+<dmx-serverconnect id="scMailboxTeams" url="/api/email/integration/teams"></dmx-serverconnect>
+
+<div class="container-fluid px-0">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-4">
+    <div>
+      <a href="/configuration" class="small text-decoration-none"><i class="fas fa-arrow-left me-1"></i>Settings</a>
+      <h1 class="mt-2 mb-1">Email Integration</h1>
+      <p class="text-muted mb-0">Connect shared or organisational email accounts to Metipath.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#connectMailboxModal" dmx-show="scMailbox.data.mailbox.canManage">
+      <i class="fas fa-plus me-2"></i>Connect Mailbox
+    </button>
+  </div>
+
+  <div class="alert alert-info border-0">
+    <i class="fas fa-info-circle me-2"></i>Shared or departmental mailboxes are recommended, for example <strong>events@company.com</strong> or <strong>projects@company.com</strong>.
+  </div>
+
+  <div class="card border-0 shadow-sm" dmx-show="scMailbox.data.mailbox.moduleEnabled == false">
+    <div class="card-body p-4"><h2 class="h5">Email Integration is not enabled</h2><p class="mb-0 text-muted">Ask a platform administrator to enable this module.</p></div>
+  </div>
+
+  <section dmx-show="scMailbox.data.mailbox.moduleEnabled">
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
+      <h2 class="h4 mb-0">Connected mailboxes</h2>
+      <span class="badge bg-light text-dark" dmx-text="scMailbox.data.mailbox.connections.count() + ' mailboxes'"></span>
+    </div>
+
+    <div class="card border-0 shadow-sm" dmx-show="scMailbox.data.mailbox.connections.count() == 0">
+      <div class="card-body p-5 text-center"><i class="fas fa-inbox fa-2x text-muted mb-3"></i><h3 class="h5">No mailboxes connected</h3><p class="text-muted mb-0">Connect the first organisational mailbox to begin.</p></div>
+    </div>
+
+    <div class="row g-3" is="dmx-repeat" id="mailboxRows" dmx-bind:repeat="scMailbox.data.mailbox.connections">
+      <div class="col-12">
+        <article class="card border-0 shadow-sm"><div class="card-body p-4"><div class="row g-3 align-items-start">
+          <div class="col-lg-4"><h3 class="h5 mb-1" dmx-text="mailbox"></h3><div class="text-muted" dmx-text="providerDisplayName"></div><span class="badge mt-2" dmx-bind:class="status == 'connected' ? 'bg-success' : (status == 'error' ? 'bg-danger' : 'bg-secondary')" dmx-text="status.replace('_', ' ').capitalize()"></span><span class="badge bg-warning text-dark ms-1" dmx-show="!isEnabled">Disabled</span></div>
+          <div class="col-lg-5"><dl class="row small mb-0"><dt class="col-5">Purpose</dt><dd class="col-7" dmx-text="purpose.default('General')"></dd><dt class="col-5">Connected</dt><dd class="col-7" dmx-text="connectedDate.formatDate('dd MMM yyyy HH:mm')"></dd><dt class="col-5">Connected by</dt><dd class="col-7" dmx-text="connectedBy"></dd><dt class="col-5">Last success</dt><dd class="col-7" dmx-text="lastSuccessfulActivity ? lastSuccessfulActivity.formatDate('dd MMM yyyy HH:mm') : 'Not tested yet'"></dd></dl></div>
+          <div class="col-lg-3"><div class="d-grid gap-2" dmx-show="scMailbox.data.mailbox.canManage">
+            <form is="dmx-serverconnect-form" method="post" action="/api/email/integration/updateGovernance" class="border rounded p-2 mb-1" dmx-on:success="scMailbox.load()"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="id"><label class="small fw-semibold">Mailbox governance</label><select class="form-select form-select-sm mt-1" name="mailboxType" dmx-bind:value="mailboxType"><option value="shared">Shared (recommended)</option><option value="departmental">Departmental (recommended)</option><option value="workflow">Workflow (recommended)</option><option value="individual">Individual — caution</option><option value="sensitive">Sensitive — restricted</option></select><select class="form-select form-select-sm mt-1" name="owningTeamId" dmx-bind:options="scMailboxTeams.data.mailbox.teams" optionvalue="id" optiontext="teamName" dmx-bind:value="owningTeamId"><option value="">No owning team</option></select><select class="form-select form-select-sm mt-1" name="accessMode" dmx-bind:value="accessMode"><option value="record">Follow record access</option><option value="team">Owning team only</option><option value="restricted">Restricted permission</option></select><div class="alert alert-warning small p-2 mt-2 mb-2" dmx-show="mailboxType == 'individual' || mailboxType == 'sensitive'">This mailbox may contain confidential or personal information unrelated to Metipath.</div><button class="btn btn-outline-secondary btn-sm w-100" type="submit">Save governance</button></form>
+            <form is="dmx-serverconnect-form" method="post" action="/api/email/integration/updatePurpose" dmx-on:success="scMailbox.load()"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="id"><div class="input-group input-group-sm"><input class="form-control" name="purpose" maxlength="80" dmx-bind:value="purpose" placeholder="Purpose"><button class="btn btn-outline-secondary" title="Save purpose"><i class="fas fa-save"></i></button></div></form>
+            <form is="dmx-serverconnect-form" method="post" action="/api/email/integration/test" dmx-on:success="scMailbox.load()"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="id"><button class="btn btn-outline-primary btn-sm w-100"><i class="fas fa-vial me-1"></i>Test connection</button></form>
+            <form is="dmx-serverconnect-form" method="post" action="/api/communications/syncMailbox" dmx-on:success="scMailbox.load()"><%- _csrfInput() %><input type="hidden" name="emailConnectionId" dmx-bind:value="id"><button class="btn btn-outline-primary btn-sm w-100" type="submit"><i class="fas fa-cloud-download-alt me-1"></i>Process recent email</button></form>
+            <a class="btn btn-outline-secondary btn-sm" dmx-show="provider == 'google' || provider == 'microsoft'" dmx-bind:href="'/api/email/integration/connect?provider=' + provider + '&id=' + id"><i class="fas fa-sync-alt me-1"></i>Reconnect</a>
+            <form is="dmx-serverconnect-form" method="post" action="/api/email/integration/setEnabled" dmx-on:success="scMailbox.load()"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="id"><input type="hidden" name="enabled" dmx-bind:value="isEnabled ? 'false' : 'true'"><button class="btn btn-outline-secondary btn-sm w-100" dmx-text="isEnabled ? 'Disable' : 'Enable'"></button></form>
+            <form is="dmx-serverconnect-form" method="post" action="/api/email/integration/disconnect" dmx-on:success="scMailbox.load()" onsubmit="return confirm('Disconnect this mailbox from Metipath? Previously imported communications will remain in audit and history.');"><%- _csrfInput() %><input type="hidden" name="id" dmx-bind:value="id"><button class="btn btn-outline-danger btn-sm w-100"><i class="fas fa-unlink me-1"></i>Disconnect</button></form>
+          </div></div>
+        </div></div></article>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal fade" id="connectMailboxModal" tabindex="-1" aria-labelledby="connectMailboxTitle" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><div><h2 class="modal-title h5" id="connectMailboxTitle">Connect an Email Account</h2><p class="small text-muted mb-0">Choose OAuth for Google/Microsoft or enter settings for another IMAP server.</p></div><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <div class="row g-2 mb-4">
+        <div class="col-md-6"><a class="btn btn-outline-primary w-100 py-3" href="/api/email/integration/connect?provider=microsoft&purpose=General"><i class="fab fa-microsoft me-2"></i>Microsoft 365</a></div>
+        <div class="col-md-6"><a class="btn btn-outline-primary w-100 py-3" href="/api/email/integration/connect?provider=google&purpose=General"><i class="fab fa-google me-2"></i>Google Workspace / Gmail</a></div>
+      </div>
+      <hr>
+      <h3 class="h6 mt-4">Other IMAP</h3>
+      <p class="small text-muted">Enter the settings supplied by the mailbox provider. The password is passed directly to Nylas and is not stored by Metipath.</p>
+      <form is="dmx-serverconnect-form" id="imapProviderForm" method="post" action="/api/email/integration/connectImap" dmx-on:success="scMailbox.load();bootstrap.Modal.getInstance(document.getElementById('connectMailboxModal')).hide()">
+        <%- _csrfInput() %>
+        <input type="hidden" name="provider" value="imap">
+        <div class="alert alert-danger" dmx-show="imapProviderForm.lastError"><strong>Connection failed.</strong> Check the mailbox password and server settings, then try again.</div>
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label" for="imapEmail">Email address *</label><input id="imapEmail" type="email" class="form-control" name="email" required autocomplete="email"></div>
+          <div class="col-md-6"><label class="form-label" for="imapUsername">Username *</label><input id="imapUsername" type="text" class="form-control" name="username" required autocomplete="username"></div>
+          <div class="col-md-6"><label class="form-label" for="imapPassword">Password *</label><input id="imapPassword" type="password" class="form-control" name="password" required autocomplete="new-password"></div>
+          <div class="col-md-6"><label class="form-label" for="imapPurpose">Purpose</label><input id="imapPurpose" class="form-control" name="purpose" maxlength="80" value="General"></div>
+          <div class="col-md-8"><label class="form-label" for="imapHost">IMAP server *</label><input id="imapHost" class="form-control" name="imapHost" required placeholder="imap.example.com"></div>
+          <div class="col-md-4"><label class="form-label" for="imapPort">IMAP port *</label><input id="imapPort" type="number" class="form-control" name="imapPort" value="993" required></div>
+          <div class="col-md-6"><label class="form-label" for="imapSecurity">IMAP security</label><select id="imapSecurity" class="form-select" name="imapSecurity"><option value="ssl">SSL/TLS</option></select></div>
+          <div class="col-md-8"><label class="form-label" for="smtpHost">SMTP server *</label><input id="smtpHost" class="form-control" name="smtpHost" required placeholder="smtp.example.com"></div>
+          <div class="col-md-4"><label class="form-label" for="smtpPort">SMTP port *</label><input id="smtpPort" type="number" class="form-control" name="smtpPort" value="465" required></div>
+          <div class="col-md-6"><label class="form-label" for="smtpSecurity">SMTP security</label><select id="smtpSecurity" class="form-select" name="smtpSecurity"><option value="ssl">SSL/TLS</option></select></div>
+        </div>
+        <div class="text-end mt-4"><button type="submit" class="btn btn-primary" dmx-bind:disabled="imapProviderForm.state.executing"><span dmx-show="!imapProviderForm.state.executing">Connect IMAP Mailbox</span><span dmx-show="imapProviderForm.state.executing"><span class="spinner-border spinner-border-sm me-2"></span>Connecting…</span></button></div>
+      </form>
+    </div>
+  </div></div>
+</div>
+
+<meta name="ac:route" content="/settings/integrations/email">

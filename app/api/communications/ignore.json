@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"communicationId"}]},"exec":{"steps":{"name":"email","module":"communicationEmail","action":"ignore","options":{},"output":true,"outputType":"object"}}}

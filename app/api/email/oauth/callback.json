@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"nocsrf":true,"method":"get"}},"meta":{"$_GET":[{"type":"text","name":"code"},{"type":"text","name":"state"},{"type":"text","name":"error"}]},"exec":{"steps":{"name":"completeMailboxConnection","module":"workflowMailbox","action":"callback","options":{},"output":false}}}

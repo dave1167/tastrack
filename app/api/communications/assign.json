@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},"meta":{"$_POST":[{"type":"number","name":"communicationId"},{"type":"number","name":"workflowId"}]},"exec":{"steps":{"name":"email","module":"communicationEmail","action":"assign","options":{},"output":true,"outputType":"object"}}}

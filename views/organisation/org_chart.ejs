@@ -1,0 +1,35 @@
+<!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="organisation_chart" appConnect="local" -->
+<dmx-serverconnect id="scOrgChart" url="/api/organisation/chart"></dmx-serverconnect>
+<section class="org-chart-page">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div><h1 class="h2 mb-0">Organisation chart</h1><p class="small text-muted mb-0">People and teams across your organisation.</p></div>
+        <div class="d-flex gap-2" dmx-show="scWelcome.data.ROLE_ID==1||scWelcome.data.ROLE_ID==2"><a class="btn btn-sm btn-outline-primary" href="/teams/teams"><i class="fas fa-users-cog me-1"></i>Teams</a><a class="btn btn-sm btn-primary" href="/users/all_users"><i class="fas fa-user-cog me-1"></i>Users</a></div>
+    </div>
+    <div class="text-center py-5" dmx-show="scOrgChart.state.executing"><span class="spinner-border text-primary" role="status"></span><div class="text-muted mt-3">Building organisation chart…</div></div>
+    <div dmx-show="!scOrgChart.state.executing && scOrgChart.data.organisation.count() > 0">
+        <div class="org-root-card mx-auto shadow-sm"><div class="d-flex align-items-center justify-content-center gap-2"><div class="org-root-icon mb-0"><i class="fas fa-building"></i></div><div><h2 class="h5 mb-0" dmx-text="scOrgChart.data.organisation[0].tenantName"></h2><div class="small text-muted"><span dmx-text="scOrgChart.data.organisation[0].peopleCount"></span> people · <span dmx-text="scOrgChart.data.organisation[0].teamCount"></span> teams</div></div></div></div>
+        <div class="org-trunk" aria-hidden="true"></div>
+        <div class="org-leadership-grid mb-3" dmx-show="scOrgChart.data.people.where('showInLeadership', 1, '==').count() > 0">
+            <article class="org-leadership-card shadow-sm" is="dmx-repeat" id="leadership" dmx-bind:repeat="scOrgChart.data.people.where('showInLeadership', 1, '==')"><div class="d-flex align-items-center gap-2">
+                <div class="org-avatar flex-shrink-0"><img dmx-show="$value.avatarPath" dmx-bind:src="$value.avatarPath" dmx-bind:alt="$value.displayName"><span dmx-show="!$value.avatarPath" dmx-text="$value.initials.default('U')"></span></div>
+                <div class="min-w-0 flex-grow-1"><div class="d-flex align-items-center gap-1"><div class="fw-semibold text-truncate" dmx-text="$value.displayName"></div><span class="badge bg-primary-subtle text-primary-emphasis org-lead-badge" dmx-text="$value.positionLabel"></span></div><div class="small text-muted text-truncate" dmx-text="$value.jobTitle.default($value.positionLabel)"></div><div class="small text-primary text-truncate" dmx-show="$value.reportsToName">Reports to <span dmx-text="$value.reportsToName"></span></div></div>
+                <button class="btn btn-sm btn-outline-primary flex-shrink-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#chatDrawer" title="Message" dmx-show="$value.userId != scWelcome.data.USER_ID" dmx-on:click="chatDrawerRecipient.setValue($value.userId);scChatDrawerMessages.load({userid:$value.userId})"><i class="fas fa-comment"></i><span class="visually-hidden">Message</span></button>
+            </div></article>
+        </div>
+        <div class="org-trunk" aria-hidden="true" dmx-show="scOrgChart.data.people.where('showInLeadership', 1, '==').count() > 0"></div>
+        <div class="row g-3 org-team-grid" is="dmx-repeat" id="team" dmx-bind:repeat="scOrgChart.data.teams">
+            <div class="col-12 col-lg-6 col-xxl-4"><section class="card border-0 shadow-sm h-100 org-team-card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center gap-2 py-2 px-3"><div class="min-w-0"><div class="d-flex align-items-center gap-2"><span class="org-team-icon"><i class="fas fa-users"></i></span><div><h2 class="h6 mb-0 text-truncate" dmx-text="$value.teamName"></h2><div class="org-team-description small text-muted text-truncate" dmx-text="$value.description"></div></div></div></div><span class="badge rounded-pill bg-light text-dark border" dmx-text="$value.memberCount"></span></div>
+                <div class="list-group list-group-flush">
+                    <article class="list-group-item org-person-card px-3 py-2" dmx-class:org-person-manager="$value.hierarchyRank <= 1" is="dmx-repeat" dmx-bind:repeat="scOrgChart.data.people.where('teamId', id, '==').where('showInTeam', 1, '==')"><div class="d-flex align-items-center gap-2">
+                        <div class="org-avatar flex-shrink-0"><img dmx-show="$value.avatarPath" dmx-bind:src="$value.avatarPath" dmx-bind:alt="$value.displayName"><span dmx-show="!$value.avatarPath" dmx-text="$value.initials.default('U')"></span><span class="org-presence" dmx-class:org-presence-away="$value.availability == 'away'" dmx-class:org-presence-busy="$value.availability == 'busy'"></span></div>
+                        <div class="min-w-0 flex-grow-1"><div class="d-flex align-items-center gap-1"><div class="fw-semibold text-truncate" dmx-text="$value.displayName"></div><span class="badge bg-primary-subtle text-primary-emphasis org-lead-badge" dmx-show="$value.hierarchyRank <= 1">Lead</span></div><div class="small text-muted text-truncate" dmx-text="$value.jobTitle.default($value.roleLabel)"></div><div class="small text-primary text-truncate" dmx-text="$value.roleLabel" dmx-show="$value.jobTitle"></div></div>
+                        <button class="btn btn-sm btn-outline-primary flex-shrink-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#chatDrawer" title="Message" dmx-show="$value.userId != scWelcome.data.USER_ID" dmx-on:click="chatDrawerRecipient.setValue($value.userId);scChatDrawerMessages.load({userid:$value.userId})"><i class="fas fa-comment"></i><span class="visually-hidden">Message</span></button>
+                    </div></article>
+                    <div class="list-group-item text-muted text-center py-4" dmx-show="scOrgChart.data.people.where('teamId', id, '==').where('showInTeam', 1, '==').count() == 0">No people assigned.</div>
+                </div>
+            </section></div>
+        </div>
+    </div>
+</section>
+<meta name="ac:route" content="/organisation-chart">

@@ -1,0 +1,12 @@
+const assert=require('assert');const test=require('../extensions/server_connect/modules/workflowMailbox')._test;const now=new Date('2026-08-07T12:00:00Z'),state='state-value',stateHash=test.hash(state),sessionId='session-a';
+const row={tenantId:10,userId:20,stateHash,sessionHash:test.hash(sessionId),expiresDate:new Date(now.getTime()+60000),usedDate:null};
+const context={tenantId:10,userId:20,sessionId,sessionStateHash:stateHash,stateHash,now};
+assert.strictEqual(test.validState(row,context),true);
+assert.strictEqual(test.validState({...row,stateHash:test.hash('modified')},context),false);
+assert.strictEqual(test.validState({...row,expiresDate:new Date(now.getTime()-1)},context),false);
+assert.strictEqual(test.validState({...row,usedDate:now},context),false);
+assert.strictEqual(test.validState(row,{...context,sessionId:'session-b'}),false);
+assert.strictEqual(test.validState(row,{...context,tenantId:11}),false);
+assert.strictEqual(test.validState(row,{...context,userId:21}),false);
+assert.strictEqual(test.validState(row,{...context,sessionStateHash:test.hash('browser-state')}),false);
+console.log('workflowMailbox security: 8 assertions passed');

@@ -1,0 +1,4 @@
+{
+ type:'metipath_security_search_hash',module:'metipathSecurity',action:'createSearchHash',groupTitle:'Security',groupIcon:'fa fa-fingerprint',addTitle:'Create tenant search hash',title:'Create tenant search hash',icon:'fa fa-fingerprint',serverModel:['node'],dataPickObject:true,dataScheme:[{name:'hash',type:'text'},{name:'keyVersion',type:'number'}],
+ properties:[{group:'Value',variables:[{name:'value',optionName:'value',title:'Value',type:'text',required:true,serverDataBindings:true},{name:'tenantId',optionName:'tenantId',title:'Tenant ID',type:'number',required:true,serverDataBindings:true},{name:'context',optionName:'context',title:'Context',type:'text',defaultValue:'communication',serverDataBindings:true},{name:'normalisation',optionName:'normalisation',title:'Normalisation',type:'droplist',values:['text','email','compact'],defaultValue:'text'}]}]
+}

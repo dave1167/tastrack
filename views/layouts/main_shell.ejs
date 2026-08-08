@@ -7,13 +7,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <%- _csrfMeta() %>
-    <title>Meldren</title>
-    <link rel="icon" type="image/png" sizes="256x256" href="/assets/images/meldren_favicon.png?v=1">
+    <title>MetiPath</title>
+    <link rel="icon" type="image/png" sizes="256x256" href="/assets/images/metipath_favicon.png?v=1">
 
     <link rel="stylesheet" href="/bootstrap/5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" integrity="sha384-DyZ88mC6Up2uqS4h/KRgHuoeGwBcD4Ng9SiP4dIRy0EXTlnuz47vAwmeGwVChigm" crossorigin="anonymous">
     <link rel="stylesheet" href="/dmxAppConnect/dmxSummernote/summernote-bs5.min.css">
-    <link rel="stylesheet" href="/css/style.css?v=20260802-org-chart-hierarchy">
+    <link rel="stylesheet" href="/css/style.css?v=20260802-org-chart-levels">
 
     <script src="/vendor/jquery/jquery.min.js?v=3.7.1"></script>
     <script src="/dmxAppConnect/dmxSummernote/summernote-bs5.min.js" defer></script>
@@ -37,7 +37,7 @@
     <script src="/js/contract-clause-editor.js?v=20260725" defer></script>
     <script src="/js/contract-draft-editor.js?v=20260728-5" defer></script>
     <script src="/socket.io/socket.io.js" defer></script>
-    <script src="/js/chat-live.js?v=20260802-notifications" defer></script>
+    <script src="/js/chat-live.js?v=20260802-chat-links" defer></script>
 </head>
 
 <body is="dmx-app" id="main_shell" class="shell-app" dmx-bind:data-bs-theme="scBranding.data.branding[0].defaultColourMode == 'dark' ? 'dark' : 'light'" dmx-bind:style="'--meldren-primary:' + scBranding.data.branding[0].primaryColour.default('#14B8A6') + ';--meldren-accent:' + scBranding.data.branding[0].accentColour.default('#2563EB') + ';--shell-topbar:' + scBranding.data.branding[0].headerColour.default('#0D1B2A') + ';--shell-topbar-2:' + scBranding.data.branding[0].headerColour.default('#0D1B2A') + ';--shell-sidebar-bg:' + scBranding.data.branding[0].sidebarColour.default('#0D1B2A') + ';--shell-sidebar-bg-2:' + scBranding.data.branding[0].sidebarColour.default('#0D1B2A')">
@@ -57,7 +57,7 @@
             <button class="shell-icon-btn d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Open menu">
                 <i class="fas fa-bars"></i>
             </button>
-            <img src="/assets/images/meldren_logo_dark.png" dmx-bind:src="scBranding.data.branding[0].logoPath.default('/assets/images/meldren_logo_dark.png')" width="220" class="img-fluid shell-tenant-logo" alt="Meldren or organisation logo">
+            <img src="/assets/images/metipath_logo.png" dmx-bind:src="scBranding.data.branding[0].logoPath.default('/assets/images/metipath_logo.png')" width="220" class="img-fluid shell-tenant-logo" alt="MetiPath or organisation logo">
 
 
             <div class="shell-actions ms-auto">
@@ -159,6 +159,7 @@
                                     <i class="fas fa-folder-open"></i>
                                     <span>Documents</span>
                                 </a>
+                                <a class="shell-nav-link" href="/communications/mailbox" dmx-show="scTenantModules.data.modules.where('moduleCode','EMAIL_INTEGRATION')[0].hasAccess == 1"><i class="fas fa-inbox"></i><span>Communications</span></a>
                             </div>
                         </div>
 
@@ -224,7 +225,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close messages"></button>
         </div>
         <div class="offcanvas-body p-0 d-flex flex-column">
-            <select class="d-none" id="chatDrawerRecipient" dmx-bind:options="scChatDrawerUsers.data.users" optiontext="userName" optionvalue="userId" dmx-on:changed="scChatDrawerMessages.load()"><option value=""></option></select>
+            <select class="d-none" id="chatDrawerRecipient" dmx-bind:options="scChatDrawerUsers.data.users" optiontext="userName" optionvalue="userId" dmx-bind:value="query.user" dmx-on:changed="scChatDrawerMessages.load({userid:value})"><option value=""></option></select>
             <div class="shell-chat-list flex-grow-1" dmx-show="!chatDrawerRecipient.value">
                 <div class="shell-chat-list-heading px-3 py-1 small text-muted border-bottom">Recent conversations</div>
                 <div is="dmx-repeat" dmx-bind:repeat="scChatDrawerUsers.data.users">

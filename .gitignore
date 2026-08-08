@@ -2,6 +2,7 @@ node_modules
 .svn
 .env
 .env.test
+!.env.*.example
 **/.DS_Store
 uploads/
 playwright-report/
@@ -9,3 +10,7 @@ test-results/
 blob-report/
 tests/e2e/.state/
 tmp/e2e-runtime/
+
+# Local Wappler runtime/target configuration may contain environment secrets.
+app/config/config.json
+.wappler/targets/Development/app/config/config.json

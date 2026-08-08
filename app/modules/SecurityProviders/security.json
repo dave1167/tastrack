@@ -27,25 +27,6 @@
           }
         ]
       },
-      "workflow-edit": {
-        "table": "tbl_user_tenant_roles",
-        "identity": "userId",
-        "conditions": [
-          {
-            "column": "roleId",
-            "operator": "in",
-            "value": [
-              1,
-              2,
-              3,
-              5,
-              34,
-              35,
-              36
-            ]
-          }
-        ]
-      },
       "editor": {
         "table": "tbl_user_tenant_roles",
         "identity": "userId",

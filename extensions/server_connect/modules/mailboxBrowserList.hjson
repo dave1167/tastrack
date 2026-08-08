@@ -1,0 +1,1 @@
+{type:'mailbox_browser_list',module:'mailboxBrowser',action:'list',groupTitle:'Email Integration',groupIcon:'fa fa-inbox',addTitle:'List connected mailbox messages',title:'List connected mailbox messages',icon:'fa fa-inbox',serverModel:['node'],dataPickObject:true,properties:[]}

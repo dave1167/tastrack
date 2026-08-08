@@ -1,0 +1,1 @@
+{type:'workflow_mailbox_connect_imap',module:'workflowMailbox',action:'connectImap',groupTitle:'Email Integration',groupIcon:'fa fa-envelope',addTitle:'Connect IMAP mailbox',title:'Connect IMAP mailbox',icon:'fa fa-server',serverModel:['node'],dataPickObject:true,properties:[]}

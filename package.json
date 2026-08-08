@@ -20,7 +20,11 @@
     "test:e2e:tasks": "node tests/e2e/setup/run-e2e.js tests/e2e/specs/phase2/tasks",
     "test:e2e:headed": "node tests/e2e/setup/run-e2e.js --headed",
     "test:e2e:ui": "node tests/e2e/setup/run-e2e.js --ui",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "test:metipath-security": "node tests/metipathSecurity.test.js",
+    "test:workflow-mailbox-security": "node tests/workflowMailbox.security.test.js",
+    "test:workflow-mailbox-integration": "node tests/workflowMailbox.integration.test.js",
+    "test:mailbox-browser-security": "node tests/mailboxBrowser.security.test.js"
   },
   "author": "Wappler",
   "license": "ISC",

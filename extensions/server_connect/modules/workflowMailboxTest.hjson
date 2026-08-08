@@ -1,0 +1,1 @@
+{type:'workflow_mailbox_test',module:'workflowMailbox',action:'testConnection',groupTitle:'Email Integration',groupIcon:'fa fa-envelope',addTitle:'Test mailbox connection',title:'Test mailbox connection',icon:'fa fa-vial',serverModel:['node'],dataPickObject:true,properties:[]}

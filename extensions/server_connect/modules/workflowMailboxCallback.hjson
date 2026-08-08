@@ -1,0 +1,1 @@
+{type:'workflow_mailbox_callback',module:'workflowMailbox',action:'callback',groupTitle:'Email Integration',groupIcon:'fa fa-envelope',addTitle:'Complete workflow mailbox connection',title:'Complete workflow mailbox connection',icon:'fa fa-check',serverModel:['node'],dataPickObject:true,properties:[]}

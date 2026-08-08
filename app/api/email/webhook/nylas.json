@@ -1,0 +1,1 @@
+{"settings":{"options":{"nocsrf":true}},"meta":{"$_GET":[{"type":"text","name":"challenge"}]},"exec":{"steps":{"name":"webhook","module":"communicationEmail","action":"webhook","options":{},"output":true,"outputType":"object"}}}
