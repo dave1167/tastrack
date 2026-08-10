@@ -30,7 +30,9 @@
         <div class="d-flex justify-content-between align-items-center mb-3"><h2 class="h5 mb-0" dmx-text="'Ordered ' + scTerminology.data.query[0].stagePlural.lowercase()">Ordered stages</h2><span class="badge rounded-pill bg-primary" dmx-text="scStages.data.query.count() + ' ' + (scStages.data.query.count() == 1 ? scTerminology.data.query[0].stageSingular.lowercase() : scTerminology.data.query[0].stagePlural.lowercase())"></span></div>
 
         <div is="dmx-repeat" id="repStages" dmx-bind:repeat="scStages.data.query">
-            <div class="card border-0 shadow-sm mb-3"><div class="card-body">
+            <section class="card border shadow-sm mb-4 template-phase-card" dmx-class:template-phase-card-alt="$index % 2 == 1" dmx-bind:style.border-top-color="$value.colour">
+                <div class="card-header template-phase-header"><div class="d-flex align-items-center justify-content-between gap-3"><div class="d-flex align-items-center gap-3"><span class="template-phase-number" dmx-bind:style.background-color="$value.colour" dmx-text="$index + 1">1</span><div><div class="small text-uppercase fw-bold text-muted" dmx-text="'Phase ' + ($index + 1)">Phase 1</div><h3 class="h5 mb-0" dmx-text="$value.stageName">Phase name</h3></div></div><div class="text-end"><span class="badge bg-light text-dark border text-capitalize" dmx-text="$value.status"></span><div class="small text-muted mt-1" dmx-text="$value.taskCount + ($value.taskCount == 1 ? ' question' : ' questions')"></div></div></div></div>
+                <div class="card-body">
                 <form method="post" action="/api/workflow_templates/update_stage"><%- _csrfInput() %>
                     <input type="hidden" name="id" dmx-bind:value="$value.id">
                     <input type="hidden" name="templateId" dmx-bind:value="$value.templateId">
@@ -47,10 +49,39 @@
                         <div class="col-md-7 text-md-end"><span class="text-muted small me-3" dmx-text="$value.taskCount + ($value.taskCount == 1 ? ' question' : ' questions')"></span><a class="btn btn-sm btn-primary me-2" dmx-bind:href="'/workflow_templates/template_tasks?templateId=' + $value.templateId + '&stageId=' + $value.id">Manage Questions</a><button class="btn btn-sm btn-outline-primary" type="submit">Save</button></div>
                     </div>
                 </form>
-            </div></div>
+                </div>
+            </section>
         </div>
 
         <div class="text-muted" dmx-show="!scStages.state.executing && scStages.data.query.count() == 0">No stages yet. Add the first stage to begin shaping the workflow.</div>
     </div>
 </div>
+<style>
+.template-phase-card {
+    border-top-width: 4px !important;
+    overflow: hidden;
+}
+.template-phase-header {
+    background: #f7f9fb;
+    border-bottom: 1px solid #dbe2e8;
+    padding: .85rem 1rem;
+}
+.template-phase-card-alt .template-phase-header {
+    background: #eef3f6;
+}
+.template-phase-card-alt .card-body {
+    background: #fbfcfd;
+}
+.template-phase-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.15rem;
+    height: 2.15rem;
+    border-radius: 50%;
+    color: #111;
+    font-weight: 700;
+    flex: 0 0 auto;
+}
+</style>
 <meta name="ac:route" content="/workflow_templates/template_stages">

@@ -75,7 +75,7 @@
             "name": "completionError",
             "module": "core",
             "action": "error",
-            "options": {"message": "Save the required answer and any required attachment before completing this task."}
+            "options": {"status": 422, "message": "Open this task and save its required answer and attachment before completing it."}
           }}
         },
         "outputType": "boolean"
