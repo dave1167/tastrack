@@ -1,0 +1,15 @@
+const assert=require('assert');
+const forms=require('../extensions/server_connect/modules/configurableForms')._test;
+let assertions=0;
+const field=(overrides={})=>({fieldLabel:'Amount',fieldType:'currency',validation:{},options:[],repeatableColumns:[],conditions:[],isHidden:0,isRequired:0,...overrides});
+assert.deepEqual(forms.typed(field(),'12.50'),{valueText:null,valueNumber:null,valueDecimal:12.5,valueDate:null,valueDateTime:null,valueTime:null,valueBoolean:null,valueJson:null});assertions++;
+assert.equal(forms.key('Venue Percentage'),'venue_percentage');assertions++;
+assert(forms.validateField(field({validation:{min:10,max:20}}),'25',{visible:true,required:false})[0].includes('maximum'));assertions++;
+assert(forms.validateField(field({fieldType:'email'}),'bad-address',{visible:true,required:false})[0].includes('email'));assertions++;
+const controls=new Map([[1,{fieldKey:'contract_type'}]]),conditional=field({conditions:[{controllingFieldId:1,operator:'equals',comparisonValue:'revenue_split',conditionAction:'show'},{controllingFieldId:1,operator:'equals',comparisonValue:'guarantee_split',conditionAction:'show'}]});
+assert.equal(forms.fieldState(conditional,{contract_type:'revenue_split'},controls).visible,true);assertions++;
+assert.equal(forms.fieldState(conditional,{contract_type:'straight_hire'},controls).visible,false);assertions++;
+const table=field({fieldType:'repeatable_table',fieldLabel:'Ticket Prices',repeatableColumns:[{columnKey:'price',columnLabel:'Price',isRequired:1}]});
+assert(forms.validateField(table,[{}],{visible:true,required:false})[0].includes('row 1'));assertions++;
+assert.equal(forms.conditionMatches('greater_than',6000,5000),true);assertions++;
+console.log(`Configurable forms: ${assertions} assertions passed`);

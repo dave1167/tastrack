@@ -46,6 +46,41 @@
         "outputType": "boolean"
       },
       {
+        "name": "completionCheck",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT CAST(CASE WHEN :requestedStatus<>'complete' OR NOT EXISTS(SELECT 1 FROM tbl_tasks t WHERE t.id=:taskId AND t.workflowId=:workflowId AND t.tenantId=:tenantId AND ((t.requiredSnapshot=1 AND NOT EXISTS(SELECT 1 FROM tbl_task_answers a WHERE a.taskId=t.id AND a.tenantId=t.tenantId AND CASE t.answerTypeSnapshot WHEN 'yes_no' THEN a.answerBoolean IS NOT NULL WHEN 'task_status' THEN NULLIF(TRIM(a.answerStatus),'') IS NOT NULL WHEN 'radio' THEN NULLIF(TRIM(a.answerOptionValue),'') IS NOT NULL WHEN 'dropdown_single' THEN NULLIF(TRIM(a.answerOptionValue),'') IS NOT NULL WHEN 'checkbox_multi' THEN JSON_LENGTH(COALESCE(a.answerJson,JSON_ARRAY()))>0 WHEN 'dropdown_multi' THEN JSON_LENGTH(COALESCE(a.answerJson,JSON_ARRAY()))>0 WHEN 'text_short' THEN NULLIF(TRIM(a.answerText),'') IS NOT NULL WHEN 'text_long' THEN NULLIF(TRIM(a.answerText),'') IS NOT NULL ELSE 0 END)) OR (t.attachmentRequirement='required' AND NOT EXISTS(SELECT 1 FROM tbl_documents d WHERE d.taskId=t.id AND d.tenantId=t.tenantId)))) THEN 1 ELSE 0 END AS UNSIGNED) allowed",
+            "params": [
+              {"name": ":requestedStatus", "value": "{{$_POST.status}}"},
+              {"name": ":taskId", "value": "{{$_POST.id}}"},
+              {"name": ":workflowId", "value": "{{$_POST.workflowId}}"},
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+            ]
+          }
+        },
+        "output": true,
+        "outputType": "array",
+        "meta": [{"name": "allowed", "type": "number"}]
+      },
+      {
+        "name": "rejectIncompleteRequiredAnswer",
+        "module": "core",
+        "action": "condition",
+        "options": {
+          "if": "{{completionCheck[0].allowed != 1}}",
+          "then": {"steps": {
+            "name": "completionError",
+            "module": "core",
+            "action": "error",
+            "options": {"message": "Save the required answer and any required attachment before completing this task."}
+          }}
+        },
+        "outputType": "boolean"
+      },
+      {
         "name": "updateTask",
         "module": "dbupdater",
         "action": "custom",

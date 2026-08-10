@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"get","nocsrf":true}},"exec":{"steps":{"name":"result","module":"configurableForms","action":"renderRecord","options":{},"output":true,"outputType":"object"}}}

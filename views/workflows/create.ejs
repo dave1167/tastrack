@@ -25,8 +25,12 @@
                 <form method="post" action="/api/workflows/create">
                     <%- _csrfInput() %>
                     <div class="mb-3"><label class="form-label">Template</label><select class="form-select" name="templateId" required dmx-bind:options="scTemplates.data.query" optiontext="templateName" optionvalue="id"><option value="">Select published template</option></select></div>
-                    <div class="mb-3"><label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' name'">Name</label><input class="form-control" name="workflowName" required></div>
-                    <div class="mb-3"><label class="form-label">Reference code</label><input class="form-control" name="referenceCode" required></div>
+                    <div class="mb-3"><label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' name'">Name</label><input class="form-control" id="workflowName" name="workflowName" required></div>
+                    <div class="mb-3">
+                        <label class="form-label">Reference</label>
+                        <div class="form-control bg-light text-muted">Generated automatically when the event is created</div>
+                        <div class="form-text">It will use a short unique format such as EVT-000123.</div>
+                    </div>
                     <div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="5" maxlength="65535" placeholder="Add useful information about this event"></textarea></div>
                     <div class="mb-3">
                         <label class="form-label" dmx-text="scTerminology.data.query[0].performanceTypeSingular">Performance Type</label>
@@ -39,11 +43,11 @@
                         <div class="col-12" dmx-show="scTenantModules.data.contractAccess[0].hasAccess == 1"><label class="form-label">Contracting entity</label><select class="form-select" name="contractingEntityId" dmx-bind:options="scContractingEntities.data.query" optiontext="entityLabel" optionvalue="id" dmx-bind:value="scContractingEntities.data.query[0].id"><option value="">Use default contracting entity</option></select><div class="form-text">The legal organisation that will issue this event's contracts.</div></div>
                         <div class="col-md-6"><label class="form-label">Owner team</label><select class="form-select" name="ownerTeamId" required dmx-bind:options="scTeams.data.query" optiontext="teamName" optionvalue="id"><option value="">Select team</option></select></div>
                         <div class="col-md-6"><label class="form-label">Status</label><select class="form-select" name="eventStatusId" required dmx-bind:options="scEventStatuses.data.query" optiontext="statusName" optionvalue="id" dmx-bind:value="scEventStatuses.data.query.where('isDefault', 1, '==')[0].id"><option value="">Select status</option></select></div>
-                        <div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" name="startDate" type="date" required></div>
-                        <div class="col-md-6"><label class="form-label">Show date</label><input class="form-control" name="targetDate" type="date" required><div class="form-text">The public performance or event date.</div></div>
+                        <div class="col-md-6"><label class="form-label">Start date</label><input class="form-control" id="workflowStartDate" name="startDate" type="date" required><div class="form-text">Defaults to today—the date planning starts. Change it when work starts on another date.</div></div>
+                        <div class="col-md-6"><label class="form-label">Show date <span class="text-muted fw-normal">(optional)</span></label><input class="form-control" name="targetDate" type="date"><div class="form-text">Leave blank while the date is undecided. Show-date deadlines will be added when it is known.</div></div>
                         <div class="col-12" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><hr class="my-1"><h3 class="h6 mb-0">Location</h3></div>
-                        <div class="col-md-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><label class="form-label" for="locationId">Location</label><select class="form-select" id="locationId" name="locationId" dmx-bind:options="scLocations.data.query" optiontext="locationLabel" optionvalue="id" dmx-on:changed="spaceId.setValue(''); configurationId.setValue(''); scSpaces.load(); scConfigurations.load()"><option value="">No location selected</option></select></div>
-                        <div class="col-md-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><label class="form-label" for="spaceId">Space</label><select class="form-select" id="spaceId" name="spaceId" dmx-bind:options="scSpaces.data.query" optiontext="spaceLabel" optionvalue="id" dmx-bind:disabled="!locationId.value" dmx-on:changed="configurationId.setValue(''); scConfigurations.load()"><option value="">No space selected</option></select></div>
+                        <div class="col-md-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><label class="form-label" for="locationId">Location</label><select class="form-select" id="locationId" name="locationId" dmx-bind:options="scLocations.data.query" optiontext="locationLabel" optionvalue="id" dmx-on:changed="spaceId.setValue(''); configurationId.setValue(''); scSpaces.load({locationid: locationId.value}); scConfigurations.load({spaceid: 0})"><option value="">No location selected</option></select></div>
+                        <div class="col-md-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><label class="form-label" for="spaceId">Space</label><select class="form-select" id="spaceId" name="spaceId" dmx-bind:options="scSpaces.data.query" optiontext="spaceLabel" optionvalue="id" dmx-bind:disabled="!locationId.value" dmx-on:changed="configurationId.setValue(''); scConfigurations.load({spaceid: spaceId.value})"><option value="">No space selected</option></select></div>
                         <div class="col-md-4" dmx-show="scTenantModules.data.locationsAccess[0].hasAccess == 1"><label class="form-label" for="configurationId">Configuration</label><select class="form-select" id="configurationId" name="configurationId" dmx-bind:options="scConfigurations.data.query" optiontext="configurationLabel" optionvalue="id" dmx-bind:disabled="!spaceId.value"><option value="">No configuration selected</option></select></div>
                     </div>
                     <div class="alert alert-info mt-4"><i class="fas fa-info-circle me-2"></i><span dmx-text="scTerminology.data.query[0].stagePlural + ', ' + scTerminology.data.query[0].taskPlural.lowercase() + ' and dependencies will be copied from the selected template.'">Template content will be copied.</span></div>
@@ -53,4 +57,21 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('workflowName');
+    if (input) {
+        const titleCase = value => value.trim().toLocaleLowerCase('en-GB').replace(/(^|[\s\-\u2013\u2014\/('])([\p{L}])/gu, (match, boundary, letter) => boundary + letter.toLocaleUpperCase('en-GB'));
+        const normalise = () => { input.value = titleCase(input.value); };
+        input.addEventListener('blur', normalise);
+        input.form.addEventListener('submit', normalise, true);
+    }
+    const startDate = document.getElementById('workflowStartDate');
+    if (startDate && !startDate.value) {
+        const today = new Date();
+        const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+        startDate.value = localToday;
+    }
+});
+</script>
 <meta name="ac:route" content="/workflows/create">

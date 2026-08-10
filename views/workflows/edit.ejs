@@ -47,7 +47,7 @@
 
                     <div class="mb-3">
                         <label class="form-label" dmx-text="scTerminology.data.query[0].workflowSingular + ' name'">Event name</label>
-                        <input class="form-control" name="workflowName" required dmx-bind:value="scWorkflow.data.query[0].workflowName">
+                        <input class="form-control" id="workflowName" name="workflowName" required dmx-bind:value="scWorkflow.data.query[0].workflowName">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Reference code</label>
@@ -109,6 +109,15 @@
 
 <script src="/js/event-location-cascade.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const input = document.getElementById('workflowName');
+    if (!input) return;
+    const titleCase = value => value.trim().toLocaleLowerCase('en-GB').replace(/(^|[\s\-\u2013\u2014\/('])([\p{L}])/gu, (match, boundary, letter) => boundary + letter.toLocaleUpperCase('en-GB'));
+    const normalise = () => { input.value = titleCase(input.value); };
+    input.addEventListener('blur', normalise);
+    input.form.addEventListener('submit', normalise, true);
+});
+
 function copyWorkflowDraft() {
     const form = document.getElementById('frmWorkflowEdit');
     const values = [];

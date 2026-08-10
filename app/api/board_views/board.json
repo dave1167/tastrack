@@ -53,6 +53,13 @@
       }}, "output": true, "outputType": "array"
     },
     {
+      "name": "coreCells", "module": "dbupdater", "action": "custom",
+      "options": {"connection": "db", "sql": {
+        "query": "SELECT w.id workflowId,'field:venue' fieldKey,COALESCE(NULLIF(CONCAT_WS(' / ',l.locationName,s.spaceName,c.configurationName),''),'') displayValue FROM tbl_workflows w LEFT JOIN tbl_locations l ON l.id=w.locationId AND l.tenantId=w.tenantId LEFT JOIN tbl_spaces s ON s.id=w.spaceId AND s.locationId=w.locationId AND s.tenantId=w.tenantId LEFT JOIN tbl_space_configurations c ON c.id=w.configurationId AND c.spaceId=w.spaceId AND c.tenantId=w.tenantId WHERE w.tenantId=:tenantId AND FIND_IN_SET(w.id,:pageIds) UNION ALL SELECT w.id,'field:event_type',COALESCE(typ.typeName,'') FROM tbl_workflows w LEFT JOIN tbl_workflow_types typ ON typ.id=w.workflowTypeId AND typ.tenantId=w.tenantId WHERE w.tenantId=:tenantId2 AND FIND_IN_SET(w.id,:pageIds2)",
+        "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},{"name": ":pageIds", "value": "{{rows.join(',', 'id')}}"},{"name": ":tenantId2", "value": "{{$_SESSION.TENANT_ID}}"},{"name": ":pageIds2", "value": "{{rows.join(',', 'id')}}"}]
+      }}, "output": true, "outputType": "array"
+    },
+    {
       "name": "taskCells", "module": "dbupdater", "action": "custom",
       "options": {"connection": "db", "sql": {
         "query": "SELECT t.workflowId,CONCAT('task:',t.taskName) fieldKey,REPLACE(t.status,'_',' ') displayValue FROM tbl_tasks t INNER JOIN tbl_workflows w ON w.id=t.workflowId AND w.tenantId=t.tenantId WHERE t.tenantId=:tenantId AND FIND_IN_SET(w.id,:pageIds)",

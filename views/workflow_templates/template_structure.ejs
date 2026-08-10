@@ -61,12 +61,8 @@
                 heading.insertAdjacentHTML('afterend',stageEditor(stages[index]));
                 const stageTasks=tasks.filter(task=>Number(task.templateStageId)===Number(stages[index].id));
                 phase.querySelectorAll('.template-task').forEach((taskElement,taskIndex)=>{
-                    taskElement.insertAdjacentHTML('afterbegin','<button class="btn btn-sm btn-outline-secondary float-end ms-2 js-toggle-editor" type="button"><i class="fas fa-pen me-1"></i>Edit</button>');
-                    taskElement.insertAdjacentHTML('beforeend',taskEditor(stageTasks[taskIndex]));
-                    const task=stageTasks[taskIndex],ownerSelect=taskElement.querySelector('[name="defaultOwnerType"]');
-                    ownerSelect.name='defaultOwnerId';
-                    ownerSelect.innerHTML=option('',task.defaultOwnerId||'','Unallocated')+teams.map(team=>option(team.id,task.defaultOwnerId,team.teamName)).join('');
-                    ownerSelect.closest('.col-md-4').querySelector('.form-label').firstChild.textContent='Default team';
+                    const task=stageTasks[taskIndex];
+                    taskElement.insertAdjacentHTML('afterbegin','<a class="btn btn-sm btn-outline-secondary float-end ms-2" href="/workflow_templates/template_tasks?templateId='+encodeURIComponent(templateId)+'&stageId='+encodeURIComponent(task.templateStageId)+'&questionId='+encodeURIComponent(task.id)+'"><i class="fas fa-pen me-1"></i>Edit question</a>');
                     const ownerMeta=taskElement.querySelectorAll('.task-meta-item')[2];
                     ownerMeta.innerHTML='<i class="fas fa-users"></i>'+escapeHtml(task.defaultTeamName||'Unallocated');
                 });

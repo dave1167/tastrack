@@ -12,6 +12,7 @@ Phase G adds the controlled communications layer around the existing Nylas mailb
 - Deterministic matching by already-linked provider thread, then exact workflow reference.
 - Known-contact suggestions without ambiguous auto-linking.
 - Unmatched incoming queue, manual record assignment and Not Relevant action.
+- Every unmatched card exposes Assign to Event, one-click suggested-event assignment, and a Search Events modal covering event name/reference plus linked contact, promoter, organisation and email fields. Assignment atomically links both the communication and provider thread.
 - Unmatched outgoing suppression; outgoing messages on a linked thread follow the thread link.
 - Record Email tab with mailbox attribution, direction, participants, attachment indicator and a server-authorised plain-text preview limited to 500 characters.
 - Module entitlement, tenant scoping, mailbox/team restrictions, sensitive-mailbox permission and audited administrative actions.

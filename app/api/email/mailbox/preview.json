@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"nocsrf":true,"method":"get"}},"meta":{"$_GET":[{"type":"number","name":"emailConnectionId"},{"type":"text","name":"message"}]},"exec":{"steps":{"name":"mailbox","module":"mailboxBrowser","action":"preview","options":{},"output":true,"outputType":"object"}}}

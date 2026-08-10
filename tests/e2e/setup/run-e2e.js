@@ -66,6 +66,7 @@ async function main() {
     try {
         await waitForServer(server, output);
         process.exitCode = await runPlaywright();
+        if (process.exitCode) console.error(output.join(''));
     } finally {
         if (server.exitCode === null) {
             if (process.platform === 'win32') {
@@ -85,4 +86,3 @@ main().catch(error => {
     console.error(error.message);
     process.exitCode = 1;
 });
-

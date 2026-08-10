@@ -320,6 +320,25 @@
         "output": true
       },
       {
+        "name": "applyNewlyAvailableTemplateDeadlines",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "UPDATE tbl_tasks task INNER JOIN tbl_template_tasks templateTask ON templateTask.id=task.sourceTemplateTaskId AND templateTask.tenantId=task.tenantId INNER JOIN tbl_template_stages templateStage ON templateStage.id=templateTask.templateStageId AND templateStage.tenantId=templateTask.tenantId SET task.dueDate=CASE COALESCE(templateTask.dueOffsetType,templateStage.defaultDueOffsetType) WHEN 'workflow_creation_date' THEN DATE_ADD(DATE((SELECT w.createdDate FROM tbl_workflows w WHERE w.id=task.workflowId AND w.tenantId=task.tenantId)),INTERVAL (CASE WHEN COALESCE(templateTask.dueRelation,templateStage.defaultDueRelation)='after' THEN 1 ELSE -1 END)*COALESCE(templateTask.dueOffsetDays,templateStage.defaultDueOffsetDays,0) DAY) WHEN 'workflow_start_date' THEN DATE_ADD(NULLIF(:startDate,''),INTERVAL (CASE WHEN COALESCE(templateTask.dueRelation,templateStage.defaultDueRelation)='after' THEN 1 ELSE -1 END)*COALESCE(templateTask.dueOffsetDays,templateStage.defaultDueOffsetDays,0) DAY) WHEN 'event_target_date' THEN DATE_ADD(NULLIF(:targetDate,''),INTERVAL (CASE WHEN COALESCE(templateTask.dueRelation,templateStage.defaultDueRelation)='after' THEN 1 ELSE -1 END)*COALESCE(templateTask.dueOffsetDays,templateStage.defaultDueOffsetDays,0) DAY) ELSE NULL END WHERE task.workflowId=:workflowId AND task.tenantId=:tenantId AND task.dueDate IS NULL AND :affectedRows=1",
+            "params": [
+              {"name": ":startDate", "value": "{{$_POST.startDate.default('')}}"},
+              {"name": ":targetDate", "value": "{{$_POST.targetDate.default('')}}"},
+              {"name": ":workflowId", "value": "{{$_POST.id}}"},
+              {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+              {"name": ":affectedRows", "value": "{{updateWorkflow.affectedRows.default(0)}}"}
+            ]
+          }
+        },
+        "output": true
+      },
+      {
         "name": "logWorkflowUpdated",
         "module": "dbupdater",
         "action": "custom",

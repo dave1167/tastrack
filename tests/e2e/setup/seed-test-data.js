@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2/promise');
+const knex = require('knex');
 const argon2 = require('argon2');
 const { loadAndValidateTestEnvironment, databaseConnection } = require('../support/environment');
 
@@ -182,6 +183,17 @@ async function seedTestData() {
     const [alphaDocumentClause] = await db.execute("INSERT INTO tbl_contract_document_clauses (tenantId,contractId,sourceClauseId,clauseHeading,clauseTextSnapshot,clauseBehaviour,displayOrder,isIncluded,isCustom,createdByUserId,modifiedByUserId) VALUES (?,?,?,'E2E Health and Safety','<p>E2E Alpha Event at E2E Alpha Location must comply with E2E safety rules for E2E Tenant Alpha.</p>','mandatory',10,1,0,?,?)", [alphaTenantId, alphaDraft.insertId, alphaClause.insertId, users.alphaOwner, users.alphaOwner]);
     await db.query('SET FOREIGN_KEY_CHECKS=1');
     await db.end();
+
+    // Keep the isolated browser database reproducible when new form tables or seed tenants are added.
+    const migrationDb = knex({client:'mysql2',connection:{...databaseConnection(),database:testName}});
+    try {
+        await require('../../../db/20260808_configurable_forms').up(migrationDb);
+        await require('../../../db/20260808_seed_event_record_form').up(migrationDb);
+        await require('../../../db/20260809_task_question_redesign').up(migrationDb);
+        await require('../../../db/20260809_seed_task_question_templates').up(migrationDb);
+    } finally {
+        await migrationDb.destroy();
+    }
 
     const state = {
         tenants: { alpha: alphaTenantId, beta: betaTenantId },

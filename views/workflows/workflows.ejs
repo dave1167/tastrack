@@ -45,7 +45,7 @@
 
     function cellMap(data) {
         const map = new Map();
-        [...(data.phaseCells || []), ...(data.fieldCells || []), ...(data.taskCells || []), ...(data.stageCells || [])].forEach(cell => map.set(cell.workflowId + '|' + cell.fieldKey, normaliseValue(cell.displayValue)));
+        [...(data.phaseCells || []), ...(data.fieldCells || []), ...(data.coreCells || []), ...(data.taskCells || []), ...(data.stageCells || [])].forEach(cell => map.set(cell.workflowId + '|' + cell.fieldKey, normaliseValue(cell.displayValue)));
         return map;
     }
 

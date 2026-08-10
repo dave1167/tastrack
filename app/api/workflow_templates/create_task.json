@@ -48,6 +48,14 @@
       {
         "type": "number",
         "name": "defaultOwnerId"
+      },
+      {
+        "type": "number",
+        "name": "taskFormTemplateId"
+      },
+      {
+        "type": "text",
+        "name": "formCompletionPolicy"
       }
     ]
   },
@@ -128,7 +136,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "INSERT INTO tbl_template_tasks (tenantId,templateId,templateStageId,taskName,description,sortOrder,priority,status,isRequired,dueOffsetType,dueOffsetDays,dueTime,dueRelation,defaultOwnerType,defaultOwnerId) SELECT :tenantId,s.templateId,s.id,:taskName,:description,(SELECT COALESCE(MAX(t.sortOrder),0)+1 FROM tbl_template_tasks t WHERE t.templateStageId=s.id AND t.tenantId=:tenantId2),:priority,'active',:isRequired,NULLIF(:dueOffsetType,''),:dueOffsetDays,NULL,NULLIF(:dueRelation,''),CASE WHEN tm.id IS NULL THEN 'unassigned' ELSE 'team' END,tm.id FROM tbl_template_stages s LEFT JOIN tbl_teams tm ON tm.id=:teamId AND tm.tenantId=s.tenantId AND tm.isActive=1 WHERE s.id=:stageId AND s.templateId=:templateId AND s.tenantId=:tenantId3",
+            "query": "INSERT INTO tbl_template_tasks (tenantId,templateId,templateStageId,taskName,description,sortOrder,priority,status,isRequired,dueOffsetType,dueOffsetDays,dueTime,dueRelation,defaultOwnerType,defaultOwnerId,taskFormTemplateId,formCompletionPolicy) SELECT :tenantId,s.templateId,s.id,:taskName,:description,(SELECT COALESCE(MAX(t.sortOrder),0)+1 FROM tbl_template_tasks t WHERE t.templateStageId=s.id AND t.tenantId=:tenantId2),:priority,'active',:isRequired,NULLIF(:dueOffsetType,''),:dueOffsetDays,NULL,NULLIF(:dueRelation,''),CASE WHEN tm.id IS NULL THEN 'unassigned' ELSE 'team' END,tm.id,(SELECT f.id FROM tbl_form_templates f WHERE f.id=NULLIF(:taskFormTemplateId,'') AND f.tenantId=s.tenantId AND f.formType='task' AND f.status='published' AND f.isActive=1 LIMIT 1),CASE WHEN :formCompletionPolicy IN ('manual','require_before_completion','complete_on_submission') THEN :formCompletionPolicy2 ELSE 'require_before_completion' END FROM tbl_template_stages s LEFT JOIN tbl_teams tm ON tm.id=:teamId AND tm.tenantId=s.tenantId AND tm.isActive=1 WHERE s.id=:stageId AND s.templateId=:templateId AND s.tenantId=:tenantId3",
             "params": [
               {
                 "name": ":tenantId",
@@ -168,8 +176,11 @@
               },
               {
                 "name": ":teamId",
-                "value": "{{$_POST.defaultOwnerId}}"
+                "value": "{{$_POST.defaultOwnerId.default(0)}}"
               },
+              {"name":":taskFormTemplateId","value":"{{$_POST.taskFormTemplateId.default('')}}"},
+              {"name":":formCompletionPolicy","value":"{{$_POST.formCompletionPolicy.default('require_before_completion')}}"},
+              {"name":":formCompletionPolicy2","value":"{{$_POST.formCompletionPolicy.default('require_before_completion')}}"},
               {
                 "name": ":stageId",
                 "value": "{{$_POST.templateStageId}}"

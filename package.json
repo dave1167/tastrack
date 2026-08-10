@@ -25,6 +25,7 @@
     "test:workflow-mailbox-security": "node tests/workflowMailbox.security.test.js",
     "test:workflow-mailbox-integration": "node tests/workflowMailbox.integration.test.js",
     "test:mailbox-browser-security": "node tests/mailboxBrowser.security.test.js"
+    ,"test:configurable-forms": "node tests/configurableForms.test.js"
   },
   "author": "Wappler",
   "license": "ISC",

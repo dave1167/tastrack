@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},"exec":{"steps":{"name":"result","module":"taskQuestions","action":"archiveQuestion","options":{},"output":true,"outputType":"object"}}}

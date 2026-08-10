@@ -1,0 +1,1 @@
+{"settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},"exec":{"steps":{"name":"result","module":"configurableForms","action":"saveRecord","options":{},"output":true,"outputType":"object"}}}

@@ -36,6 +36,10 @@
       {
         "type": "number",
         "name": "isDefault"
+      },
+      {
+        "type": "number",
+        "name": "recordFormTemplateId"
       }
     ]
   },
@@ -116,7 +120,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_workflow_templates SET templateName=:templateName,templateKey=NULLIF(:templateKey,''),description=:description,versionNumber=:versionNumber,status=:status,isDefault=:isDefault,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND tenantId=:tenantId",
+            "query": "UPDATE tbl_workflow_templates wt SET wt.templateName=:templateName,wt.templateKey=NULLIF(:templateKey,''),wt.description=:description,wt.versionNumber=:versionNumber,wt.status=:status,wt.isDefault=:isDefault,wt.recordFormTemplateId=(SELECT f.id FROM tbl_form_templates f WHERE f.id=NULLIF(:recordFormTemplateId,'') AND f.tenantId=wt.tenantId AND f.formType='record' AND f.status='published' AND f.isActive=1 LIMIT 1),wt.modifiedDate=CURRENT_TIMESTAMP WHERE wt.id=:id AND wt.tenantId=:tenantId",
             "params": [
               {
                 "name": ":templateName",
@@ -141,6 +145,10 @@
               {
                 "name": ":isDefault",
                 "value": "{{$_POST.isDefault.default(0)}}"
+              },
+              {
+                "name": ":recordFormTemplateId",
+                "value": "{{$_POST.recordFormTemplateId.default('')}}"
               },
               {
                 "name": ":id",

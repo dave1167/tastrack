@@ -28,6 +28,26 @@
       {
         "type": "number",
         "name": "requiresAllTasksComplete"
+      },
+      {
+        "type": "number",
+        "name": "requiresProgressionApproval"
+      },
+      {
+        "type": "number",
+        "name": "allowNextStageEarlyStart"
+      },
+      {
+        "type": "text",
+        "name": "defaultDueOffsetType"
+      },
+      {
+        "type": "number",
+        "name": "defaultDueOffsetDays"
+      },
+      {
+        "type": "text",
+        "name": "defaultDueRelation"
       }
     ]
   },
@@ -108,7 +128,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "INSERT INTO tbl_template_stages (tenantId,templateId,stageName,description,sortOrder,status,colour,requiresAllTasksComplete) SELECT :tenantId,wt.id,:stageName,:description,(SELECT COALESCE(MAX(s.sortOrder),0)+1 FROM tbl_template_stages s WHERE s.templateId=wt.id AND s.tenantId=:tenantId2),'active',NULLIF(:colour,''),:requiresAll FROM tbl_workflow_templates wt WHERE wt.id=:templateId AND wt.tenantId=:tenantId3",
+            "query": "INSERT INTO tbl_template_stages (tenantId,templateId,stageName,description,sortOrder,status,colour,requiresAllTasksComplete,requiresProgressionApproval,allowNextStageEarlyStart,defaultDueOffsetType,defaultDueOffsetDays,defaultDueRelation) SELECT :tenantId,wt.id,:stageName,:description,(SELECT COALESCE(MAX(s.sortOrder),0)+1 FROM tbl_template_stages s WHERE s.templateId=wt.id AND s.tenantId=:tenantId2),'active',NULLIF(:colour,''),:requiresAll,:requiresApproval,:allowEarlyStart,CASE WHEN :defaultDueOffsetType IN ('workflow_creation_date','workflow_start_date','event_target_date') THEN :defaultDueOffsetType2 ELSE NULL END,CASE WHEN :defaultDueOffsetType3 IN ('workflow_creation_date','workflow_start_date','event_target_date') THEN GREATEST(0,:defaultDueOffsetDays) ELSE NULL END,CASE WHEN :defaultDueRelation IN ('before','after') THEN :defaultDueRelation2 ELSE 'before' END FROM tbl_workflow_templates wt WHERE wt.id=:templateId AND wt.tenantId=:tenantId3",
             "params": [
               {
                 "name": ":tenantId",
@@ -133,6 +153,38 @@
               {
                 "name": ":requiresAll",
                 "value": "{{$_POST.requiresAllTasksComplete.default(0)}}"
+              },
+              {
+                "name": ":requiresApproval",
+                "value": "{{$_POST.requiresProgressionApproval.default(0)}}"
+              },
+              {
+                "name": ":allowEarlyStart",
+                "value": "{{$_POST.allowNextStageEarlyStart.default(0)}}"
+              },
+              {
+                "name": ":defaultDueOffsetType",
+                "value": "{{$_POST.defaultDueOffsetType.default('')}}"
+              },
+              {
+                "name": ":defaultDueOffsetType2",
+                "value": "{{$_POST.defaultDueOffsetType.default('')}}"
+              },
+              {
+                "name": ":defaultDueOffsetType3",
+                "value": "{{$_POST.defaultDueOffsetType.default('')}}"
+              },
+              {
+                "name": ":defaultDueOffsetDays",
+                "value": "{{$_POST.defaultDueOffsetDays.default(0)}}"
+              },
+              {
+                "name": ":defaultDueRelation",
+                "value": "{{$_POST.defaultDueRelation.default('before')}}"
+              },
+              {
+                "name": ":defaultDueRelation2",
+                "value": "{{$_POST.defaultDueRelation.default('before')}}"
               },
               {
                 "name": ":templateId",

@@ -33,17 +33,6 @@
                                 },
                                 {
                                     "type":  "text",
-                                    "name":  "referenceCode",
-                                    "options":  {
-                                                    "rules":  {
-                                                                  "core:required":  {
-                                                                                        "param":  ""
-                                                                                    }
-                                                              }
-                                                }
-                                },
-                                {
-                                    "type":  "text",
                                     "name":  "notes"
                                 },
                                 {
@@ -81,14 +70,7 @@
                                 },
                                 {
                                     "type":  "text",
-                                    "name":  "targetDate",
-                                    "options":  {
-                                                    "rules":  {
-                                                                  "core:required":  {
-                                                                                        "param":  ""
-                                                                                    }
-                                                              }
-                                                }
+                                    "name":  "targetDate"
                                 },
                                 {
                                     "type":  "number",
@@ -227,12 +209,6 @@
                                                                               },
                                                                               {
                                                                                   "table":  "tbl_workflows",
-                                                                                  "column":  "referenceCode",
-                                                                                  "type":  "text",
-                                                                                  "value":  "{{$_POST.referenceCode}}"
-                                                                              },
-                                                                              {
-                                                                                  "table":  "tbl_workflows",
                                                                                   "column":  "notes",
                                                                                   "type":  "text",
                                                                                   "value":  "{{$_POST.notes.default(\u0027\u0027)}}"
@@ -271,7 +247,7 @@
                                                                                   "table":  "tbl_workflows",
                                                                                   "column":  "targetDate",
                                                                                   "type":  "date",
-                                                                                  "value":  "{{$_POST.targetDate}}"
+                                                                                  "value":  "{{$_POST.targetDate.default(null)}}"
                                                                               },
                                                                               {
                                                                                   "table":  "tbl_workflows",
@@ -282,7 +258,7 @@
                                                                           ],
                                                                "table":  "tbl_workflows",
                                                                "returning":  "id",
-                                                               "query":  "insert into `tbl_workflows` (`tenantId`,`templateId`,`templateVersionNumber`,`workflowName`,`referenceCode`,`notes`,`eventStatusId`,`status`,`ownerUserId`,`ownerTeamId`,`startDate`,`targetDate`,`createdByUserId`) values (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                                                               "query":  "insert into `tbl_workflows` (`tenantId`,`templateId`,`templateVersionNumber`,`workflowName`,`notes`,`eventStatusId`,`status`,`ownerUserId`,`ownerTeamId`,`startDate`,`targetDate`,`createdByUserId`) values (?,?,?,?,?,?,?,?,?,?,?,?)",
                                                                "params":  [
                                                                               {
                                                                                   "name":  ":P1",
@@ -307,45 +283,40 @@
                                                                               {
                                                                                   "name":  ":P5",
                                                                                   "type":  "expression",
-                                                                                  "value":  "{{$_POST.referenceCode}}"
+                                                                                  "value":  "{{$_POST.notes.default(\u0027\u0027)}}"
                                                                               },
                                                                               {
                                                                                   "name":  ":P6",
                                                                                   "type":  "expression",
-                                                                                  "value":  "{{$_POST.notes.default(\u0027\u0027)}}"
-                                                                              },
-                                                                              {
-                                                                                  "name":  ":P7",
-                                                                                  "type":  "expression",
                                                                                   "value":  "{{getEventStatus[0].id}}"
                                                                               },
                                                                               {
-                                                                                  "name":  ":P8",
+                                                                                  "name":  ":P7",
                                                                                   "type":  "text",
                                                                                   "value":  "not_started"
                                                                               },
                                                                               {
-                                                                                  "name":  ":P9",
+                                                                                  "name":  ":P8",
                                                                                   "type":  "expression",
                                                                                   "value":  "{{$_SESSION.USER_ID}}"
                                                                               },
                                                                               {
-                                                                                  "name":  ":P10",
+                                                                                  "name":  ":P9",
                                                                                   "type":  "expression",
                                                                                   "value":  "{{$_POST.ownerTeamId}}"
                                                                               },
                                                                               {
-                                                                                  "name":  ":P11",
+                                                                                  "name":  ":P10",
                                                                                   "type":  "expression",
                                                                                   "value":  "{{$_POST.startDate}}"
                                                                               },
                                                                               {
-                                                                                  "name":  ":P12",
+                                                                                  "name":  ":P11",
                                                                                   "type":  "expression",
-                                                                                  "value":  "{{$_POST.targetDate}}"
+                                                                                  "value":  "{{$_POST.targetDate.default(null)}}"
                                                                               },
                                                                               {
-                                                                                  "name":  ":P13",
+                                                                                  "name":  ":P12",
                                                                                   "type":  "expression",
                                                                                   "value":  "{{$_SESSION.USER_ID}}"
                                                                               }
@@ -363,6 +334,51 @@
                                                 }
                                             ],
                                    "output":  true
+                               },
+                               {
+                                   "name":  "setGeneratedReference",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "UPDATE tbl_workflows SET referenceCode=CONCAT('EVT-',LPAD(id,6,'0')) WHERE id=:workflowId AND tenantId=:tenantId",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true
+                               },
+                               {
+                                   "name":  "getGeneratedReference",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "SELECT referenceCode FROM tbl_workflows WHERE id=:workflowId AND tenantId=:tenantId LIMIT 1",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                   "output":  true,
+                                   "outputType":  "array"
                                },
                                {
                                    "name":  "setWorkflowLocation",
@@ -443,7 +459,7 @@
                                    "options":  {
                                                    "connection":  "db",
                                                    "sql":  {
-                                                               "query":  "INSERT INTO tbl_workflow_stages (tenantId,workflowId,sourceTemplateStageId,stageName,description,sortOrder,status,colour,requiresProgressionApproval,allowManualOverride,approvalPrompt) SELECT :tenantId,:workflowId,s.id,s.stageName,s.description,s.sortOrder,\u0027not_started\u0027,s.colour,s.requiresProgressionApproval,s.allowManualOverride,s.approvalPrompt FROM tbl_template_stages s WHERE s.templateId=:templateId AND s.tenantId=:tenantId2 AND s.status=\u0027active\u0027 ORDER BY s.sortOrder",
+                                                               "query":  "INSERT INTO tbl_workflow_stages (tenantId,workflowId,sourceTemplateStageId,stageName,description,sortOrder,status,colour,requiresProgressionApproval,allowManualOverride,approvalPrompt,allowNextStageEarlyStart) SELECT :tenantId,:workflowId,s.id,s.stageName,s.description,s.sortOrder,\u0027not_started\u0027,s.colour,s.requiresProgressionApproval,s.allowManualOverride,s.approvalPrompt,s.allowNextStageEarlyStart FROM tbl_template_stages s WHERE s.templateId=:templateId AND s.tenantId=:tenantId2 AND s.status=\u0027active\u0027 ORDER BY s.sortOrder",
                                                                "params":  [
                                                                               {
                                                                                   "name":  ":tenantId",
@@ -473,7 +489,7 @@
                                    "options":  {
                                                    "connection":  "db",
                                                    "sql":  {
-                                                               "query":  "UPDATE tbl_workflow_stages ws INNER JOIN tbl_template_stages ts ON ts.id=ws.sourceTemplateStageId AND ts.tenantId=ws.tenantId LEFT JOIN tbl_workflow_stages nextWs ON nextWs.workflowId=ws.workflowId AND nextWs.tenantId=ws.tenantId AND nextWs.sourceTemplateStageId=ts.nextStageTemplateId SET ws.nextWorkflowStageId=nextWs.id WHERE ws.workflowId=:workflowId AND ws.tenantId=:tenantId",
+                                                                "query":  "UPDATE tbl_workflow_stages ws INNER JOIN tbl_template_stages ts ON ts.id=ws.sourceTemplateStageId AND ts.tenantId=ws.tenantId LEFT JOIN tbl_workflow_stages nextWs ON nextWs.workflowId=ws.workflowId AND nextWs.tenantId=ws.tenantId AND nextWs.sourceTemplateStageId=ts.nextStageTemplateId SET ws.nextWorkflowStageId=COALESCE(nextWs.id,(SELECT sequentialStage.id FROM tbl_workflow_stages sequentialStage WHERE sequentialStage.workflowId=ws.workflowId AND sequentialStage.tenantId=ws.tenantId AND (sequentialStage.sortOrder>ws.sortOrder OR (sequentialStage.sortOrder=ws.sortOrder AND sequentialStage.id>ws.id)) ORDER BY sequentialStage.sortOrder,sequentialStage.id LIMIT 1)) WHERE ws.workflowId=:workflowId AND ws.tenantId=:tenantId",
                                                                "params":  [
                                                                               {"name":  ":workflowId", "value":  "{{insertWorkflow.identity}}"},
                                                                               {"name":  ":tenantId", "value":  "{{$_SESSION.TENANT_ID}}"}
@@ -489,7 +505,7 @@
                                    "options":  {
                                                    "connection":  "db",
                                                    "sql":  {
-                                                               "query":  "INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,sourceTemplateTaskId,taskName,description,status,priority,isRequired,responseRequired,responseType,assignedToUserId,assignedToTeamId,assignedToRoleId,dueDate,createdByUserId) SELECT :tenantId,:workflowId,ws.id,tt.id,tt.taskName,tt.description,\u0027not_started\u0027,tt.priority,tt.isRequired,tt.responseRequired,tt.responseType,CASE WHEN tt.defaultOwnerType=\u0027workflow_owner\u0027 THEN :ownerUser WHEN tt.defaultOwnerType=\u0027specific_user\u0027 THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType=\u0027team\u0027 THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType=\u0027role\u0027 THEN tt.defaultOwnerId ELSE NULL END,CASE tt.dueOffsetType WHEN \u0027workflow_creation_date\u0027 THEN DATE_ADD(CURRENT_DATE,INTERVAL (CASE WHEN tt.dueRelation=\u0027before\u0027 THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN \u0027workflow_start_date\u0027 THEN DATE_ADD(NULLIF(:startDate,\u0027\u0027),INTERVAL (CASE WHEN tt.dueRelation=\u0027before\u0027 THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN \u0027event_target_date\u0027 THEN DATE_ADD(NULLIF(:targetDate,\u0027\u0027),INTERVAL (CASE WHEN tt.dueRelation=\u0027before\u0027 THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) ELSE NULL END,:createdBy FROM tbl_template_tasks tt INNER JOIN tbl_workflow_stages ws ON ws.workflowId=:workflowId2 AND ws.sourceTemplateStageId=tt.templateStageId AND ws.tenantId=:tenantId2 WHERE tt.templateId=:templateId AND tt.tenantId=:tenantId3 AND tt.status=\u0027active\u0027 ORDER BY tt.templateStageId,tt.sortOrder",
+                                                               "query":  "INSERT INTO tbl_tasks (tenantId,workflowId,workflowStageId,sourceTemplateTaskId,sourceTemplateId,sourceTemplateStageId,phaseNameSnapshot,questionTextSnapshot,helpTextSnapshot,answerTypeSnapshot,requiredSnapshot,showStartDate,showDeadline,showFinishDate,allowNotes,attachmentRequirement,phaseDisplayOrder,taskDisplayOrder,answerOptionsSnapshot,taskName,description,status,priority,isRequired,responseRequired,responseType,assignedToUserId,assignedToTeamId,assignedToRoleId,dueDate,createdByUserId) SELECT :tenantId,:workflowId,ws.id,tt.id,tt.templateId,tt.templateStageId,ts.stageName,tt.taskName,tt.description,tt.answerType,tt.isRequired,tt.showStartDate,tt.showDeadline,tt.showFinishDate,tt.allowNotes,tt.attachmentRequirement,ts.sortOrder,tt.sortOrder,COALESCE((SELECT JSON_ARRAYAGG(JSON_OBJECT(\u0027id\u0027,o.id,\u0027optionValue\u0027,o.optionValue,\u0027optionLabel\u0027,o.optionLabel,\u0027displayOrder\u0027,o.displayOrder,\u0027isActive\u0027,o.isActive)) FROM tbl_template_task_options o WHERE o.tenantId=tt.tenantId AND o.templateTaskId=tt.id AND o.isActive=1),JSON_ARRAY()),tt.taskName,tt.description,CASE WHEN tt.answerType=\u0027task_status\u0027 AND tt.defaultAnswerValue IN (\u0027complete\u0027) THEN \u0027complete\u0027 ELSE \u0027not_started\u0027 END,tt.priority,tt.isRequired,1,tt.answerType,CASE WHEN tt.defaultOwnerType=\u0027workflow_owner\u0027 THEN :ownerUser WHEN tt.defaultOwnerType=\u0027specific_user\u0027 THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType=\u0027team\u0027 THEN tt.defaultOwnerId ELSE NULL END,CASE WHEN tt.defaultOwnerType=\u0027role\u0027 THEN tt.defaultOwnerId ELSE NULL END,CASE tt.dueOffsetType WHEN \u0027workflow_creation_date\u0027 THEN DATE_ADD(CURRENT_DATE,INTERVAL (CASE WHEN tt.dueRelation=\u0027before\u0027 THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN \u0027workflow_start_date\u0027 THEN DATE_ADD(NULLIF(:startDate,\u0027\u0027),INTERVAL (CASE WHEN tt.dueRelation=\u0027before\u0027 THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) WHEN \u0027event_target_date\u0027 THEN DATE_ADD(NULLIF(:targetDate,\u0027\u0027),INTERVAL (CASE WHEN tt.dueRelation=\u0027before\u0027 THEN -1 ELSE 1 END)*COALESCE(tt.dueOffsetDays,0) DAY) ELSE NULL END,:createdBy FROM tbl_template_tasks tt INNER JOIN tbl_template_stages ts ON ts.id=tt.templateStageId AND ts.templateId=tt.templateId AND ts.tenantId=tt.tenantId INNER JOIN tbl_workflow_stages ws ON ws.workflowId=:workflowId2 AND ws.sourceTemplateStageId=tt.templateStageId AND ws.tenantId=:tenantId2 WHERE tt.templateId=:templateId AND tt.tenantId=:tenantId3 AND tt.status=\u0027active\u0027 AND NOT EXISTS(SELECT 1 FROM tbl_tasks existing WHERE existing.tenantId=:tenantId3 AND existing.workflowId=:workflowId2 AND existing.sourceTemplateTaskId=tt.id) ORDER BY ts.sortOrder,tt.sortOrder",
                                                                "params":  [
                                                                               {
                                                                                   "name":  ":tenantId",
@@ -529,6 +545,65 @@
                                                                               },
                                                                               {
                                                                                   "name":  ":tenantId3",
+                                                                                  "value":  "{{$_SESSION.TENANT_ID}}"
+                                                                              }
+                                                                          ]
+                                                           }
+                                               },
+                                    "output":  true
+                                },
+                                {
+                                    "name":  "applyInheritedPhaseDeadlines",
+                                    "module":  "dbupdater",
+                                    "action":  "custom",
+                                    "options":  {
+                                                    "connection":  "db",
+                                                    "sql":  {
+                                                                "query":  "UPDATE tbl_tasks task INNER JOIN tbl_template_tasks templateTask ON templateTask.id=task.sourceTemplateTaskId AND templateTask.tenantId=task.tenantId INNER JOIN tbl_template_stages templateStage ON templateStage.id=templateTask.templateStageId AND templateStage.tenantId=templateTask.tenantId SET task.dueDate=CASE templateStage.defaultDueOffsetType WHEN 'workflow_creation_date' THEN DATE_ADD(CURRENT_DATE,INTERVAL (CASE WHEN templateStage.defaultDueRelation='after' THEN 1 ELSE -1 END)*COALESCE(templateStage.defaultDueOffsetDays,0) DAY) WHEN 'workflow_start_date' THEN DATE_ADD(NULLIF(:startDate,''),INTERVAL (CASE WHEN templateStage.defaultDueRelation='after' THEN 1 ELSE -1 END)*COALESCE(templateStage.defaultDueOffsetDays,0) DAY) WHEN 'event_target_date' THEN DATE_ADD(NULLIF(:targetDate,''),INTERVAL (CASE WHEN templateStage.defaultDueRelation='after' THEN 1 ELSE -1 END)*COALESCE(templateStage.defaultDueOffsetDays,0) DAY) ELSE NULL END WHERE task.workflowId=:workflowId AND task.tenantId=:tenantId AND task.dueDate IS NULL AND templateTask.dueOffsetType IS NULL",
+                                                                "params":  [
+                                                                               {"name": ":startDate", "value": "{{$_POST.startDate.default('')}}"},
+                                                                               {"name": ":targetDate", "value": "{{$_POST.targetDate.default('')}}"},
+                                                                               {"name": ":workflowId", "value": "{{insertWorkflow.identity}}"},
+                                                                               {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}
+                                                                           ]
+                                                            }
+                                                },
+                                    "output":  true
+                                },
+                                {
+                                    "name":  "applyFirstTaskStartDateFallback",
+                                    "module":  "dbupdater",
+                                    "action":  "custom",
+                                    "options":  {
+                                                    "connection":  "db",
+                                                    "sql":  {
+                                                                "query":  "UPDATE tbl_tasks task SET task.dueDate=NULLIF(:startDate,'') WHERE task.id=(SELECT firstTask.id FROM (SELECT candidate.id FROM tbl_tasks candidate INNER JOIN tbl_workflow_stages stage ON stage.id=candidate.workflowStageId AND stage.tenantId=candidate.tenantId WHERE candidate.workflowId=:workflowId AND candidate.tenantId=:tenantId ORDER BY stage.sortOrder,candidate.taskDisplayOrder,candidate.id LIMIT 1) firstTask) AND task.workflowId=:workflowId2 AND task.tenantId=:tenantId2 AND task.dueDate IS NULL",
+                                                                "params":  [
+                                                                               {"name": ":startDate", "value": "{{$_POST.startDate.default('')}}"},
+                                                                               {"name": ":workflowId", "value": "{{insertWorkflow.identity}}"},
+                                                                               {"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"},
+                                                                               {"name": ":workflowId2", "value": "{{insertWorkflow.identity}}"},
+                                                                               {"name": ":tenantId2", "value": "{{$_SESSION.TENANT_ID}}"}
+                                                                           ]
+                                                            }
+                                                },
+                                    "output":  true
+                                },
+                                {
+                                    "name":  "applyTemplateAllocations",
+                                   "module":  "dbupdater",
+                                   "action":  "custom",
+                                   "options":  {
+                                                   "connection":  "db",
+                                                   "sql":  {
+                                                               "query":  "UPDATE tbl_tasks task INNER JOIN tbl_template_tasks templateTask ON templateTask.id=task.sourceTemplateTaskId AND templateTask.tenantId=task.tenantId SET task.assignedToTeamId=(SELECT team.id FROM tbl_teams team WHERE team.id=templateTask.defaultTeamId AND team.tenantId=task.tenantId AND team.isActive=1 LIMIT 1),task.assignedToUserId=CASE WHEN EXISTS(SELECT 1 FROM tbl_team_members member INNER JOIN tbl_user_tenants membership ON membership.id=member.userTenantId AND membership.tenantId=member.tenantId AND membership.userId=templateTask.defaultUserId AND membership.isActive=1 AND membership.membershipStatus='active' WHERE member.tenantId=task.tenantId AND member.teamId=templateTask.defaultTeamId AND member.isActive=1) THEN templateTask.defaultUserId ELSE NULL END WHERE task.workflowId=:workflowId AND task.tenantId=:tenantId",
+                                                               "params":  [
+                                                                              {
+                                                                                  "name":  ":workflowId",
+                                                                                  "value":  "{{insertWorkflow.identity}}"
+                                                                              },
+                                                                              {
+                                                                                  "name":  ":tenantId",
                                                                                   "value":  "{{$_SESSION.TENANT_ID}}"
                                                                               }
                                                                           ]
@@ -673,7 +748,7 @@
                                                                               },
                                                                               {
                                                                                   "name":  ":referenceCode",
-                                                                                  "value":  "{{$_POST.referenceCode.default(\u0027\u0027)}}"
+                                                                                  "value":  "{{getGeneratedReference[0].referenceCode}}"
                                                                               },
                                                                               {
                                                                                   "name":  ":ownerTeamId",

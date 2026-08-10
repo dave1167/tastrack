@@ -58,8 +58,9 @@
                                 <option value="0">Inactive</option>
                             </select>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-1 d-flex gap-1">
                             <button class="btn btn-outline-primary" type="submit">Save</button>
+                            <a class="btn btn-outline-secondary" title="Configure commercial or funding terms" dmx-bind:href="'/workflow-types/commercial?id=' + $value.id"><i class="fas fa-coins"></i></a>
                         </div>
                     </form>
                 </div>

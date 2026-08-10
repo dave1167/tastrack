@@ -154,6 +154,13 @@
       "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
     },
     {
+      "path": "/workflow-types/commercial",
+      "page": "workflow_types/commercial",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
       "path": "/event-statuses",
       "page": "event_statuses/statuses",
       "layout": "main_shell",
@@ -240,6 +247,20 @@
     {
       "path": "/configuration",
       "page": "configuration/index",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/forms",
+      "page": "forms/index",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/forms/designer",
+      "page": "forms/designer",
       "layout": "main_shell",
       "routeType": "page",
       "restrict": {"provider":"security","permissions":["owner-admin"],"loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}

@@ -40,6 +40,26 @@
       {
         "type": "number",
         "name": "requiresAllTasksComplete"
+      },
+      {
+        "type": "number",
+        "name": "requiresProgressionApproval"
+      },
+      {
+        "type": "number",
+        "name": "allowNextStageEarlyStart"
+      },
+      {
+        "type": "text",
+        "name": "defaultDueOffsetType"
+      },
+      {
+        "type": "number",
+        "name": "defaultDueOffsetDays"
+      },
+      {
+        "type": "text",
+        "name": "defaultDueRelation"
       }
     ]
   },
@@ -120,7 +140,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_template_stages SET stageName=:stageName,description=:description,sortOrder=:sortOrder,status=:status,colour=NULLIF(:colour,''),requiresAllTasksComplete=:requiresAll,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND templateId=:templateId AND tenantId=:tenantId",
+            "query": "UPDATE tbl_template_stages SET stageName=:stageName,description=:description,sortOrder=:sortOrder,status=:status,colour=NULLIF(:colour,''),requiresAllTasksComplete=:requiresAll,requiresProgressionApproval=:requiresApproval,allowNextStageEarlyStart=:allowEarlyStart,defaultDueOffsetType=CASE WHEN :defaultDueOffsetType IN ('workflow_creation_date','workflow_start_date','event_target_date') THEN :defaultDueOffsetType2 ELSE NULL END,defaultDueOffsetDays=CASE WHEN :defaultDueOffsetType3 IN ('workflow_creation_date','workflow_start_date','event_target_date') THEN GREATEST(0,:defaultDueOffsetDays) ELSE NULL END,defaultDueRelation=CASE WHEN :defaultDueRelation IN ('before','after') THEN :defaultDueRelation2 ELSE 'before' END,modifiedDate=CURRENT_TIMESTAMP WHERE id=:id AND templateId=:templateId AND tenantId=:tenantId",
             "params": [
               {
                 "name": ":stageName",
@@ -145,6 +165,38 @@
               {
                 "name": ":requiresAll",
                 "value": "{{$_POST.requiresAllTasksComplete.default(0)}}"
+              },
+              {
+                "name": ":requiresApproval",
+                "value": "{{$_POST.requiresProgressionApproval.default(0)}}"
+              },
+              {
+                "name": ":allowEarlyStart",
+                "value": "{{$_POST.allowNextStageEarlyStart.default(0)}}"
+              },
+              {
+                "name": ":defaultDueOffsetType",
+                "value": "{{$_POST.defaultDueOffsetType.default('')}}"
+              },
+              {
+                "name": ":defaultDueOffsetType2",
+                "value": "{{$_POST.defaultDueOffsetType.default('')}}"
+              },
+              {
+                "name": ":defaultDueOffsetType3",
+                "value": "{{$_POST.defaultDueOffsetType.default('')}}"
+              },
+              {
+                "name": ":defaultDueOffsetDays",
+                "value": "{{$_POST.defaultDueOffsetDays.default(0)}}"
+              },
+              {
+                "name": ":defaultDueRelation",
+                "value": "{{$_POST.defaultDueRelation.default('before')}}"
+              },
+              {
+                "name": ":defaultDueRelation2",
+                "value": "{{$_POST.defaultDueRelation.default('before')}}"
               },
               {
                 "name": ":id",

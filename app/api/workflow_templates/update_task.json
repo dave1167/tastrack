@@ -60,7 +60,9 @@
       {
         "type": "number",
         "name": "defaultOwnerId"
-      }
+      },
+      {"type":"number","name":"taskFormTemplateId"},
+      {"type":"text","name":"formCompletionPolicy"}
     ]
   },
   "exec": {
@@ -167,7 +169,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "UPDATE tbl_template_tasks t SET t.taskName=:taskName,t.description=:description,t.sortOrder=:sortOrder,t.priority=:priority,t.status=:status,t.isRequired=:isRequired,t.dueOffsetType=NULLIF(:dueOffsetType,''),t.dueOffsetDays=:dueOffsetDays,t.dueRelation=NULLIF(:dueRelation,''),t.defaultOwnerType=CASE WHEN EXISTS(SELECT 1 FROM tbl_teams tm WHERE tm.id=:teamId1 AND tm.tenantId=t.tenantId AND tm.isActive=1) THEN 'team' ELSE 'unassigned' END,t.defaultOwnerId=CASE WHEN EXISTS(SELECT 1 FROM tbl_teams tm WHERE tm.id=:teamId2 AND tm.tenantId=t.tenantId AND tm.isActive=1) THEN :teamId3 ELSE NULL END,t.modifiedDate=CURRENT_TIMESTAMP WHERE t.id=:id AND t.templateId=:templateId AND t.templateStageId=:stageId AND t.tenantId=:tenantId",
+            "query": "UPDATE tbl_template_tasks t SET t.taskName=:taskName,t.description=:description,t.sortOrder=:sortOrder,t.priority=:priority,t.status=:status,t.isRequired=:isRequired,t.dueOffsetType=NULLIF(:dueOffsetType,''),t.dueOffsetDays=:dueOffsetDays,t.dueRelation=NULLIF(:dueRelation,''),t.defaultOwnerType=CASE WHEN EXISTS(SELECT 1 FROM tbl_teams tm WHERE tm.id=:teamId1 AND tm.tenantId=t.tenantId AND tm.isActive=1) THEN 'team' ELSE 'unassigned' END,t.defaultOwnerId=CASE WHEN EXISTS(SELECT 1 FROM tbl_teams tm WHERE tm.id=:teamId2 AND tm.tenantId=t.tenantId AND tm.isActive=1) THEN :teamId3 ELSE NULL END,t.taskFormTemplateId=(SELECT f.id FROM tbl_form_templates f WHERE f.id=NULLIF(:taskFormTemplateId,'') AND f.tenantId=t.tenantId AND f.formType='task' AND f.status='published' AND f.isActive=1 LIMIT 1),t.formCompletionPolicy=CASE WHEN :formCompletionPolicy IN ('manual','require_before_completion','complete_on_submission') THEN :formCompletionPolicy2 ELSE 'require_before_completion' END,t.modifiedDate=CURRENT_TIMESTAMP WHERE t.id=:id AND t.templateId=:templateId AND t.templateStageId=:stageId AND t.tenantId=:tenantId",
             "params": [
               {
                 "name": ":taskName",
@@ -207,16 +209,19 @@
               },
               {
                 "name": ":teamId1",
-                "value": "{{$_POST.defaultOwnerId}}"
+                "value": "{{$_POST.defaultOwnerId.default(0)}}"
               },
               {
                 "name": ":teamId2",
-                "value": "{{$_POST.defaultOwnerId}}"
+                "value": "{{$_POST.defaultOwnerId.default(0)}}"
               },
               {
                 "name": ":teamId3",
-                "value": "{{$_POST.defaultOwnerId}}"
+                "value": "{{$_POST.defaultOwnerId.default(0)}}"
               },
+              {"name":":taskFormTemplateId","value":"{{$_POST.taskFormTemplateId.default('')}}"},
+              {"name":":formCompletionPolicy","value":"{{$_POST.formCompletionPolicy.default('require_before_completion')}}"},
+              {"name":":formCompletionPolicy2","value":"{{$_POST.formCompletionPolicy.default('require_before_completion')}}"},
               {
                 "name": ":id",
                 "value": "{{$_POST.id}}"
