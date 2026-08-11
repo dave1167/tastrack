@@ -18,7 +18,7 @@ module.exports = defineConfig({
         actionTimeout: 10_000,
         navigationTimeout: 20_000,
         screenshot: 'only-on-failure',
-        trace: 'on-first-retry',
+        trace: 'retain-on-failure',
         video: 'retain-on-failure',
         ...devices['Desktop Chrome']
     },

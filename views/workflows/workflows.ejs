@@ -8,7 +8,7 @@
     </div>
     <div class="col-12">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white py-3"><div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"><h2 class="h5 mb-0">My overview</h2><div class="d-flex align-items-center gap-2"><div class="input-group input-group-sm" style="width:min(100%,360px)"><span class="input-group-text"><i class="fas fa-search"></i></span><input class="form-control" id="boardSearch" type="search" placeholder="Search events, venues, tasks…" aria-label="Search event overview"><button class="btn btn-outline-secondary" id="clearBoardSearch" type="button" aria-label="Clear search"><i class="fas fa-times"></i></button></div><span class="badge rounded-pill bg-primary" id="boardRowCount">0</span></div></div></div>
+            <div class="card-header bg-white py-3"><div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3"><h2 class="h5 mb-0">My overview</h2><div class="d-flex flex-wrap align-items-center gap-2"><div class="btn-group btn-group-sm" role="group" aria-label="Event status view"><button class="btn btn-primary board-view-filter active" type="button" data-view="open" aria-pressed="true"><span dmx-text="'Open ' + scTerminology.data.query[0].workflowPlural.default('Events').lowercase()">Open events</span></button><button class="btn btn-outline-primary board-view-filter" type="button" data-view="completed" aria-pressed="false"><span dmx-text="'Completed ' + scTerminology.data.query[0].workflowPlural.default('Events').lowercase()">Completed events</span></button></div><div class="input-group input-group-sm" style="width:min(100%,360px)"><span class="input-group-text"><i class="fas fa-search"></i></span><input class="form-control" id="boardSearch" type="search" placeholder="Search events, venues, tasks…" aria-label="Search event overview"><button class="btn btn-outline-secondary" id="clearBoardSearch" type="button" aria-label="Clear search"><i class="fas fa-times"></i></button></div><span class="badge rounded-pill bg-primary" id="boardRowCount">0</span></div></div></div>
             <div class="card-body p-0">
                 <div class="workflow-board-scroll" tabindex="0" aria-label="Scrollable event overview"><table class="table table-sm table-striped table-hover align-middle mb-0 workflow-board-compact" id="workflowBoard"><thead></thead><tbody></tbody></table></div>
                 <div class="text-center text-muted py-5" id="boardLoading"><i class="fas fa-spinner fa-spin me-2"></i>Loading board…</div>
@@ -32,7 +32,7 @@
 <form id="csrfSource" class="d-none"><%- _csrfInput() %></form>
 <script>
 (function () {
-    const state = { board: null, available: [], search: '', sortKey: '', sortDirection: 'asc', page: 1, pageSize: 25, totalPages: 1, totalRows: 0, searchTimer: null };
+    const state = { board: null, available: [], search: '', view: 'open', sortKey: '', sortDirection: 'asc', page: 1, pageSize: 25, totalPages: 1, totalRows: 0, searchTimer: null };
     const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
     const normaliseValue = value => value && value.type === 'Buffer' && Array.isArray(value.data) ? new TextDecoder().decode(new Uint8Array(value.data)) : value;
     const statusClass = value => ({complete:'success',green:'success',amber:'warning',red:'danger',grey:'secondary',in_progress:'primary',waiting:'warning',overdue:'danger',not_started:'secondary',skipped:'secondary',cancelled:'dark'}[String(value).replaceAll(' ','_')] || 'secondary');
@@ -75,7 +75,7 @@
             });
         }
         table.querySelector('thead').innerHTML = '<tr>' + columns.map(column => { const active = state.sortKey === column.fieldKey; const icon = !active ? 'fa-sort text-muted' : state.sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down'; const compactWidth = Math.max(85,Math.round(Number(column.width || 140)*0.75)); return '<th style="min-width:' + compactWidth + 'px"><button class="btn btn-link btn-sm p-0 text-decoration-none text-dark fw-semibold board-sort" type="button" data-field-key="' + escapeHtml(column.fieldKey) + '">' + escapeHtml(column.columnLabel) + ' <i class="fas ' + icon + ' ms-1"></i></button></th>'; }).join('') + '</tr>';
-        table.querySelector('tbody').innerHTML = rows.map(row => '<tr class="board-row" data-href="/workflows/view?id=' + row.id + '">' + columns.map(column => {
+        table.querySelector('tbody').innerHTML = rows.map(row => '<tr class="board-row' + (row.workflowStatus === 'complete' ? ' workflow-row-completed' : '') + '" data-href="/workflows/view?id=' + row.id + '">' + columns.map(column => {
             let value = boardValue(row,column,cells);
             if (column.fieldKey === 'workflowName') return '<td><a class="fw-semibold text-decoration-none" href="/workflows/view?id=' + row.id + '">' + escapeHtml(value) + '</a><div class="small text-muted">' + escapeHtml(row.referenceCode) + '</div></td>';
             if (column.fieldKey === 'risk') { const risk = riskMeta(row.riskLevel); return '<td><div class="d-flex align-items-start gap-2"><i class="fas ' + risk.icon + ' mt-1" style="color:' + risk.colour + '" aria-hidden="true"></i><div><div class="fw-semibold" style="color:' + risk.colour + '">' + risk.label + '</div><div class="small text-muted">' + escapeHtml(row.riskReason) + '</div></div></div></td>'; }
@@ -103,7 +103,7 @@
         document.getElementById('boardLoading').classList.remove('d-none');
         document.getElementById('boardError').classList.add('d-none');
         try {
-            const params = new URLSearchParams({page: state.page, pageSize: state.pageSize, search: state.search});
+            const params = new URLSearchParams({page: state.page, pageSize: state.pageSize, search: state.search, view: state.view});
             const boardResponse = await fetch('/api/board_views/board?' + params.toString());
             if (!boardResponse.ok) throw new Error('The event overview could not be loaded.');
             state.board = await boardResponse.json();
@@ -139,6 +139,18 @@
         state.searchTimer = setTimeout(loadBoard, 300);
     });
     document.getElementById('clearBoardSearch').addEventListener('click', () => { const input = document.getElementById('boardSearch'); input.value=''; state.search=''; state.page=1; clearTimeout(state.searchTimer); loadBoard(); input.focus(); });
+    document.querySelectorAll('.board-view-filter').forEach(button => button.addEventListener('click', () => {
+        state.view = button.dataset.view;
+        state.page = 1;
+        document.querySelectorAll('.board-view-filter').forEach(item => {
+            const active = item === button;
+            item.classList.toggle('btn-primary', active);
+            item.classList.toggle('btn-outline-primary', !active);
+            item.classList.toggle('active', active);
+            item.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        loadBoard();
+    }));
     document.getElementById('boardPageSize').addEventListener('change', event => { state.pageSize=Number(event.target.value); state.page=1; loadBoard(); });
     document.getElementById('boardPreviousPage').addEventListener('click', () => { if (state.page > 1) { state.page--; loadBoard(); } });
     document.getElementById('boardNextPage').addEventListener('click', () => { if (state.page < state.totalPages) { state.page++; loadBoard(); } });
@@ -167,4 +179,13 @@
     document.addEventListener('DOMContentLoaded', load);
 })();
 </script>
+<style>
+#workflowBoard tbody tr.workflow-row-completed > * {
+    background-color: #d1e7dd !important;
+    border-color: #badbcc;
+}
+#workflowBoard tbody tr.workflow-row-completed:hover > * {
+    background-color: #bfe1ca !important;
+}
+</style>
 <meta name="ac:route" content="/workflows">
