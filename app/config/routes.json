@@ -12,6 +12,34 @@
       }
     },
     {
+      "path": "/demo/test-scenario",
+      "page": "demo/test_scenario",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/platform/tenant-lifecycle",
+      "page": "platform/tenant_lifecycle",
+      "layout": "platform_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["platform-admin"],"loginUrl":"/platform/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/demo/test-scenario",
+      "page": "demo/test_scenario",
+      "layout": "main_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","loginUrl":"/login/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
+      "path": "/platform/tenant-lifecycle",
+      "page": "platform/tenant_lifecycle",
+      "layout": "platform_shell",
+      "routeType": "page",
+      "restrict": {"provider":"security","permissions":["platform-admin"],"loginUrl":"/platform/login","forbiddenUrl":"/unauthorised"}
+    },
+    {
       "path": "/login",
       "page": "login/login",
       "layout": "main",

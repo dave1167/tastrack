@@ -107,6 +107,20 @@
         "outputType": "text"
       },
       {
+        "name": "tenantLifecycle",
+        "module": "dbupdater",
+        "action": "custom",
+        "options": {
+          "connection": "db",
+          "sql": {
+            "query": "SELECT t.tenantType,t.lifecycleStatus,t.accessStartDate,t.accessEndDate,CAST(t.isActive=1 AND t.lifecycleStatus='active' AND (t.accessStartDate IS NULL OR t.accessStartDate<=CURRENT_TIMESTAMP) AND (t.accessEndDate IS NULL OR t.accessEndDate>CURRENT_TIMESTAMP) AS UNSIGNED) canWrite,CAST(t.tenantType='demo' AND t.lifecycleStatus='active' AND (t.accessEndDate IS NULL OR t.accessEndDate>CURRENT_TIMESTAMP) AS UNSIGNED) isActiveDemo FROM tbl_tenants t WHERE t.id=:tenantId LIMIT 1",
+            "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID.default(0)}}"}]
+          }
+        },
+        "output": true,
+        "outputType": "array"
+      },
+      {
         "name": "platformAdmin",
         "module": "dbupdater",
         "action": "custom",
