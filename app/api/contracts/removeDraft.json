@@ -1,7 +1,7 @@
 {
   "settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},
   "meta":{"$_GET":[{"type":"number","name":"id"}],"$_POST":[{"type":"number","name":"contractId"}]},
-  "exec":{"steps":[
+  "exec":{"steps":[{"name":"requireTenantLifecycleWrite","module":"tenantLifecycle","action":"requireWrite","options":{"tenantId":"{{$_SESSION.TENANT_ID.default(0)}}","userId":"{{$_SESSION.USER_ID.default(0)}}","requireMembership":true},"output":false},
     {"name":"removeDraft","module":"contractDraft","action":"remove","options":{"contractId":"{{$_POST.contractId.default($_GET.id)}}","tenantId":"{{$_SESSION.TENANT_ID}}","userId":"{{$_SESSION.USER_ID}}"},"output":true},
     {"module":"core","action":"redirect","options":{"url":"/workflows/view?id={{removeDraft.workflowId}}&section=documents&draft={{removeDraft.action}}","status":302}}
   ]}

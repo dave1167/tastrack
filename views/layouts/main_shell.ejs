@@ -196,6 +196,13 @@
 
         <main class="shell-content" is="dmx-view" id="content">
             <div class="shell-content-inner">
+                <div class="alert alert-warning d-flex align-items-start gap-2 mb-3" role="status" data-testid="tenant-lifecycle-banner" dmx-show="scWelcome.data.tenantLifecycle[0].canWrite == 0">
+                    <i class="fas fa-lock mt-1" aria-hidden="true"></i>
+                    <div>
+                        <strong dmx-text="scWelcome.data.tenantLifecycle[0].tenantType == 'demo' ? 'This demo has ended.' : (scWelcome.data.tenantLifecycle[0].tenantType == 'trial' ? 'Your Metipath trial has ended.' : 'This workspace is read-only.')"></strong>
+                        <span class="d-block" dmx-text="scWelcome.data.tenantLifecycle[0].tenantType == 'demo' ? 'Your workspace is available for review only.' : (scWelcome.data.tenantLifecycle[0].tenantType == 'trial' ? 'Your workspace is available for review only. Contact your administrator to continue using Metipath.' : 'You can review existing information, but changes are currently disabled.')"></span>
+                    </div>
+                </div>
                 <%- await include(content, locals); %>
             </div>
         </main>

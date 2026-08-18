@@ -19,7 +19,7 @@
     ]
   },
   "exec": {
-    "steps": [
+    "steps": [{"name":"requireTenantLifecycleWrite","module":"tenantLifecycle","action":"requireWrite","options":{"tenantId":"{{$_SESSION.TENANT_ID.default(0)}}","userId":"{{$_SESSION.USER_ID.default(0)}}","requireMembership":true},"output":false},
       {"name":"workflowBeforeChange","module":"dbupdater","action":"custom","options":{"connection":"db","sql":{"query":"SELECT id,workflowName,referenceCode,status,ownerTeamId,startDate,targetDate FROM tbl_workflows WHERE id=:id AND tenantId=:tenantId LIMIT 1","params":[{"name":":id","value":"{{$_POST.id}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"}]}},"output":true,"outputType":"array"},
       {
         "name": "updateWorkflow",

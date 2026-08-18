@@ -1,7 +1,7 @@
 {
   "settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},
   "meta":{"$_GET":[{"type":"number","name":"id"}],"$_POST":[{"type":"number","name":"contractId"},{"type":"number","name":"rowVersion"},{"type":"text","name":"contractName"},{"type":"text","name":"renderedHtml"}]},
-  "exec":{"steps":[
+  "exec":{"steps":[{"name":"requireTenantLifecycleWrite","module":"tenantLifecycle","action":"requireWrite","options":{"tenantId":"{{$_SESSION.TENANT_ID.default(0)}}","userId":"{{$_SESSION.USER_ID.default(0)}}","requireMembership":true},"output":false},
     {"name":"requireContractId","module":"core","action":"condition","options":{"if":"{{!$_POST.contractId && !$_GET.id}}","then":{"steps":{"module":"core","action":"error","options":{"status":400,"message":"The contract ID was not submitted. Reopen the draft and try again."}}}},"outputType":"boolean"},
     {"name":"contractModule","module":"tenantModule","action":"require","options":{"moduleCode":"CONTRACT_GENERATION","tenantId":"{{$_SESSION.TENANT_ID}}","userId":"{{$_SESSION.USER_ID}}"},"output":false},
     {

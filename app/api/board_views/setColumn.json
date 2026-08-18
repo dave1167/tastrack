@@ -5,7 +5,7 @@
     {"type": "number", "name": "isVisible"}, {"type": "number", "name": "sortOrder"},
     {"type": "number", "name": "width"}
   ]},
-  "exec": {"steps": [
+  "exec": {"steps": [{"name":"requireTenantLifecycleWrite","module":"tenantLifecycle","action":"requireWrite","options":{"tenantId":"{{$_SESSION.TENANT_ID.default(0)}}","userId":"{{$_SESSION.USER_ID.default(0)}}","requireMembership":true},"output":false},
     {"name": "personalView", "module": "dbupdater", "action": "custom", "options": {"connection": "db", "sql": {
       "query": "SELECT id FROM tbl_board_views WHERE tenantId=:tenantId AND userId=:userId AND templateId IS NULL AND isDefault=1 ORDER BY id DESC LIMIT 1",
       "params": [{"name": ":tenantId", "value": "{{$_SESSION.TENANT_ID}}"}, {"name": ":userId", "value": "{{$_SESSION.USER_ID}}"}]

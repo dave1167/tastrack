@@ -29,7 +29,8 @@
     "test:workflow-mailbox-integration": "node tests/workflowMailbox.integration.test.js",
     "test:mailbox-browser-security": "node tests/mailboxBrowser.security.test.js"
     ,"test:configurable-forms": "node tests/configurableForms.test.js",
-    "test:h1-demo-lifecycle": "node tests/h1DemoLifecycle.test.js"
+    "test:h1-demo-lifecycle": "node tests/h1DemoLifecycle.test.js",
+    "test:h2-tenant-lifecycle": "node tests/h2TenantLifecycle.test.js"
   },
   "author": "Wappler",
   "license": "ISC",

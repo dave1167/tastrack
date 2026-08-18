@@ -5,7 +5,7 @@
     {"type": "number", "name": "expectedCurrentStageId"},
     {"type": "text", "name": "approvalComment"}
   ]},
-  "exec": {"steps": [
+  "exec": {"steps": [{"name":"requireTenantLifecycleWrite","module":"tenantLifecycle","action":"requireWrite","options":{"tenantId":"{{$_SESSION.TENANT_ID.default(0)}}","userId":"{{$_SESSION.USER_ID.default(0)}}","requireMembership":true},"output":false},
     {
       "name": "completionCheck", "module": "dbupdater", "action": "custom",
       "options": {"connection": "db", "sql": {

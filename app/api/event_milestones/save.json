@@ -1,7 +1,7 @@
 {
   "settings":{"options":{"restrict":{"provider":"security"},"method":"post"}},
   "meta":{"$_POST":[{"type":"number","name":"id"},{"type":"text","name":"milestoneName"},{"type":"text","name":"milestoneGroup"},{"type":"text","name":"timingCategory"},{"type":"number","name":"displayOrder"},{"type":"number","name":"isActive"},{"type":"number","name":"isDefault"}]},
-  "exec":{"steps":[
+  "exec":{"steps":[{"name":"requireTenantLifecycleWrite","module":"tenantLifecycle","action":"requireWrite","options":{"tenantId":"{{$_SESSION.TENANT_ID.default(0)}}","userId":"{{$_SESSION.USER_ID.default(0)}}","requireMembership":true},"output":false},
     {
       "name":"clearExistingDefault","module":"dbupdater","action":"custom",
       "options":{"connection":"db","sql":{"query":"UPDATE tbl_event_milestones m SET m.isDefault=0,m.modifiedByUserId=:userId,m.modifiedDate=CURRENT_TIMESTAMP WHERE m.tenantId=:tenantId AND :isDefault=1 AND m.id<>NULLIF(:id,0) AND EXISTS(SELECT 1 FROM tbl_user_tenant_roles utr INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.roleKey IN ('owner','admin') AND r.isActive=1 WHERE utr.userId=:authorisedUser AND utr.tenantId=m.tenantId AND utr.isActive=1)","params":[{"name":":userId","value":"{{$_SESSION.USER_ID}}"},{"name":":tenantId","value":"{{$_SESSION.TENANT_ID}}"},{"name":":isDefault","value":"{{$_POST.isDefault.default(0)}}"},{"name":":id","value":"{{$_POST.id.default(0)}}"},{"name":":authorisedUser","value":"{{$_SESSION.USER_ID}}"}]}},"output":true

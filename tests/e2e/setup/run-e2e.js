@@ -1,5 +1,5 @@
 const path = require('path');
-const { spawn, execFileSync } = require('child_process');
+const { spawn } = require('child_process');
 const { seedTestData } = require('./seed-test-data');
 const { loadAndValidateTestEnvironment } = require('../support/environment');
 
@@ -35,13 +35,13 @@ async function waitForServer(server, output) {
 }
 
 function runPlaywright() {
-    const executable = path.join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'playwright.cmd' : 'playwright');
+    const executable = process.execPath;
+    const cli = path.join(root, 'node_modules', '@playwright', 'test', 'cli.js');
     return new Promise((resolve, reject) => {
-        const child = spawn(executable, ['test', ...process.argv.slice(2)], {
+        const child = spawn(executable, [cli, 'test', ...process.argv.slice(2)], {
             cwd: root,
             stdio: 'inherit',
-            windowsHide: true,
-            shell: process.platform === 'win32'
+            windowsHide: true
         });
         child.once('error', reject);
         child.once('exit', code => resolve(code == null ? 1 : code));
@@ -68,17 +68,7 @@ async function main() {
         process.exitCode = await runPlaywright();
         if (process.exitCode) console.error(output.join(''));
     } finally {
-        if (server.exitCode === null) {
-            if (process.platform === 'win32') {
-                try {
-                    execFileSync('taskkill.exe', ['/PID', String(server.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
-                } catch (_) {
-                    server.kill();
-                }
-            } else {
-                server.kill('SIGTERM');
-            }
-        }
+        if (server.exitCode === null) server.kill('SIGTERM');
     }
 }
 

@@ -95,22 +95,7 @@
                             ]
              },
     "exec":  {
-                 "steps":  [
-                               {
-                                   "name": "tenantLifecycle",
-                                   "module": "dbupdater",
-                                   "action": "custom",
-                                   "options": {"connection":"db","sql":{"query":"SELECT CAST(t.isActive=1 AND t.lifecycleStatus='active' AND (t.accessStartDate IS NULL OR t.accessStartDate<=CURRENT_TIMESTAMP) AND (t.accessEndDate IS NULL OR t.accessEndDate>CURRENT_TIMESTAMP) AS UNSIGNED) canWrite FROM tbl_tenants t WHERE t.id=:tenantId AND EXISTS(SELECT 1 FROM tbl_user_tenants ut WHERE ut.tenantId=t.id AND ut.userId=:userId AND ut.isActive=1 AND ut.membershipStatus='active') LIMIT 1","params":[{"name":":tenantId","value":"{{$_SESSION.TENANT_ID.default(0)}}"},{"name":":userId","value":"{{$_SESSION.USER_ID.default(0)}}"}]}},
-                                   "output": true,
-                                   "outputType": "array"
-                               },
-                               {
-                                   "name": "requireTenantWrite",
-                                   "module": "core",
-                                   "action": "condition",
-                                   "options": {"if":"{{tenantLifecycle.count() == 0 || tenantLifecycle[0].canWrite == 0}}","then":{"steps":{"module":"core","action":"error","options":{"status":403,"message":"TENANT_READ_ONLY: This organisation is not currently permitted to create workflows."}}}},
-                                   "outputType": "boolean"
-                               },
+                 "steps":  [{"name":"requireTenantLifecycleWrite","module":"tenantLifecycle","action":"requireWrite","options":{"tenantId":"{{$_SESSION.TENANT_ID.default(0)}}","userId":"{{$_SESSION.USER_ID.default(0)}}","requireMembership":true},"output":false},
                                {
                                    "name":  "getTemplate",
                                    "module":  "dbupdater",

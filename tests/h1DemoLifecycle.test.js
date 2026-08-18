@@ -83,7 +83,7 @@ async function main() {
     const adminApi = fs.readFileSync(path.join(root, 'app', 'api', 'platform', 'tenantLifecycle', 'update.json'), 'utf8');
     assert(adminApi.includes('isPlatformAdmin=1'), 'Lifecycle update must require a platform administrator.');
     const workflowCreate = fs.readFileSync(path.join(root, 'app', 'api', 'workflows', 'create.json'), 'utf8');
-    assert(workflowCreate.includes('TENANT_READ_ONLY'), 'Representative workflow write must enforce lifecycle status.');
+    assert(workflowCreate.includes('tenantLifecycle') && workflowCreate.includes('requireWrite'), 'Representative workflow write must enforce lifecycle status through the central rule.');
     console.log('H1 lifecycle/scenario integration tests passed.');
   } finally {
     await db.rollback();
