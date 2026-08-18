@@ -13,7 +13,7 @@
       "options": {
         "connection": "db",
         "sql": {
-          "query": "SELECT t.id AS tenantId,t.tenantName FROM tbl_user_tenants ut INNER JOIN tbl_tenants t ON t.id=ut.tenantId AND t.isActive=1 AND t.lifecycleStatus NOT IN ('suspended','closed') WHERE ut.userId=:userId AND ut.isActive=1 AND ut.membershipStatus='active' ORDER BY t.tenantName",
+          "query": "SELECT t.id AS tenantId,t.tenantName FROM tbl_user_tenants ut INNER JOIN tbl_tenants t ON t.id=ut.tenantId AND t.isActive=1 AND t.lifecycleStatus NOT IN ('suspended','closed') WHERE ut.userId=:userId AND ut.actorType='human' AND ut.isActive=1 AND ut.membershipStatus='active' ORDER BY t.tenantName",
           "params": [
             {
               "name": ":userId",

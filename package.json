@@ -30,7 +30,8 @@
     "test:mailbox-browser-security": "node tests/mailboxBrowser.security.test.js"
     ,"test:configurable-forms": "node tests/configurableForms.test.js",
     "test:h1-demo-lifecycle": "node tests/h1DemoLifecycle.test.js",
-    "test:h2-tenant-lifecycle": "node tests/h2TenantLifecycle.test.js"
+    "test:h2-tenant-lifecycle": "node tests/h2TenantLifecycle.test.js",
+    "test:h3-simulated-activity": "node tests/h3SimulatedActivity.test.js"
   },
   "author": "Wappler",
   "license": "ISC",

@@ -22,7 +22,7 @@ async function requireWrite(app, tenantId, userId = 0, requireMembership = true)
         const result = await decision(db, tenantId);
         let allowed = result.allowed;
         if (allowed && requireMembership) {
-            allowed = Boolean(userId && await db('tbl_user_tenants').where({tenantId,userId,isActive:1,membershipStatus:'active'}).first('id'));
+            allowed = Boolean(userId && await db('tbl_user_tenants').where({tenantId,userId,actorType:'human',isActive:1,membershipStatus:'active'}).first('id'));
         }
         if (!allowed) {
             const errorCode = result.allowed ? 'TENANT_MEMBERSHIP_INVALID' : result.errorCode;

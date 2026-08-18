@@ -63,7 +63,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT utr.userId,utr.tenantId,utr.roleId,utr.isPrimary,u.fName,u.lName,u.displayName,t.tenantName,r.roleName,r.roleKey FROM tbl_user_tenants ut INNER JOIN tbl_user_tenant_roles utr ON utr.userId=ut.userId AND utr.tenantId=ut.tenantId AND utr.isActive=1 INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 INNER JOIN tbl_tenants t ON t.id=ut.tenantId AND t.isActive=1 AND t.lifecycleStatus NOT IN ('suspended','closed') INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 WHERE ut.userId=:userId AND ut.isActive=1 AND ut.membershipStatus='active' ORDER BY utr.isPrimary DESC,utr.tenantId,utr.roleId LIMIT 1",
+            "query": "SELECT utr.userId,utr.tenantId,utr.roleId,utr.isPrimary,u.fName,u.lName,u.displayName,t.tenantName,r.roleName,r.roleKey FROM tbl_user_tenants ut INNER JOIN tbl_user_tenant_roles utr ON utr.userId=ut.userId AND utr.tenantId=ut.tenantId AND utr.isActive=1 INNER JOIN tbl_users u ON u.id=ut.userId AND u.isActive=1 INNER JOIN tbl_tenants t ON t.id=ut.tenantId AND t.isActive=1 AND t.lifecycleStatus NOT IN ('suspended','closed') INNER JOIN tbl_roles r ON r.id=utr.roleId AND r.isActive=1 WHERE ut.userId=:userId AND ut.actorType='human' AND ut.isActive=1 AND ut.membershipStatus='active' ORDER BY utr.isPrimary DESC,utr.tenantId,utr.roleId LIMIT 1",
             "params": [
               {
                 "name": ":userId",
@@ -84,7 +84,7 @@
         "options": {
           "connection": "db",
           "sql": {
-            "query": "SELECT COUNT(*) tenantCount,CASE WHEN COUNT(*)=0 THEN '/unauthorised' WHEN COUNT(*)>1 THEN '/login/tenant' ELSE '/' END redirectUrl FROM tbl_user_tenants ut INNER JOIN tbl_tenants t ON t.id=ut.tenantId AND t.isActive=1 AND t.lifecycleStatus NOT IN ('suspended','closed') WHERE ut.userId=:userId AND ut.isActive=1 AND ut.membershipStatus='active'",
+            "query": "SELECT COUNT(*) tenantCount,CASE WHEN COUNT(*)=0 THEN '/unauthorised' WHEN COUNT(*)>1 THEN '/login/tenant' ELSE '/' END redirectUrl FROM tbl_user_tenants ut INNER JOIN tbl_tenants t ON t.id=ut.tenantId AND t.isActive=1 AND t.lifecycleStatus NOT IN ('suspended','closed') WHERE ut.userId=:userId AND ut.actorType='human' AND ut.isActive=1 AND ut.membershipStatus='active'",
             "params": [
               {
                 "name": ":userId",

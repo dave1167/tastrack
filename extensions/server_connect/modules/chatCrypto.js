@@ -50,23 +50,21 @@ function decryptRow(row, tenantId, outputField) {
     return output;
 }
 
+function encryptValue(plaintext, tenantId, conversationId) {
+    const version = currentVersion();
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', keyForVersion(version), iv);
+    cipher.setAAD(aad(Number(tenantId), Number(conversationId), version));
+    const ciphertext = Buffer.concat([cipher.update(String(plaintext), 'utf8'), cipher.final()]);
+    return {ciphertext:ciphertext.toString('base64'),iv:iv.toString('base64'),authTag:cipher.getAuthTag().toString('base64'),keyVersion:version};
+}
+
 module.exports = {
     encrypt: function (options) {
         const plaintext = this.parseRequired(options.plaintext, 'string', 'chatCrypto.encrypt: plaintext is required.');
         const tenantId = this.parseRequired(options.tenantId, 'number', 'chatCrypto.encrypt: tenantId is required.');
         const conversationId = this.parseRequired(options.conversationId, 'number', 'chatCrypto.encrypt: conversationId is required.');
-        const version = currentVersion();
-        const iv = crypto.randomBytes(12);
-        const cipher = crypto.createCipheriv('aes-256-gcm', keyForVersion(version), iv);
-        cipher.setAAD(aad(tenantId, conversationId, version));
-        const ciphertext = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-
-        return {
-            ciphertext: ciphertext.toString('base64'),
-            iv: iv.toString('base64'),
-            authTag: cipher.getAuthTag().toString('base64'),
-            keyVersion: version
-        };
+        return encryptValue(plaintext, tenantId, conversationId);
     },
 
     decryptRows: function (options) {
@@ -78,5 +76,7 @@ module.exports = {
             throw new Error('chatCrypto.decryptRows: outputField is invalid.');
         }
         return rows.map(row => decryptRow(row, tenantId, outputField));
-    }
+    },
+    _encrypt: encryptValue,
+    _decryptRow: decryptRow
 };

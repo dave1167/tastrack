@@ -68,7 +68,13 @@ async function main() {
         process.exitCode = await runPlaywright();
         if (process.exitCode) console.error(output.join(''));
     } finally {
-        if (server.exitCode === null) server.kill('SIGTERM');
+        if (server.exitCode === null) {
+            server.kill(process.platform === 'win32' ? 'SIGKILL' : 'SIGTERM');
+            await Promise.race([
+                new Promise(resolve => server.once('exit', resolve)),
+                new Promise(resolve => setTimeout(resolve, 5_000))
+            ]);
+        }
     }
 }
 

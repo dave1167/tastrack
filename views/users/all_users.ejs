@@ -52,7 +52,7 @@
                                             <i class="fas fa-user"></i>
                                         </div>
                                         <div>
-                                            <div class="fw-semibold" dmx-text="displayName"></div>
+                                            <div class="fw-semibold"><span dmx-text="displayName"></span><span class="badge bg-secondary ms-1" dmx-show="actorType == 'simulated'">Simulated</span></div>
                                             <div class="text-muted small" dmx-text="email"></div>
                                         </div>
                                     </div>
@@ -75,7 +75,7 @@
                                     <span class="badge bg-secondary" dmx-show="membershipStatus != 'active' && membershipStatus != 'invited' && membershipStatus != 'suspended'" dmx-text="membershipStatus.capitalize()"></span>
                                 </td>
                                 <td class="text-end">
-                                    <a class="btn btn-sm btn-outline-primary" dmx-bind:href="'/users/edit_user?userid=' + userId" dmx-bind:aria-label="'Edit ' + displayName">
+                                    <a class="btn btn-sm btn-outline-primary" dmx-show="actorType != 'simulated'" dmx-bind:href="'/users/edit_user?userid=' + userId" dmx-bind:aria-label="'Edit ' + displayName">
                                         <i class="fas fa-pen me-1"></i>Edit
                                     </a>
                                 </td>
