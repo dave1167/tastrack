@@ -1,0 +1,21 @@
+{
+  type: 'scenario_activity_advance',
+  module: 'scenarioActivity',
+  action: 'advance',
+  groupTitle: 'Demo Scenarios',
+  groupIcon: 'fa fa-play-circle',
+  addTitle: 'Advance active scenario',
+  title: 'Advance active scenario',
+  icon: 'fa fa-step-forward',
+  serverModel: ['node'],
+  dataPickObject: true,
+  properties: [{
+    group: 'Authoritative scenario context',
+    variables: [
+      {name:'tenantId',optionName:'tenantId',title:'Tenant ID',type:'number',required:true,serverDataBindings:true},
+      {name:'scenarioInstanceId',optionName:'scenarioInstanceId',title:'Scenario instance ID',type:'number',serverDataBindings:true},
+      {name:'scenarioStepId',optionName:'scenarioStepId',title:'Scenario step ID',type:'number',serverDataBindings:true},
+      {name:'userId',optionName:'userId',title:'User ID',type:'number',required:true,serverDataBindings:true}
+    ]
+  }]
+}

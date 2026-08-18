@@ -31,7 +31,8 @@
     ,"test:configurable-forms": "node tests/configurableForms.test.js",
     "test:h1-demo-lifecycle": "node tests/h1DemoLifecycle.test.js",
     "test:h2-tenant-lifecycle": "node tests/h2TenantLifecycle.test.js",
-    "test:h3-simulated-activity": "node tests/h3SimulatedActivity.test.js"
+    "test:h3-simulated-activity": "node tests/h3SimulatedActivity.test.js",
+    "test:h4-simulated-communications": "node tests/h4SimulatedCommunications.test.js"
   },
   "author": "Wappler",
   "license": "ISC",

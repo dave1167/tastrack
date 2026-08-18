@@ -1,0 +1,19 @@
+{
+  type: 'communication_email_assign',
+  module: 'communicationEmail',
+  action: 'assign',
+  groupTitle: 'Email Communications',
+  groupIcon: 'fa fa-envelope',
+  addTitle: 'Assign communication to workflow',
+  title: 'Assign communication to workflow',
+  icon: 'fa fa-link',
+  serverModel: ['node'],
+  dataPickObject: true,
+  properties: [{
+    group: 'Assignment',
+    variables: [
+      {name:'communicationId',optionName:'communicationId',title:'Communication ID',type:'number',required:true,serverDataBindings:true},
+      {name:'workflowId',optionName:'workflowId',title:'Workflow ID',type:'number',required:true,serverDataBindings:true}
+    ]
+  }]
+}

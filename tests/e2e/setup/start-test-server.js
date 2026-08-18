@@ -35,7 +35,9 @@ runtimeConfig.env = {
     EMAIL_REPLY_TO: '',
     EMAIL_ARCHIVE_BCC: '',
     CONTRACT_STORAGE_PATH: '/uploads/contracts',
-    CHAT_ENCRYPTION_KEY_V1: Buffer.alloc(32, 7).toString('base64')
+    CHAT_ENCRYPTION_KEY_V1: Buffer.alloc(32, 7).toString('base64'),
+    METIPATH_ENCRYPTION_MASTER_KEY_V1: Buffer.alloc(32, 11).toString('base64'),
+    METIPATH_ENCRYPTION_KEY_VERSION: '1'
 };
 fs.writeFileSync(runtimeConfigPath, JSON.stringify(runtimeConfig, null, 2));
 
@@ -45,6 +47,8 @@ process.env.WAPPLER_SERVER_SECRET = process.env.E2E_SESSION_SECRET;
 process.env.EMAIL_ENABLED = 'false';
 process.env.RESEND_API_KEY = '';
 process.env.APP_BASE_URL = process.env.E2E_BASE_URL;
+process.env.METIPATH_ENCRYPTION_MASTER_KEY_V1 = Buffer.alloc(32, 11).toString('base64');
+process.env.METIPATH_ENCRYPTION_KEY_VERSION = '1';
 process.env.NODE_ENV = 'test';
 require('module').Module._initPaths();
 process.chdir(runtime);

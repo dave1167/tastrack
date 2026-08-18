@@ -1,5 +1,6 @@
 const BreakError = require('../../../lib/errors/breakError');
 const chatCrypto = require('./chatCrypto');
+const scenarioCommunication = require('./scenarioCommunication');
 
 function fail(app, status, errorCode, message) {
   if (app.res && !app.res.headersSent) app.res.status(status).json({success:false,errorCode,message});
@@ -86,7 +87,7 @@ async function advance(app, tenantId, instanceId, stepId, userId) {
       const idempotencyKey = `${instanceId}:${stepId}`;
       const completed = await trx('tbl_scenario_executions').where({tenantId,scenarioInstanceId:instanceId,scenarioStepId:stepId,idempotencyKey:idempotencyKey,executionStatus:'completed'}).first('resultJson');
       if (completed) return {success:true,...JSON.parse(completed.resultJson||'{}'),idempotent:true};
-      const context = await trx('tbl_scenario_instances as i').join('tbl_tenants as t','t.id','i.tenantId').join('tbl_scenario_steps as s',function(){this.on('s.id','i.currentStepId').andOn('s.scenarioPackId','i.scenarioPackId')}).where({'i.id':instanceId,'i.tenantId':tenantId,'i.currentStepId':stepId,'t.tenantType':'demo','t.lifecycleStatus':'active','t.isActive':1}).whereIn('i.status',['ready','active']).where(q=>q.whereNull('t.accessStartDate').orWhere('t.accessStartDate','<=',trx.fn.now())).where(q=>q.whereNull('t.accessEndDate').orWhere('t.accessEndDate','>',trx.fn.now())).forUpdate().first('i.id as instanceId','i.tenantId','i.scenarioPackId','s.id as stepId','s.sequenceNumber','s.actionType','s.configurationJson');
+      const context = await trx('tbl_scenario_instances as i').join('tbl_tenants as t','t.id','i.tenantId').join('tbl_scenario_steps as s',function(){this.on('s.id','i.currentStepId').andOn('s.scenarioPackId','i.scenarioPackId')}).where({'i.id':instanceId,'i.tenantId':tenantId,'i.currentStepId':stepId,'t.tenantType':'demo','t.lifecycleStatus':'active','t.isActive':1}).whereIn('i.status',['ready','active']).where(q=>q.whereNull('t.accessStartDate').orWhere('t.accessStartDate','<=',trx.fn.now())).where(q=>q.whereNull('t.accessEndDate').orWhere('t.accessEndDate','>',trx.fn.now())).forUpdate().first('i.id as instanceId','i.tenantId','i.scenarioPackId','i.simulatedDateTime','s.id as stepId','s.sequenceNumber','s.actionType','s.configurationJson');
       if (!context) throw Object.assign(new Error('Active demo scenario step not found.'), {code:'ACTIVE_DEMO_REQUIRED',status:403});
       context.instanceId=Number(context.instanceId);
       const config = typeof context.configurationJson === 'string' ? JSON.parse(context.configurationJson||'{}') : (context.configurationJson||{});
@@ -101,6 +102,8 @@ async function advance(app, tenantId, instanceId, stepId, userId) {
       if (context.actionType==='task_complete') result={...result,...await completeTask(trx,context,execution,config)};
       else if (context.actionType==='chat_message_send') result={...result,...await sendDirectMessage(trx,context,execution,config,userId)};
       else if (context.actionType==='wait_chat_read') result={...result,...await requireMessageRead(trx,context,userId)};
+      else if (context.actionType==='communication_receive') result={...result,...await scenarioCommunication.inject(trx,context,execution,config,userId)};
+      else if (context.actionType==='wait_communication_linked') result={...result,...await scenarioCommunication.requireLinked(trx,context,config)};
       else if (context.actionType!=='narrative_show') throw Object.assign(new Error('Unsupported scenario action.'), {code:'SCENARIO_ACTION_UNSUPPORTED'});
       const next = await trx('tbl_scenario_steps').where({scenarioPackId:context.scenarioPackId,isActive:1,sequenceNumber:context.sequenceNumber+1}).first('id');
       await trx('tbl_scenario_instances').where({id:context.instanceId,tenantId:context.tenantId,currentStepId:context.stepId}).update({currentStepId:next?next.id:context.stepId,status:next?'active':'completed',startedDate:trx.raw('COALESCE(startedDate,CURRENT_TIMESTAMP)'),completedDate:next?null:trx.fn.now(),modifiedDate:trx.fn.now(),revisionNumber:trx.raw('revisionNumber+1')});
@@ -116,9 +119,13 @@ async function advance(app, tenantId, instanceId, stepId, userId) {
 module.exports = {
   advance: async function(options) {
     const tenantId=this.parseRequired(options.tenantId,'number','scenarioActivity.advance: tenantId is required.');
-    const instanceId=this.parseRequired(options.instanceId,'number','scenarioActivity.advance: instanceId is required.');
-    const stepId=this.parseRequired(options.stepId,'number','scenarioActivity.advance: stepId is required.');
     const userId=this.parseRequired(options.userId,'number','scenarioActivity.advance: userId is required.');
+    const db=this.getDbConnection('db');
+    const current=await db('tbl_scenario_instances').where({tenantId}).whereIn('status',['ready','active']).orderBy('id','desc').first('id','currentStepId');
+    if(!current)fail(this,404,'SCENARIO_NOT_FOUND','Active demo scenario not found.');
+    const postedInstance=Number(options.scenarioInstanceId||this.req.body?.instanceId)||0,postedStep=Number(options.scenarioStepId||this.req.body?.stepId)||0;
+    if((postedInstance&&postedInstance!==Number(current.id))||(postedStep&&postedStep!==Number(current.currentStepId)))fail(this,409,'SCENARIO_STEP_STALE','The scenario has already moved to another step. Refresh and try again.');
+    const instanceId=Number(current.id),stepId=Number(current.currentStepId);
     return advance(this,tenantId,instanceId,stepId,userId);
   },
   _test:{ensureActor,ensureTask,completeTask,sendDirectMessage,requireMessageRead,advance}

@@ -1,4 +1,26 @@
 <!-- Wappler include head-page="layouts/main_shell" fontawesome_5="cdn" bootstrap5="local" is="dmx-app" id="demo_test_scenario" appConnect="local" -->
 <dmx-serverconnect id="scScenario" url="/api/scenario/current"></dmx-serverconnect>
-<div class="row justify-content-center"><div class="col-lg-7"><div class="card border-0 shadow-sm"><div class="card-body p-4"><div dmx-show="scScenario.data.scenario.count() > 0"><p class="text-uppercase small text-muted mb-1">Technical scenario</p><h1 class="h3" dmx-text="scScenario.data.scenario[0].scenarioName"></h1><p class="text-muted" dmx-text="'Step ' + scScenario.data.scenario[0].sequenceNumber + ' of ' + scScenario.data.scenario[0].totalSteps"></p><div class="alert alert-light border fs-5" dmx-text="scScenario.data.scenario[0].narrative"></div><form is="dmx-serverconnect-form" method="post" action="/api/scenario/continue" dmx-on:success="scScenario.load()" dmx-show="scScenario.data.scenario[0].instanceStatus != 'completed'"><%- _csrfInput() %><input type="hidden" name="instanceId" dmx-bind:value="scScenario.data.scenario[0].instanceId"><input type="hidden" name="stepId" dmx-bind:value="scScenario.data.scenario[0].currentStepId"><button class="btn btn-primary" type="submit" dmx-text="scScenario.data.scenario[0].triggerType == 'user_action' ? 'I have reviewed the message' : 'Continue'">Continue</button><div class="small text-danger mt-2" dmx-show="$form.lastError" dmx-text="$form.lastError.response.message"></div></form><div class="alert alert-success mb-0" dmx-show="scScenario.data.scenario[0].instanceStatus == 'completed'">Scenario complete.</div></div><div class="alert alert-info mb-0" dmx-show="!scScenario.state.executing && scScenario.data.scenario.count() == 0">No test scenario is assigned to this tenant.</div></div></div></div></div>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <div dmx-show="scScenario.data.scenario.count() > 0">
+          <p class="text-uppercase small text-muted mb-1">Technical scenario</p>
+          <h1 class="h3" dmx-text="scScenario.data.scenario[0].scenarioName"></h1>
+          <p class="text-muted" dmx-text="'Step ' + scScenario.data.scenario[0].sequenceNumber + ' of ' + scScenario.data.scenario[0].totalSteps"></p>
+          <div class="alert alert-light border fs-5" dmx-text="scScenario.data.scenario[0].narrative"></div>
+          <form is="dmx-serverconnect-form" method="post" action="/api/scenario/continue" dmx-on:success="scScenario.load()" dmx-show="scScenario.data.scenario[0].instanceStatus != 'completed'">
+            <%- _csrfInput() %>
+            <input type="hidden" name="instanceId" dmx-bind:value="scScenario.data.scenario[0].instanceId">
+            <input type="hidden" name="stepId" dmx-bind:value="scScenario.data.scenario[0].currentStepId">
+            <button class="btn btn-primary" type="submit" dmx-text="scScenario.data.scenario[0].buttonLabel.default(scScenario.data.scenario[0].triggerType == 'user_action' ? 'I have completed this action' : 'Continue')">Continue</button>
+            <div class="small text-danger mt-2" dmx-show="$form.lastError" dmx-text="$form.lastError.response.message"></div>
+          </form>
+          <div class="alert alert-success mb-0" dmx-show="scScenario.data.scenario[0].instanceStatus == 'completed'">Scenario complete.</div>
+        </div>
+        <div class="alert alert-info mb-0" dmx-show="!scScenario.state.executing && scScenario.data.scenario.count() == 0">No test scenario is assigned to this tenant.</div>
+      </div>
+    </div>
+  </div>
+</div>
 <meta name="ac:route" content="/demo/test-scenario">
